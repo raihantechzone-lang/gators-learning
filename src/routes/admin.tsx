@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Menu, X } from "lucide-react";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { LayoutDashboard, BookOpen, Users, Settings, LogOut, Star, FileText, Award, CalendarCheck, UserPlus, Medal, DollarSign, ShieldCheck, Folders } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ const SESSION_KEY = "gators-admin-session";
 function AdminGuard() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [checkingRole, setCheckingRole] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,7 +91,9 @@ function AdminGuard() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex">
-      <aside className="w-64 bg-white border-r border-slate-200 p-6 flex flex-col sticky top-0 h-screen shrink-0">
+      {menuOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setMenuOpen(false)} />}
+      <aside className={`w-64 bg-white border-r border-slate-200 p-6 flex flex-col h-screen shrink-0 fixed inset-y-0 left-0 z-50 transition-transform lg:sticky lg:top-0 lg:translate-x-0 ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <button onClick={() => setMenuOpen(false)} className="lg:hidden absolute top-4 right-4 p-2 text-slate-500" aria-label="Close menu"><X size={20} /></button>
         <div className="h-16 flex items-center px-2 mb-8 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-2.5 font-bold text-xl text-slate-800 tracking-tight">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -103,6 +107,7 @@ function AdminGuard() {
             <Link
               key={item.name}
               to={item.href}
+              onClick={() => setMenuOpen(false)}
               activeOptions={{ exact: item.href === "/admin" }}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition border-l-4 border-transparent"
               activeProps={{ className: "bg-indigo-50 text-indigo-600 border-indigo-600 hover:text-indigo-600 font-semibold shadow-none" }}
@@ -116,9 +121,10 @@ function AdminGuard() {
            <LogOut size={20} /> Log Out
         </button>
       </aside>
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 z-20 shrink-0 sticky top-0">
+      <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
+        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-20 shrink-0 sticky top-0">
           <div className="flex items-center gap-4">
+            <button onClick={() => setMenuOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-700" aria-label="Open menu"><Menu size={22} /></button>
             <h2 className="text-lg font-bold text-slate-800 tracking-tight">Control Panel</h2>
           </div>
           <div className="flex items-center gap-3">
@@ -127,7 +133,7 @@ function AdminGuard() {
             </div>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
