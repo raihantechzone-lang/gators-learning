@@ -317,6 +317,21 @@
       }
     });
     
+    // Payment instructions from admin settings (bKash number) + real course price
+    try {
+      const payEl = document.getElementById('payment-instructions');
+      if (payEl) {
+        const { data: bk } = await supabase.from("site_settings").select("value").eq("key", "bkash_number").maybeSingle();
+        const amount = course.discount_price || course.price;
+        const num = bk && bk.value ? bk.value : "";
+        if (num && amount) {
+          payEl.innerHTML = 'নিচের bKash নম্বরে <b>৳' + amount + '</b> সেন্ড মানি করুন: <b class="font-mono">' + num + '</b><br>তারপর Transaction ID নিচে দিন।';
+        } else {
+          payEl.innerText = "পেমেন্ট তথ্য এখনো যোগ করা হয়নি। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।";
+        }
+      }
+    } catch (e) { console.error("payment instructions", e); }
+
     const oldPriceEls = document.querySelectorAll('.line-through');
     oldPriceEls.forEach(el => el.innerText = "৳" + course.price);
 
