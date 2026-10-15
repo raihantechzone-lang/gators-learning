@@ -28,7 +28,8 @@ function SettingsAdmin() {
         subtitle: settingsMap.hero_subtitle || "The ultimate platform for admission & skills.",
         primary_color: settingsMap.primary_color || "#3B82F6",
         contact_email: settingsMap.contact_email || "support@gators.com",
-        announcement: settingsMap.announcement || ""
+        announcement: settingsMap.announcement || "",
+        bkash_number: settingsMap.bkash_number || ""
       };
     },
   });
@@ -38,7 +39,8 @@ function SettingsAdmin() {
     subtitle: "",
     primary_color: "",
     contact_email: "",
-    announcement: ""
+    announcement: "",
+    bkash_number: ""
   });
 
   useEffect(() => {
@@ -48,7 +50,8 @@ function SettingsAdmin() {
         subtitle: settings.subtitle || "",
         primary_color: settings.primary_color || "#3B82F6",
         contact_email: settings.contact_email || "",
-        announcement: settings.announcement || ""
+        announcement: settings.announcement || "",
+        bkash_number: settings.bkash_number || ""
       });
     }
   }, [settings]);
@@ -60,7 +63,8 @@ function SettingsAdmin() {
         { key: 'hero_subtitle', value: payload.subtitle },
         { key: 'primary_color', value: payload.primary_color },
         { key: 'contact_email', value: payload.contact_email },
-        { key: 'announcement', value: payload.announcement }
+        { key: 'announcement', value: payload.announcement },
+        { key: 'bkash_number', value: payload.bkash_number }
       ];
 
       for (const update of updates) {
@@ -124,6 +128,17 @@ function SettingsAdmin() {
                   value={form.contact_email}
                   onChange={(e) => setForm({...form, contact_email: e.target.value})}
                   placeholder="support@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-500 mb-2">bKash Number (for course payments)</label>
+                <input 
+                  type="tel" 
+                  className="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-bold"
+                  value={form.bkash_number}
+                  onChange={(e) => setForm({...form, bkash_number: e.target.value})}
+                  placeholder="01XXXXXXXXX"
                 />
               </div>
             </div>
