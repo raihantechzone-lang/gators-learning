@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { parseYouTubeId } from "./youtube";
 
 export interface Category {
   id: string;
@@ -77,9 +78,7 @@ export function isLiveLinkActive(content: CourseContent) {
 }
 
 export function youtubeId(url: string | null | undefined) {
-  if (!url) return null;
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?/ ]{11})/);
-  return match ? match[1] : null;
+  return parseYouTubeId(url);
 }
 
 export function useCourses() {
