@@ -13,7 +13,7 @@ export function SiteFooter() {
         <div>
           <h4 className="text-background font-semibold mb-3">Explore</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className="hover:text-brand">Home</Link></li>
+            <li><Link to="/" reloadDocument className="hover:text-brand">Home</Link></li>
             <li><Link to="/courses" className="hover:text-brand">Our Courses</Link></li>
             <li><Link to="/reviews" className="hover:text-brand">Student Reviews</Link></li>
             <li><Link to="/contact" className="hover:text-brand">Contact Us</Link></li>

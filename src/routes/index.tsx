@@ -7,6 +7,14 @@ import integrationHtml from "../html/homepage-integration.html?raw";
 const page = homepageHtml.replace("</body>", `${integrationHtml}\n</body>`);
 
 export const Route = createFileRoute("/")({
+  head: () => ({ meta: [
+    { title: "Gators Learning | Courses and Online Classes" },
+    { name: "description", content: "Explore Gators Learning courses, video lessons and online classes." },
+    { property: "og:title", content: "Gators Learning | Courses and Online Classes" },
+    { property: "og:description", content: "Explore Gators Learning courses, video lessons and online classes." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   server: {
     handlers: {
       GET: async () =>

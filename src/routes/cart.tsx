@@ -78,7 +78,7 @@ function CartPage() {
                     </Link>
                     <span className="font-bold block mt-1">৳{course.discount_price ?? course.price ?? 0}</span>
                   </div>
-                  <Link to="/enroll/$courseId" params={{ courseId: course.id }} className="px-4 py-2 rounded-xl bg-brand text-brand-foreground text-sm font-bold">
+                  <Link to="/enroll/$courseId" reloadDocument params={{ courseId: course.id }} className="px-4 py-2 rounded-xl bg-brand text-brand-foreground text-sm font-bold">
                     Checkout
                   </Link>
                   <button onClick={() => remove(row.id)} className="px-4 py-2 rounded-xl border border-border text-sm font-semibold text-ink-muted">

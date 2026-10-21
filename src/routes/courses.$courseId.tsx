@@ -444,6 +444,7 @@ function CourseDetailPage() {
                 ) : (
                   <Link
                     to="/enroll/$courseId"
+                    reloadDocument
                     params={{ courseId }}
                     className="mt-4 px-6 py-3 rounded-xl bg-brand text-brand-foreground font-bold text-sm"
                   >

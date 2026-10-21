@@ -1,4 +1,4 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 
@@ -6,7 +6,6 @@ export function SiteHeader() {
   const { user, profile, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const router = useRouter();
 
   return (
     <header className="fixed top-2 sm:top-6 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
@@ -89,7 +88,7 @@ export function SiteHeader() {
                     onClick={async () => {
                       setProfileOpen(false);
                       await signOut();
-                      router.navigate({ to: "/" });
+                      window.location.assign("/");
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 font-medium"
                   >
@@ -153,7 +152,7 @@ export function SiteHeader() {
                 onClick={async () => {
                   setMenuOpen(false);
                   await signOut();
-                  router.navigate({ to: "/" });
+                  window.location.assign("/");
                 }}
                 className="w-full py-3.5 rounded-xl border-2 border-destructive/30 text-destructive font-bold"
               >
