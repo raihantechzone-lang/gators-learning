@@ -20,6 +20,8 @@ export const Route = createFileRoute("/courses/$courseId")({
       { name: "description", content: "Live classes, video lessons, PDF notes and exams for this course." },
       { property: "og:title", content: "Course — Gators Learning" },
       { property: "og:description", content: "Live classes, video lessons, PDF notes and exams." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CourseDetailPage,
@@ -416,9 +418,9 @@ function CourseDetailPage() {
                   </>
                 )}
               </div>
-            ) : active && canWatch && vid ? (
+            ) : active && canWatch && (vid || active.video_file_url) ? (
               <VideoPlayer
-                youtubeId={vid}
+                youtubeId={vid ?? undefined}
                 videoUrl={active.video_file_url ?? undefined}
                 title={active.title}
                 startSeconds={progressRow?.last_position_seconds ?? 0}
