@@ -12,7 +12,7 @@ export function SiteHeader() {
     <header className="fixed top-2 sm:top-6 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
       <nav className="bg-background/90 backdrop-blur-xl border border-border shadow-[0_4px_30px_rgb(0,0,0,0.05)] rounded-2xl px-4 py-2 sm:px-6 sm:py-3 grid grid-cols-3 items-center">
         <div className="flex justify-start items-center">
-          <Link to="/" className="block">
+          <Link to="/" reloadDocument className="block">
             <img
               src="https://ik.imagekit.io/n7rgjyaxh/Untitled%20design_20260630_142739_0000.png"
               alt="Gators Learning"
@@ -23,7 +23,7 @@ export function SiteHeader() {
 
         <div className="flex justify-center items-center">
           <div className="hidden lg:flex space-x-6 items-center">
-            <Link to="/" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
+            <Link to="/" reloadDocument className="text-sm font-semibold text-ink hover:text-brand transition-colors">
               Home
             </Link>
             <Link to="/courses" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
@@ -112,7 +112,7 @@ export function SiteHeader() {
 
       {menuOpen && (
         <div className="lg:hidden absolute top-[calc(100%+10px)] left-4 right-4 bg-background/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-border p-6 flex flex-col gap-4 z-50">
-          <Link to="/" onClick={() => setMenuOpen(false)} className="text-base font-bold border-b border-border pb-3">
+          <Link to="/" reloadDocument onClick={() => setMenuOpen(false)} className="text-base font-bold border-b border-border pb-3">
             Home
           </Link>
           <Link to="/courses" onClick={() => setMenuOpen(false)} className="text-base font-bold border-b border-border pb-3">
