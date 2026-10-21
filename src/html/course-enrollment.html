@@ -423,10 +423,12 @@
             iframe.className = 'w-full h-full absolute inset-0';
             iframe.src = 'https://www.youtube.com/embed/' + videoId + '?controls=1&playsinline=1&rel=0&autoplay=' + (autoplay ? '1' : '0');
             iframe.title = title || 'Course video';
+            iframe.referrerPolicy = 'strict-origin-when-cross-origin';
             iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
             iframe.allowFullscreen = true;
             mount.replaceChildren(iframe);
             mount.dataset.videoId = videoId;
+            window.__currentLessonIndex = index;
         };
 
         // Close modals on clicking outside

@@ -3,12 +3,20 @@ import enrollHtml from "../html/course-enrollment.html?raw";
 import integrationHtml from "../html/homepage-integration.html?raw";
 
 export const Route = createFileRoute("/enroll/$courseId")({
+  head: () => ({ meta: [
+    { title: "Course Enrollment | Gators Learning" },
+    { name: "description", content: "View course lessons, materials and enrollment details on Gators Learning." },
+    { property: "og:title", content: "Course Enrollment | Gators Learning" },
+    { property: "og:description", content: "View course lessons, materials and enrollment details on Gators Learning." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   server: {
     handlers: {
       GET: async ({ params }) => {
         const { courseId } = params;
         const page = enrollHtml
-          .replace("</body>", `${integrationHtml}\n<script>window.currentCourseId = "${courseId}";</script>\n</body>`);
+          .replace("</body>", `<script>window.currentCourseId = ${JSON.stringify(courseId).replace(/</g, "\\u003c")};</script>\n${integrationHtml}\n</body>`);
         return new Response(page, {
           headers: { "content-type": "text/html; charset=utf-8" },
         });

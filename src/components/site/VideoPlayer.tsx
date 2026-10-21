@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Plyr } from "plyr-react";
-import "plyr-react/plyr.css";
+import { useEffect, useRef } from "react";
+import { parseYouTubeId } from "@/lib/youtube";
 
 export interface VideoPlayerProps {
   youtubeId?: string;
@@ -13,110 +12,77 @@ export interface VideoPlayerProps {
   onEnded?: () => void;
 }
 
-/**
- * Professional Video Player using Plyr.
- * Hides standard YouTube UI and provides custom controls with up to 3x speed.
- */
+type YouTubePlayer = {
+  getCurrentTime: () => number;
+  getDuration: () => number;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  destroy: () => void;
+};
+type YouTubeApi = {
+  Player: new (element: HTMLIFrameElement, options: {
+    events: {
+      onReady: (event: { target: YouTubePlayer }) => void;
+      onStateChange: (event: { data: number }) => void;
+    };
+  }) => YouTubePlayer;
+};
+
 export function VideoPlayer({
   youtubeId,
   videoUrl,
   title,
   startSeconds = 0,
   subtitlesUrl,
-  watermark,
   onProgress,
   onEnded,
 }: VideoPlayerProps) {
-  const plyrRef = useRef<any>(null);
-  const [uiVisible, setUiVisible] = useState(true);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const callbacks = useRef({ onProgress, onEnded, startSeconds });
+  callbacks.current = { onProgress, onEnded, startSeconds };
+  const id = parseYouTubeId(youtubeId);
 
-  const showUi = () => {
-    setUiVisible(true);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      setUiVisible(false);
-    }, 3000);
-  };
-
+  // The native iframe renders immediately; the API only adds resume and progress.
   useEffect(() => {
-    showUi();
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
-  }, [youtubeId, videoUrl]);
-
-  // Handle progress reporting
-  useEffect(() => {
-    const player = plyrRef.current?.plyr;
-    if (!player) return;
-
-    const handleTimeUpdate = () => {
-      onProgress?.(player.currentTime, player.duration);
-    };
-
-    const handleEnded = () => {
-      onEnded?.();
-    };
-
-    player.on("timeupdate", handleTimeUpdate);
-    player.on("ended", handleEnded);
-
-    return () => {
-      player.off("timeupdate", handleTimeUpdate);
-      player.off("ended", handleEnded);
-    };
-  }, [onProgress, onEnded]);
-
-  const plyrOptions: any = {
-    controls: [
-      "play-large",
-      "play",
-      "progress",
-      "current-time",
-      "mute",
-      "volume",
-      "settings",
-      "fullscreen",
-    ],
-    settings: ["quality", "speed"],
-    speed: {
-      selected: 1,
-      options: [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3],
-    },
-    youtube: {
-      noCookie: true,
-      rel: 0,
-      showinfo: 0,
-      iv_load_policy: 3,
-      modestbranding: 1,
-      controls: 0, // This hides native YT controls
-    },
-  };
-
-  const videoSource: any = youtubeId
-    ? {
-        type: "video",
-        sources: [
-          {
-            src: youtubeId,
-            provider: "youtube",
+    if (!id) return;
+    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+      const script = document.createElement("script");
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      document.head.appendChild(script);
+    }
+    let player: YouTubePlayer | undefined;
+    let ready = false;
+    let attempts = 0;
+    const timer = setInterval(() => {
+      const api = (window as Window & { YT?: YouTubeApi }).YT;
+      if (!player && api?.Player && iframeRef.current) {
+        player = new api.Player(iframeRef.current, {
+          events: {
+            onReady: ({ target }) => {
+              ready = true;
+              if (callbacks.current.startSeconds > 0) target.seekTo(callbacks.current.startSeconds, true);
+            },
+            onStateChange: ({ data }) => {
+              if (data === 0) callbacks.current.onEnded?.();
+            },
           },
-        ],
+        });
       }
-    : videoUrl
-    ? {
-        type: "video",
-        sources: [
-          {
-            src: videoUrl,
-            type: "video/mp4",
-          },
-        ],
+      if (ready && player) {
+        const duration = player.getDuration();
+        if (duration > 0) callbacks.current.onProgress?.(player.getCurrentTime(), duration);
       }
-    : null;
+      attempts += 1;
+      if (!player && attempts >= 30) clearInterval(timer);
+    }, 1000);
+    return () => {
+      clearInterval(timer);
+      player?.destroy();
+    };
+  }, [id]);
 
-  if (!videoSource) {
+  if (!id && !videoUrl) {
     return (
       <div className="w-full aspect-video flex items-center justify-center bg-ink rounded-2xl text-background/50 text-sm">
         No video source provided
@@ -125,37 +91,26 @@ export function VideoPlayer({
   }
 
   return (
-    <div
-      className="relative w-full aspect-video overflow-hidden rounded-2xl bg-ink group"
-      onClick={showUi}
-      onMouseMove={showUi}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      <Plyr ref={plyrRef} source={videoSource} options={plyrOptions} />
-
-      {/* Title Overlay */}
-      {title && (
-        <div
-          className={`absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-ink/80 to-transparent transition-opacity duration-300 pointer-events-none z-10 ${
-            uiVisible ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <p className="text-background text-sm font-semibold truncate">
-            {title}
-          </p>
-        </div>
+    <div className="relative w-full aspect-video overflow-hidden rounded-2xl bg-ink">
+      {id ? (
+        <iframe
+          key={id}
+          ref={iframeRef}
+          className="absolute inset-0 w-full h-full border-0"
+          src={`https://www.youtube.com/embed/${id}?controls=1&playsinline=1&rel=0&enablejsapi=1`}
+          title={title || "Course video"}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        />
+      ) : (
+        <video key={videoUrl} ref={videoRef} className="w-full h-full" src={videoUrl} controls playsInline
+          onLoadedMetadata={() => { if (videoRef.current) videoRef.current.currentTime = callbacks.current.startSeconds; }}
+          onTimeUpdate={(event) => onProgress?.(event.currentTarget.currentTime, event.currentTarget.duration)}
+          onEnded={onEnded}>
+          {subtitlesUrl && <track kind="subtitles" src={subtitlesUrl} srcLang="en" label="Subtitles" />}
+        </video>
       )}
-
-      {/* Watermark */}
-      {watermark && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <span className="text-background/10 text-sm sm:text-lg font-bold rotate-[-20deg] select-none uppercase tracking-widest">
-            {watermark}
-          </span>
-        </div>
-      )}
-      
-      {/* Custom UI Fading Logic for controls is handled by Plyr, but we keep our title overlay synced */}
     </div>
   );
 }

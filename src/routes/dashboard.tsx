@@ -9,6 +9,14 @@ import {
 import type { Course, Enrollment } from "@/lib/data";
 
 export const Route = createFileRoute("/dashboard")({
+  head: () => ({ meta: [
+    { title: "Student Dashboard | Gators Learning" },
+    { name: "description", content: "Access your enrolled Gators Learning courses and certificates." },
+    { property: "og:title", content: "Student Dashboard | Gators Learning" },
+    { property: "og:description", content: "Access your enrolled Gators Learning courses and certificates." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: DashboardPage,
 });
 
@@ -129,13 +137,13 @@ function DashboardPage() {
       {/* Navbar - Fixed & Blurred */}
       <header className="fixed top-2 sm:top-6 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
         <nav className="bg-white/90 backdrop-blur-xl border border-gray-100 shadow-[0_4px_30px_rgb(0,0,0,0.05)] rounded-2xl px-4 py-2 sm:px-6 sm:py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center">
+          <Link to="/" reloadDocument className="flex items-center">
             <img src="https://ik.imagekit.io/n7rgjyaxh/Untitled%20design_20260630_142739_0000.png" alt="Logo" className="h-12 sm:h-16 w-auto object-contain" />
           </Link>
           
           <div className="hidden sm:flex items-center gap-6">
-            <Link to="/" className="text-sm font-semibold text-slate-900 hover:text-[#0f9d58] transition-colors">Home</Link>
-            <Link to="/" hash="courses" className="text-sm font-semibold text-slate-900 hover:text-[#0f9d58] transition-colors">Our Courses</Link>
+            <Link to="/" reloadDocument className="text-sm font-semibold text-slate-900 hover:text-[#0f9d58] transition-colors">Home</Link>
+            <Link to="/" reloadDocument hash="courses" className="text-sm font-semibold text-slate-900 hover:text-[#0f9d58] transition-colors">Our Courses</Link>
           </div>
 
           <div className="flex items-center gap-4">

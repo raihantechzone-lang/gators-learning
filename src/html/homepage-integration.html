@@ -18,6 +18,7 @@
 
   let currentUser = null;
   let currentProfile = null;
+  window.db = window.db || { courses: [], feedbacks: [] };
 
   /* ---------- header auth state ---------- */
   function renderAuthState() {
@@ -84,9 +85,12 @@
     return !!data;
   }
 
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
     const isFirstTime = !currentUser && session?.user;
     currentUser = session?.user ?? null;
+    renderAuthState();
+    // Database calls must run after the auth callback releases its session lock.
+    setTimeout(async () => {
     
     if (isFirstTime) {
       // Check if profile exists, if not create one (for Google OAuth/Signup)
@@ -106,18 +110,9 @@
     await loadProfile();
     renderAuthState();
 
-    // Redirect to dashboard on successful login if on home page
-    if (event === "SIGNED_IN" && (window.location.pathname === "/" || window.location.pathname === "/index.html")) {
-       // The user requested: "Akbar log in dile oita save thakbe bare bare ar log in Korte hobe na log in korle direct dehboard show korbe"
-       // We only redirect automatically if they are NOT visiting the home page via a direct click (like breadcrumbs)
-       // A simple way to satisfy the "persistent login -> dashboard" while allowing home access is to check session start
-       const isFreshLogin = event === 'SIGNED_IN' && session;
-       if (isFreshLogin && !sessionStorage.getItem('home_visited')) {
-         setTimeout(() => {
-           window.location.href = "/dashboard";
-         }, 800);
-       }
-    }
+    // Explicit login handlers redirect; restoring a saved session must keep Home open.
+    if (window.currentCourseId) await loadCourseDetails(window.currentCourseId);
+    }, 0);
   });
 
   /* ---------- database: site settings ---------- */
@@ -126,8 +121,8 @@
     if (!data) return;
     for (const row of data) {
       if (!row.value) continue;
-      if (row.key === "hero_title") document.getElementById("dynamic-site-title").innerHTML = row.value;
-      if (row.key === "hero_subtitle") document.getElementById("dynamic-site-subtitle").innerHTML = row.value;
+      const el = document.getElementById(row.key === "hero_title" ? "dynamic-site-title" : row.key === "hero_subtitle" ? "dynamic-site-subtitle" : "");
+      if (el) el.textContent = row.value;
     }
   }
 
@@ -256,7 +251,7 @@
       grid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6";
     }
     
-    window.renderDynamicCourses();
+    window.renderDynamicCourses?.();
 
     // Wire events
     Array.from(grid.children).forEach((card, i) => {
@@ -264,9 +259,7 @@
       if (!course) return;
       card.querySelectorAll("button, img, h3").forEach((el) => {
         el.addEventListener("click", () => {
-          window.location.href = el.tagName === "BUTTON" && el.innerText.includes("ভর্তি")
-            ? "/enroll/" + course.id
-            : "/details/" + course.id;
+          window.location.href = "/enroll/" + encodeURIComponent(course.id);
         });
       });
     });
@@ -295,13 +288,20 @@
     renderFilteredCourses();
   };
 
-  if (window.currentCourseId) {
-    loadCourseDetails(window.currentCourseId);
-  }
-
   async function loadCourseDetails(id) {
-    const { data: course } = await supabase.from("courses").select("*").eq("id", id).maybeSingle();
-    if (!course) return;
+    const mount = document.getElementById('yt-mount');
+    const setVideoMessage = (message) => {
+      if (mount && !mount.querySelector('iframe')) mount.textContent = message;
+    };
+    const { data: course, error: courseError } = await supabase.from("courses").select("*").eq("id", id).abortSignal(AbortSignal.timeout(15000)).maybeSingle();
+    if (courseError || !course) {
+      setVideoMessage(courseError ? 'কোর্স লোড করা যায়নি। পেজটি রিফ্রেশ করে আবার চেষ্টা করুন।' : 'কোর্সটি পাওয়া যায়নি।');
+      const title = document.getElementById('course-title');
+      if (title) title.textContent = courseError ? 'কোর্স লোড করা যায়নি' : 'কোর্সটি পাওয়া যায়নি';
+      const count = document.getElementById('course-content-count');
+      if (count) count.textContent = 'কন্টেন্ট পাওয়া যায়নি';
+      return;
+    }
     
     // Update basic UI info
     const titleEls = document.querySelectorAll('h1, #vid-title-overlay');
@@ -350,6 +350,7 @@
     const isEnrolled = !!(currentUser && await checkEnrollment(id));
 
     if (enrollBtn) {
+      enrollBtn.disabled = false;
       if (isEnrolled) {
         enrollBtn.innerText = "Continue Learning";
         enrollBtn.onclick = () => window.location.href = "/courses/" + id;
@@ -430,13 +431,24 @@
     }
 
     // Load contents and populate the list
-    const { data: contents } = await supabase.from("course_contents")
+    const { data: contents, error: contentsError } = await supabase.from("course_contents")
       .select("*")
       .eq("course_id", id)
-      .order("position", { ascending: true });
+      .order("position", { ascending: true })
+      .abortSignal(AbortSignal.timeout(15000));
     
     const contentContainer = document.querySelector('section .bg-white.border.border-slate-200\\/60.rounded-3xl');
+    if (contentsError) {
+      setVideoMessage('ক্লাসের তথ্য লোড করা যায়নি। পেজটি রিফ্রেশ করে আবার চেষ্টা করুন।');
+      const list = contentContainer?.querySelector('.flex.flex-col');
+      if (list) list.textContent = 'ক্লাসের তথ্য লোড করা যায়নি।';
+      const count = document.getElementById('course-content-count');
+      if (count) count.textContent = 'কন্টেন্ট লোড করা যায়নি';
+      return;
+    }
     if (contentContainer && contents) {
+       const count = document.getElementById('course-content-count');
+       if (count) count.textContent = contents.length + ' lessons';
        const list = contentContainer.querySelector('.flex.flex-col');
        if (list) {
           list.innerHTML = "";
@@ -475,9 +487,19 @@
                 ${!isLocked ? '<span class="bg-white border border-slate-200 text-slate-500 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase shadow-sm">Play</span>' : ''}
              `;
              const vidId = (url) => {
-                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-                const match = url?.match(regExp);
-                return (match && match[2].length === 11) ? match[2] : null;
+                if (!url) return null;
+                const value = String(url).trim();
+                if (/^[a-zA-Z0-9_-]{11}$/.test(value)) return value;
+                try {
+                  const parsed = new URL(value);
+                  const host = parsed.hostname.replace(/^www\./, '');
+                  const parts = parsed.pathname.split('/').filter(Boolean);
+                  const candidate = host === 'youtu.be' ? parts[0]
+                    : /^(m\.)?youtube\.com$|^youtube-nocookie\.com$/.test(host)
+                    ? parsed.searchParams.get('v') || (['embed', 'shorts', 'live', 'v'].includes(parts[0]) ? parts[1] : null)
+                    : null;
+                  return candidate && /^[a-zA-Z0-9_-]{11}$/.test(candidate) ? candidate : null;
+                } catch { return null; }
              };
              const playableId = vidId(c.youtube_url);
              let myIndex = -1;
@@ -514,13 +536,12 @@
            list.appendChild(item);
           });
 
-          // Prepare first playable lesson (title only, playback starts on user action)
+          // Mount native controls immediately; the student presses YouTube's play button.
           if (window.__playable.length > 0) {
             const first = window.__playable[0];
-            window.__currentLessonIndex = 0;
-            const overlay = document.getElementById('vid-title-overlay');
-            if (overlay) overlay.innerText = first.title;
-            window.__startFirstLesson = () => window.loadLesson(first.vId, first.title, 0);
+            if (!mount?.querySelector('iframe')) window.loadLesson?.(first.vId, first.title, 0, false);
+          } else {
+            setVideoMessage(contents.length === 0 ? 'এখনও কোনো ভিডিও যুক্ত করা হয়নি।' : contents.some(c => c.youtube_url && !c.is_free) && !isEnrolled ? 'ভিডিও দেখতে এই কোর্সে এনরোল করুন।' : 'এই কোর্সে চালানো যায় এমন YouTube ভিডিও নেই।');
           }
 
 
@@ -568,7 +589,7 @@
       status: "approved",
       photo: r.profiles?.photo_url,
     }));
-    window.renderTestimonialsList();
+    window.renderTestimonialsList?.();
   }
 
   /* ---------- feedback submission (login required) ---------- */
@@ -820,6 +841,7 @@
   (async () => {
     const { data } = await supabase.auth.getSession();
     currentUser = data.session?.user ?? null;
+    if (window.currentCourseId) loadCourseDetails(window.currentCourseId);
     await loadProfile();
     renderAuthState();
     await Promise.all([loadSettings(), loadCourses(), loadReviews(), showInterstitialAd()]);
