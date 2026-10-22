@@ -138,24 +138,20 @@ function CourseDetailPage() {
       return;
     }
     const load = async () => {
-      const [{ data: en }, { data: req }] = await Promise.all([
-        supabase.from("enrollments").select("id, status").eq("profile_id", user.id).eq("course_id", courseId).maybeSingle(),
-        supabase
-          .from("enrollment_requests")
-          .select("id, status")
-          .eq("user_id", user.id)
-          .eq("course_id", courseId)
-          .eq("status", "pending")
-          .maybeSingle(),
-      ]);
-      setEnrolled(!!en);
-      setPending(!!req);
+      // Pending payments and active enrollments both live in the enrollments table.
+      const { data: en } = await supabase
+        .from("enrollments")
+        .select("id, status, payment_status")
+        .eq("profile_id", user.id)
+        .eq("course_id", courseId)
+        .maybeSingle();
+      setEnrolled(en?.status === "active");
+      setPending(!!en && (en.status === "pending" || en.payment_status === "pending"));
     };
     load();
     const channel = supabase
       .channel(`enroll-${courseId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "enrollments" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "enrollment_requests" }, () => load())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);

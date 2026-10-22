@@ -81,7 +81,8 @@
 
   async function checkEnrollment(courseId) {
     if (!currentUser) return false;
-    const { data } = await supabase.from("enrollments").select("id").eq("profile_id", currentUser.id).eq("course_id", courseId).maybeSingle();
+    // Only an approved (active) enrollment unlocks the course; a pending payment does not.
+    const { data } = await supabase.from("enrollments").select("id").eq("profile_id", currentUser.id).eq("course_id", courseId).eq("status", "active").maybeSingle();
     return !!data;
   }
 
@@ -117,12 +118,12 @@
 
   /* ---------- database: site settings ---------- */
   async function loadSettings() {
-    const { data } = await supabase.from("site_settings").select("key, value");
+    const { data } = await supabase.from("settings").select("setting_key, setting_value");
     if (!data) return;
     for (const row of data) {
-      if (!row.value) continue;
-      const el = document.getElementById(row.key === "hero_title" ? "dynamic-site-title" : row.key === "hero_subtitle" ? "dynamic-site-subtitle" : "");
-      if (el) el.textContent = row.value;
+      if (!row.setting_value) continue;
+      const el = document.getElementById(row.setting_key === "hero_title" ? "dynamic-site-title" : row.setting_key === "hero_subtitle" ? "dynamic-site-subtitle" : "");
+      if (el) el.textContent = row.setting_value;
     }
   }
 
@@ -183,9 +184,9 @@
             if (window.showToast) window.showToast(`Course "${payload.new.title}" updated in real time.`, "Live Update");
             loadCourses();
           })
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'site_settings' }, (payload) => {
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'settings' }, (payload) => {
             console.log('Realtime update: Settings changed', payload.new);
-            if (window.showToast) window.showToast(`Site setting "${payload.new.key}" updated.`, "Live Update");
+            if (window.showToast) window.showToast(`Site setting "${payload.new.setting_key}" updated.`, "Live Update");
             loadSettings();
           })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'course_contents' }, (payload) => {
@@ -321,9 +322,9 @@
     try {
       const payEl = document.getElementById('payment-instructions');
       if (payEl) {
-        const { data: bk } = await supabase.from("site_settings").select("value").eq("key", "bkash_number").maybeSingle();
+        const { data: bk } = await supabase.from("settings").select("setting_value").eq("setting_key", "bkash_number").maybeSingle();
         const amount = course.discount_price || course.price;
-        const num = bk && bk.value ? bk.value : "";
+        const num = bk && bk.setting_value ? bk.setting_value : "";
         if (num && amount) {
           payEl.innerHTML = 'নিচের bKash নম্বরে <b>৳' + amount + '</b> সেন্ড মানি করুন: <b class="font-mono">' + num + '</b><br>তারপর Transaction ID নিচে দিন।';
         } else {
@@ -396,21 +397,22 @@
             throw new Error("User not authenticated");
           }
 
-          let userId = currentUser.id;
-          let rollNumber = currentProfile?.roll_number || "GL" + Math.floor(100000 + Math.random() * 900000);
+          const userId = currentUser.id;
 
-          // 2. Create enrollment request
-          const { error: enrollError } = await supabase.from("enrollment_requests").insert({
-            user_id: userId,
+          // 1. Save the student's name & phone to their profile (non-fatal if blocked)
+          const { error: profileError } = await supabase.from("profiles").update({ full_name: fullName, phone: phone }).eq("id", userId);
+          if (profileError) console.error("Profile update failed:", profileError.message);
+
+          // 2. Save the payment as a pending enrollment row (admin approves it later)
+          const amount = course?.discount_price || course?.price || 0;
+          const { error: enrollError } = await supabase.from("enrollments").insert({
+            profile_id: userId,
             course_id: id,
-            full_name: fullName,
-            email: currentUser.email,
-            mobile: phone,
-            transaction_id: trxId,
-            roll_number: rollNumber,
             status: "pending",
             payment_method: "bkash",
-            payment_status: "pending"
+            payment_status: "pending",
+            amount_paid: amount,
+            bkash_trx_id: trxId
           });
           if (enrollError) throw enrollError;
 
