@@ -20,7 +20,7 @@ function AdminDashboard() {
         supabase.from("profiles").select("id", { count: "exact" }),
         supabase.from("enrollments").select("id, status"),
         supabase.from("reviews").select("id", { count: "exact" }),
-        supabase.from("enrollment_requests").select("*, courses(title)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("enrollments").select("*, courses(title), profiles(full_name)").eq("payment_status", "pending").order("enrolled_at", { ascending: false }).limit(5),
         supabase.from("enrollments").select("id, courses(price)").eq("status", "active")
       ]);
 
@@ -145,16 +145,16 @@ function AdminDashboard() {
                <div key={req.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500">
-                      {req.full_name?.charAt(0)}
+                      {(req.profiles?.full_name || "S")?.charAt(0)}
                     </div>
                     <div>
-                      <p className="font-bold text-slate-900">{req.full_name}</p>
-                      <p className="text-xs text-slate-500 font-medium">Enrolled in {req.courses?.title}</p>
+                      <p className="font-bold text-slate-900">{req.profiles?.full_name || "Student"}</p>
+                      <p className="text-xs text-slate-500 font-medium">Requested {req.courses?.title}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-indigo-600">৳{req.amount || 0}</p>
-                    <p className="text-[10px] text-slate-400">{new Date(req.created_at).toLocaleDateString()}</p>
+                    <p className="font-bold text-indigo-600">৳{req.amount_paid || 0}</p>
+                    <p className="text-[10px] text-slate-400">{new Date(req.enrolled_at).toLocaleDateString()}</p>
                   </div>
                </div>
              ))}

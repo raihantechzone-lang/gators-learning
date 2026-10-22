@@ -193,8 +193,8 @@ function CoursesAdmin() {
       const { error: examResultsError } = await supabase.from("exam_results").delete().eq("course_id", id);
       if (examResultsError) console.warn("Exam results deletion error:", examResultsError);
 
-      const { error: enrollmentReqError } = await supabase.from("enrollment_requests").delete().eq("course_id", id);
-      if (enrollmentReqError) console.warn("Enrollment requests deletion error:", enrollmentReqError);
+      const { error: paymentsError } = await supabase.from("payments").delete().eq("course_id", id);
+      if (paymentsError) console.warn("Payments deletion error:", paymentsError);
 
       const { error: enrollmentsError } = await supabase.from("enrollments").delete().eq("course_id", id);
       if (enrollmentsError) console.warn("Enrollments deletion error:", enrollmentsError);

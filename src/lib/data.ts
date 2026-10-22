@@ -100,8 +100,10 @@ export function useSiteSettings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.from("site_settings").select("*").single().then(({ data }) => {
-      setSettings(data);
+    supabase.from("settings").select("setting_key, setting_value").then(({ data }) => {
+      const map: any = {};
+      (data || []).forEach((row: any) => { map[row.setting_key] = row.setting_value; });
+      setSettings(map);
       setLoading(false);
     });
   }, []);
