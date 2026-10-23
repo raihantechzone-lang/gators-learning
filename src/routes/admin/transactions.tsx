@@ -23,7 +23,7 @@ function TransactionsAdmin() {
         .eq("payment_status", "pending")
         .order("enrolled_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
@@ -31,7 +31,7 @@ function TransactionsAdmin() {
     mutationFn: async ({ req, status, message }: { req: any; status: 'verified' | 'failed'; message?: string }) => {
       const { error } = await supabase
         .from("enrollments")
-        .update({ status: status === 'verified' ? 'active' : 'rejected', payment_status: status })
+        .update(status === 'verified' ? { status: 'active', payment_status: 'verified' } : { payment_status: 'failed' })
         .eq("id", req.id);
       if (error) throw error;
 
