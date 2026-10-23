@@ -23,7 +23,7 @@ function EarningsAdmin() {
             price
           )
         `)
-        .eq("status", "active");
+        .eq("status", "active").or("payment_status.is.null,payment_status.not.in.(pending,failed)");
       
       if (error) throw error;
 
