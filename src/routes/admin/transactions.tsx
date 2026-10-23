@@ -23,7 +23,7 @@ function TransactionsAdmin() {
         .eq("payment_status", "pending")
         .order("enrolled_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
