@@ -82,7 +82,7 @@
   async function checkEnrollment(courseId) {
     if (!currentUser) return false;
     // Only an approved (active) enrollment unlocks the course; a pending payment does not.
-    const { data } = await supabase.from("enrollments").select("id").eq("profile_id", currentUser.id).eq("course_id", courseId).eq("status", "active").maybeSingle();
+    const { data } = await supabase.from("enrollments").select("id").eq("profile_id", currentUser.id).eq("course_id", courseId).eq("status", "active").or("payment_status.is.null,payment_status.not.in.(pending,failed)").maybeSingle();
     return !!data;
   }
 
@@ -408,7 +408,6 @@
           const { error: enrollError } = await supabase.from("enrollments").insert({
             profile_id: userId,
             course_id: id,
-            status: "pending",
             payment_method: "bkash",
             payment_status: "pending",
             amount_paid: amount,

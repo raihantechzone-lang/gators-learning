@@ -145,7 +145,7 @@ function CourseDetailPage() {
         .eq("profile_id", user.id)
         .eq("course_id", courseId)
         .maybeSingle();
-      setEnrolled(en?.status === "active");
+      setEnrolled(en?.status === "active" && !["pending", "failed"].includes((en as any)?.payment_status));
       setPending(!!en && (en.status === "pending" || en.payment_status === "pending"));
     };
     load();
