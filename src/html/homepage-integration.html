@@ -336,10 +336,10 @@
     const oldPriceEls = document.querySelectorAll('.line-through');
     oldPriceEls.forEach(el => el.innerText = "৳" + course.price);
 
+    window.__courseThumb = course.thumbnail_url || null;
     const posterImg = document.getElementById('vid-poster');
     if (posterImg && course.thumbnail_url) {
       posterImg.src = course.thumbnail_url;
-      window.__courseThumb = course.thumbnail_url;
       posterImg.classList.remove('hidden');
     }
     
