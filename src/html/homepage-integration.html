@@ -336,6 +336,7 @@
     const oldPriceEls = document.querySelectorAll('.line-through');
     oldPriceEls.forEach(el => el.innerText = "৳" + course.price);
 
+    window.__courseThumb = course.thumbnail_url || null;
     const posterImg = document.getElementById('vid-poster');
     if (posterImg && course.thumbnail_url) {
       posterImg.src = course.thumbnail_url;
@@ -464,7 +465,7 @@
           window.playNextLesson = () => {
             const list = window.__playable || [];
             const next = (window.__currentLessonIndex ?? -1) + 1;
-            if (list[next] && window.loadLesson) window.loadLesson(list[next].vId, list[next].title, next);
+            if (list[next] && window.loadLesson) window.loadLesson(list[next].vId, list[next].title, next, true, list[next].thumb);
           };
 
           contents.forEach((c, idx) => {
@@ -507,7 +508,7 @@
              if (!isLocked && playableId) {
                 window.__playable = window.__playable || [];
                 myIndex = window.__playable.length;
-                window.__playable.push({ vId: playableId, title: c.title });
+                window.__playable.push({ vId: playableId, title: c.title, thumb: c.thumbnail_url });
              }
 
              item.onclick = () => {
@@ -520,7 +521,7 @@
                    return;
                 }
                 if (window.loadLesson) {
-                   window.loadLesson(playableId, c.title, myIndex);
+                   window.loadLesson(playableId, c.title, myIndex, true, c.thumbnail_url);
                 } else {
                    // Fallback: Just mount an iframe if the custom player isn't ready
                    const mount = document.getElementById('yt-mount');
@@ -540,7 +541,7 @@
           // Mount native controls immediately; the student presses YouTube's play button.
           if (window.__playable.length > 0) {
             const first = window.__playable[0];
-            if (!mount?.querySelector('iframe')) window.loadLesson?.(first.vId, first.title, 0, false);
+            if (!mount?.querySelector('iframe')) window.loadLesson?.(first.vId, first.title, 0, false, first.thumb);
           } else {
             setVideoMessage(contents.length === 0 ? 'এখনও কোনো ভিডিও যুক্ত করা হয়নি।' : contents.some(c => c.youtube_url && !c.is_free) && !isEnrolled ? 'ভিডিও দেখতে এই কোর্সে এনরোল করুন।' : 'এই কোর্সে চালানো যায় এমন YouTube ভিডিও নেই।');
           }
