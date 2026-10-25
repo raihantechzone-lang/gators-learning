@@ -81,19 +81,34 @@ function ReviewsAndAdsAdmin() {
       const hours = Number(adHours);
       const expires_at =
         adHours && hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
-      const { error } = await supabase
-        .from("app_ads")
-        .insert({ image_url: url, target_link: adLink || null, expires_at, is_active: true } as any);
-      if (error) throw error;
+      const base: any = { image_url: url, target_link: adLink || null, is_active: true };
+      let timedSupported = true;
+      if (expires_at) {
+        const { error } = await supabase.from("app_ads").insert({ ...base, expires_at });
+        if (error && (error.code === "42703" || error.code === "PGRST204")) {
+          // expiry column not added yet in the connected database — save the ad anyway
+          timedSupported = false;
+          const { error: retry } = await supabase.from("app_ads").insert(base);
+          if (retry) throw retry;
+        } else if (error) throw error;
+      } else {
+        const { error } = await supabase.from("app_ads").insert(base);
+        if (error) throw error;
+      }
+      return timedSupported;
     },
-    onSuccess: () => {
+    onSuccess: (timedSupported) => {
       setAdPhoto(null);
       setAdLink("");
       setAdHours("");
       const input = document.getElementById("ad-photo-input") as HTMLInputElement | null;
       if (input) input.value = "";
       queryClient.invalidateQueries({ queryKey: ["admin-ads"] });
-      toast.success("Ad uploaded");
+      if (timedSupported === false) {
+        toast.info("Ad uploaded, but the time limit option needs a database update first");
+      } else {
+        toast.success("Ad uploaded");
+      }
     },
     onError: (err: any) => toast.error(err.message),
   });
