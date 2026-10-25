@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Star, Check, X, Image as ImageIcon, Trash2, Power, Pause, Play, Plus, Users } from "lucide-react";
+import { uploadToImageKit } from "@/lib/imagekit";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -69,6 +70,34 @@ function ReviewsAndAdsAdmin() {
     },
   });
 
+  const [adPhoto, setAdPhoto] = useState<File | null>(null);
+  const [adLink, setAdLink] = useState("");
+  const [adHours, setAdHours] = useState("");
+
+  const createAdMutation = useMutation({
+    mutationFn: async () => {
+      if (!adPhoto) throw new Error("Choose a photo first");
+      const url = await uploadToImageKit(adPhoto, "/ads");
+      const hours = Number(adHours);
+      const expires_at =
+        adHours && hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
+      const { error } = await supabase
+        .from("app_ads")
+        .insert({ image_url: url, target_link: adLink || null, expires_at, is_active: true } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setAdPhoto(null);
+      setAdLink("");
+      setAdHours("");
+      const input = document.getElementById("ad-photo-input") as HTMLInputElement | null;
+      if (input) input.value = "";
+      queryClient.invalidateQueries({ queryKey: ["admin-ads"] });
+      toast.success("Ad uploaded");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -122,25 +151,50 @@ function ReviewsAndAdsAdmin() {
 
         {/* Ads Section */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900">Interstitial Ads</h2>
+            <p className="text-slate-500 font-medium text-sm">Upload a photo, turn it on or off, delete it, or set how long it runs. It shows once on the home page.</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
             <div>
-              <h2 className="text-2xl font-black text-slate-900">Interstitial Ads</h2>
-              <p className="text-slate-500 font-medium text-sm">Manage full-screen overlays shown on entry.</p>
+              <label className="block text-sm font-bold text-slate-500 mb-2">Ad Photo</label>
+              <input
+                id="ad-photo-input"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setAdPhoto(e.target.files?.[0] ?? null)}
+                className="w-full text-sm font-medium text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-slate-50 file:text-slate-700 file:font-bold file:cursor-pointer"
+              />
             </div>
-            <button 
-              onClick={() => {
-                const img = window.prompt("Image URL:");
-                const link = window.prompt("Link URL (optional):");
-                if (img) {
-                   supabase.from("app_ads").insert({ image_url: img, target_link: link, is_active: true }).then(() => {
-                     queryClient.invalidateQueries({ queryKey: ["admin-ads"] });
-                     toast.success("Ad created");
-                   });
-                }
-              }}
-              className="p-3 bg-brand text-white rounded-xl shadow-lg shadow-brand/20 hover:scale-105 transition active:scale-95"
+            <div>
+              <label className="block text-sm font-bold text-slate-500 mb-2">Link URL (optional)</label>
+              <input
+                type="text"
+                value={adLink}
+                onChange={(e) => setAdLink(e.target.value)}
+                placeholder="Where should tapping the ad go?"
+                className="w-full p-3.5 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-500 mb-2">Show for how many hours (optional)</label>
+              <input
+                type="number"
+                min={1}
+                value={adHours}
+                onChange={(e) => setAdHours(e.target.value)}
+                placeholder="Leave empty to keep it until you pause or delete it"
+                className="w-full p-3.5 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
+              />
+            </div>
+            <button
+              onClick={() => createAdMutation.mutate()}
+              disabled={!adPhoto || createAdMutation.isPending}
+              className="w-full py-3.5 bg-brand text-white rounded-2xl font-black shadow-lg shadow-brand/20 hover:scale-[1.02] active:scale-95 transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
-               <Plus size={20} />
+              <Plus size={18} />
+              {createAdMutation.isPending ? "Uploading..." : "Upload Ad"}
             </button>
           </div>
 
@@ -171,6 +225,13 @@ function ReviewsAndAdsAdmin() {
                          </span>
                          {ad.target_link && <p className="text-xs text-brand truncate max-w-[150px]">{ad.target_link}</p>}
                       </div>
+                      {(ad as any).expires_at && (
+                        <p className={`text-xs mt-1 font-medium ${new Date((ad as any).expires_at) > new Date() ? 'text-slate-400' : 'text-rose-500'}`}>
+                          {new Date((ad as any).expires_at) > new Date()
+                            ? `Shows until ${new Date((ad as any).expires_at).toLocaleString()}`
+                            : 'Expired'}
+                        </p>
+                      )}
                    </div>
                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                       <button 

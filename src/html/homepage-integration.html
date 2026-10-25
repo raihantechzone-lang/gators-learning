@@ -782,23 +782,35 @@
 
   /* ---------- interstitial ad (uploaded from the admin panel) ---------- */
   async function showInterstitialAd() {
+    // Only the home page shows the ad, and each ad is shown only once per visitor.
+    if (window.location.pathname !== "/") return;
     const existing = document.getElementById("gl-interstitial-ad");
+    const nowIso = new Date().toISOString();
     const { data: ad } = await supabase
       .from("app_ads")
-      .select("id, image_url, title, target_link")
+      .select("id, image_url, title, target_link, expires_at")
       .eq("is_active", true)
+      .or(`expires_at.is.null,expires_at.gt."${nowIso}"`)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (!ad || !ad.image_url) {
-      // deleted or paused from the admin panel -> drop the overlay right away
+      // deleted, paused or expired from the admin panel -> drop the overlay right away
       if (existing) existing.remove();
       return;
     }
+    const seenKey = "gl_ad_seen_" + ad.id;
+    try {
+      if (localStorage.getItem(seenKey)) {
+        if (existing) existing.remove();
+        return;
+      }
+    } catch (e) { /* storage unavailable */ }
     if (existing) {
       if (existing.dataset.adId === ad.id) return;
       existing.remove();
     }
+    try { localStorage.setItem(seenKey, "1"); } catch (e) { /* storage unavailable */ }
 
 
     const overlay = document.createElement("div");

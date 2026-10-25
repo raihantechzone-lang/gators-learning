@@ -17,6 +17,7 @@ export type Database = {
       app_ads: {
         Row: {
           created_at: string | null
+          expires_at: string | null
           id: string
           image_url: string
           is_active: boolean | null
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          expires_at?: string | null
           id?: string
           image_url: string
           is_active?: boolean | null
@@ -33,6 +35,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          expires_at?: string | null
           id?: string
           image_url?: string
           is_active?: boolean | null
