@@ -1,6 +1,7 @@
 <!-- Added only: authentication + database/backend wiring. No UI/design changes. -->
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  /* STUDENT_ROLL_HELPER */
 
   const supabase = createClient(
     "https://jouwcthdcjoegcqgwlpl.supabase.co",
@@ -96,7 +97,7 @@
     if (isFirstTime && currentUser) {
       const user = currentUser;
       const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      const values = { id: user.id, full_name: profile?.full_name || user.user_metadata?.full_name || "Student", phone: profile?.phone || user.user_metadata?.phone || null, email: user.email, roll_number: profile?.roll_number || "GL" + user.id.replaceAll("-", "").toUpperCase() };
+      const values = { id: user.id, full_name: profile?.full_name || user.user_metadata?.full_name || "Student", phone: profile?.phone || user.user_metadata?.phone || null, email: user.email, roll_number: studentRollNumber(user.id, profile?.roll_number) };
       const { error } = await supabase.from("profiles").upsert(values, { onConflict: "id" });
       if (error) console.error("Could not save student profile:", error.message);
     }
@@ -660,7 +661,7 @@
       full_name: currentProfile?.full_name || user.user_metadata?.full_name || "Student",
       phone: currentProfile?.phone || user.user_metadata?.phone || null,
       email: user.email,
-      roll_number: currentProfile?.roll_number || "GL" + user.id.replaceAll("-", "").toUpperCase(),
+      roll_number: studentRollNumber(user.id, currentProfile?.roll_number),
     };
     const { error } = await supabase.from("profiles").upsert(values, { onConflict: "id" });
     if (error) throw new Error("অ্যাকাউন্টের তথ্য সংরক্ষণ করা যায়নি: " + error.message);

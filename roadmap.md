@@ -3,4 +3,5 @@
 - [x] Separate enrolled and other published courses and display persisted progress with labeled browser fallback.
 - [x] Verify existing-account sign-in → actual roll welcome → dashboard; seven progress/access tests pass, build OK.
 - [ ] Disable email confirmation: blocked by inaccessible settings on the external backend used by the app (verified currently enabled).
+- [x] Generate distinctive non-sequential rolls through one shared helper and preserve existing student rolls.
 - [ ] Enable cross-device progress: blocked by missing lesson_progress on the external backend; actual YouTube playback/save is not end-to-end verified.

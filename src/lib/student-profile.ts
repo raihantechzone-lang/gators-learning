@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { studentRollNumber } from "./student-roll.js";
 
 export async function saveStudentProfile(user: User) {
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
@@ -9,7 +10,7 @@ export async function saveStudentProfile(user: User) {
     full_name: profile?.full_name || user.user_metadata.full_name || "Student",
     phone: profile?.phone || user.user_metadata.phone || null,
     email: user.email,
-    roll_number: profile?.roll_number || `GL${user.id.replaceAll("-", "").toUpperCase()}`,
+    roll_number: studentRollNumber(user.id, profile?.roll_number),
   };
   const { error: saveError } = await supabase.from("profiles").upsert(values, { onConflict: "id" });
   if (saveError) throw saveError;
