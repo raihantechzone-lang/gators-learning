@@ -10,6 +10,8 @@ export const Route = createFileRoute("/reviews")({
       { name: "description", content: "Read verified reviews from Gators Learning students and share your own experience." },
       { property: "og:title", content: "Student Reviews — Gators Learning" },
       { property: "og:description", content: "Verified reviews from our admission and IELTS students." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ReviewsPage,

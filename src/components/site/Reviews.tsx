@@ -20,7 +20,7 @@ export function useApprovedReviews() {
     const load = () =>
       supabase
         .from("reviews")
-        .select("id, rating, comment, created_at, profiles(full_name, photo_url)")
+        .select("id, rating, comment, created_at, profiles(full_name)")
         .eq("is_approved", true)
         .order("created_at", { ascending: false })
         .then(({ data }) => {
@@ -30,7 +30,7 @@ export function useApprovedReviews() {
               rating: r.rating,
               comment: r.comment,
               student_name: r.profiles?.full_name,
-              student_photo: r.profiles?.photo_url,
+              student_photo: null,
               created_at: r.created_at
             }));
             setReviews(formatted as Review[]);

@@ -5,15 +5,25 @@ import { Star, Check, X, Image as ImageIcon, Trash2, Power, Pause, Play, Plus, U
 import { uploadToImageKit } from "@/lib/imagekit";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { adDisplayImage } from "@/lib/public-experience.js";
 
 export const Route = createFileRoute("/admin/reviews")({
+  head: () => ({ meta: [
+    { title: "Review and Ad Management — Gators Learning" },
+    { name: "description", content: "Manage student review approvals and homepage advertisements." },
+    { property: "og:title", content: "Review and Ad Management — Gators Learning" },
+    { property: "og:description", content: "Manage student review approvals and homepage advertisements." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ReviewsAndAdsAdmin,
 });
 
 function ReviewsAndAdsAdmin() {
   const queryClient = useQueryClient();
 
-  const { data: reviews } = useQuery({
+  const { data: reviews, error: reviewsError } = useQuery({
     queryKey: ["admin-reviews"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,13 +49,28 @@ function ReviewsAndAdsAdmin() {
 
   const approveReviewMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("reviews").update({ is_approved: true }).eq("id", id);
+      const { data, error } = await supabase.from("reviews").update({ is_approved: true }).eq("id", id).select("id").maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("Review was not approved. Check your account's permissions.");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
       toast.success("Review approved");
     },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.from("reviews").delete().eq("id", id).select("id").maybeSingle();
+      if (error) throw error;
+      if (!data) throw new Error("Review was not deleted. Check your account's permissions.");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
+      toast.success("Review deleted");
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const toggleAdMutation = useMutation({
@@ -146,6 +171,7 @@ function ReviewsAndAdsAdmin() {
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-100">
+            {reviewsError && <p role="alert" className="p-6 text-destructive">{reviewsError.message}</p>}
             {reviews?.length === 0 ? (
               <div className="p-8 text-center text-slate-400 font-medium italic">No reviews yet.</div>
             ) : (
@@ -165,13 +191,20 @@ function ReviewsAndAdsAdmin() {
                       </div>
                       <div className="flex items-center gap-2">
                          {!review.is_approved && (
-                           <button 
+                           <Button variant="ghost" size="icon" title="Approve review" aria-label="Approve review"
+                             disabled={approveReviewMutation.isPending}
                              onClick={() => approveReviewMutation.mutate(review.id)}
-                             className="p-2 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition"
+                             className="text-brand"
                            >
                              <Check size={18} />
-                           </button>
+                           </Button>
                          )}
+                         <Button variant="ghost" size="icon" title="Delete review" aria-label="Delete review"
+                           disabled={deleteReviewMutation.isPending}
+                           className="text-destructive"
+                           onClick={() => window.confirm("Delete this review?") && deleteReviewMutation.mutate(review.id)}>
+                           <Trash2 size={18} />
+                         </Button>
                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${
                            review.is_approved ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
                          }`}>
@@ -245,7 +278,7 @@ function ReviewsAndAdsAdmin() {
                 <div key={ad.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:shadow-md transition">
                    <div className="w-24 aspect-[4/5] bg-slate-100 rounded-2xl overflow-hidden flex-shrink-0">
                       {ad.image_url ? (
-                        <img src={ad.image_url} alt="" className="w-full h-full object-cover" />
+                        <img src={adDisplayImage(ad.image_url)} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-300">
                           <ImageIcon size={32} />

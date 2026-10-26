@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import enrollHtml from "../html/course-enrollment.html?raw";
 import integrationHtml from "../html/homepage-integration.html?raw";
 import studentRollSource from "../lib/student-roll.js?raw";
+import publicExperienceSource from "../lib/public-experience.js?raw";
 
-const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", studentRollSource.replace("export function", "function"));
+const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", studentRollSource.replace("export function", "function"))
+  .replace("/* PUBLIC_EXPERIENCE_HELPER */", publicExperienceSource.replaceAll("export function", "function"));
 
 export const Route = createFileRoute("/enroll/$courseId")({
   head: () => ({ meta: [
