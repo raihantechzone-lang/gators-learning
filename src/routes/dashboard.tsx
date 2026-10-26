@@ -37,7 +37,6 @@ function DashboardPage() {
   const [lessons, setLessons] = useState<{ id: string; course_id: string; title?: string; pdf_url?: string | null }[]>([]);
   const [progress, setProgress] = useState<LessonProgressRecord[]>([]);
   const [dataError, setDataError] = useState("");
-  const [browserProgressOnly, setBrowserProgressOnly] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const approved = enrollments.filter(hasCourseAccess);
   const otherCourses = catalog.filter(course => !approved.some(e => e.course_id === course.id));
@@ -258,8 +257,6 @@ function DashboardPage() {
 
                {dataLoading && <p className="text-ink-muted">কোর্স লোড হচ্ছে…</p>}
                {dataError && <p role="alert" className="text-destructive">{dataError}</p>}
-               {browserProgressOnly && null}
-               {!dataLoading && !approved.length && null}
                {/* Course Grid */}
                <div>
                   <h3 className="text-xl sm:text-2xl font-['Hind_Siliguri',sans-serif] font-bold text-gray-900 mb-6 flex items-center gap-3">
