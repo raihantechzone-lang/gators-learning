@@ -1,1 +1,1 @@
-export function studentRollNumber(userId: string, existingRoll?: string | null): string;
+export function studentRollNumber(userId: string, existingRoll?: string | number | null): number;

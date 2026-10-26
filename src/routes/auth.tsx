@@ -62,7 +62,7 @@ function AuthPage() {
       return;
     }
     const profile = await saveStudentProfile(res.data.user);
-    setWelcome({ name: profile.full_name, roll: profile.roll_number });
+    setWelcome({ name: profile.full_name, roll: String(profile.roll_number) });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in. Please try again.");
     } finally { setBusy(false); }
