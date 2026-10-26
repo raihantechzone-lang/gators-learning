@@ -77,7 +77,7 @@ function AdminGuard() {
     { name: "Courses", href: "/admin/courses", icon: BookOpen },
     { name: "Course Content", href: "/admin/content", icon: FileText },
     { name: "Exams & Links", href: "/admin/exams", icon: FileText },
-    { name: "Results Board", href: "/admin/results", icon: Medal },
+    { name: "Exam Mark Sheet", href: "/admin/results", icon: Medal },
     { name: "Active Students", href: "/admin/students", icon: Users },
     { name: "Attendance", href: "/admin/attendance", icon: CalendarCheck },
     { name: "Enrollments", href: "/admin/enrollments", icon: UserPlus },
