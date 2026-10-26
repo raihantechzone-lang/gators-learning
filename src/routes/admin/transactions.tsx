@@ -134,6 +134,49 @@ function TransactionsAdmin() {
           </tbody>
         </table>
       </div>
+
+      {whatsAppPopup && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Send WhatsApp confirmation"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setWhatsAppPopup(null); }}
+        >
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900">WhatsApp Confirmation</h3>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setWhatsAppPopup(null)}
+                className="text-slate-400 hover:text-slate-600 text-xl leading-none px-2"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-sm text-slate-600">
+              Send to <span className="font-bold text-slate-900">{whatsAppPopup.name}</span>
+              <span className="block font-mono text-emerald-600 font-bold mt-1">+{whatsAppPopup.phone}</span>
+            </p>
+            <textarea
+              className="mt-4 w-full h-32 rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              value={whatsAppPopup.message}
+              onChange={(e) => setWhatsAppPopup({ ...whatsAppPopup, message: e.target.value })}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                window.open(`https://wa.me/${whatsAppPopup.phone}?text=${encodeURIComponent(whatsAppPopup.message)}`, '_blank');
+                setWhatsAppPopup(null);
+              }}
+              className="mt-4 w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition"
+            >
+              Send via WhatsApp
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
