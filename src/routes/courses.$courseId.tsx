@@ -247,39 +247,39 @@ function CourseDetailPage() {
         .from("reviews")
         .select("id, profile_id, rating, comment, is_approved, created_at, profiles(full_name)")
         .eq("course_id", courseId)
-        .eq("is_approved", true)
         .like("comment", `${lessonReviewTag(activeLessonId ?? "")}%`)
         .order("created_at", { ascending: false });
       if (cancelled) return;
       const formatted = (data || []).map((r: any) => ({
         ...r,
         comment: String(r.comment ?? "").slice(lessonReviewTag(activeLessonId ?? "").length),
-        student_name: r.profiles?.full_name,
+        student_name: r.profiles?.full_name || "Student",
         student_photo: null
       }));
       setReviews(formatted as Review[]);
       if (user) {
-        const { data: mine } = await supabase
+        const { data: mineRows } = await supabase
           .from("reviews")
           .select("rating, comment")
           .eq("course_id", courseId)
           .eq("profile_id", user.id)
           .like("comment", `${lessonReviewTag(activeLessonId ?? "")}%`)
-          .maybeSingle();
+          .limit(1);
+        const mine = mineRows?.[0];
         const tagLen = lessonReviewTag(activeLessonId ?? "").length;
         if (!cancelled) setMyReview(mine ? { rating: (mine as any).rating, comment: String((mine as any).comment ?? "").slice(tagLen) } : { rating: 5, comment: "" });
       }
     };
     load();
     const channel = supabase
-      .channel(`reviews-${courseId}`)
+      .channel(`reviews-${courseId}-${activeLessonId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "reviews" }, () => load())
       .subscribe();
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [courseId, user, activeLessonId]);
+  }, [courseId, user, activeLessonId, reviewTick]);
 
   const toggleComplete = async (contentId: string, next: boolean) => {
     if (!user) return;
@@ -317,28 +317,33 @@ function CourseDetailPage() {
     if (active) await toggleComplete(active.id, true);
   };
 
+  const [reviewTick, setReviewTick] = useState(0);
   const submitReview = async () => {
-    if (!user || !myReview) return;
+    if (!user || !myReview || !active) return;
+    if (!myReview.comment.trim()) { toast.error("রিভিউ লিখুন।"); return; }
     const payload = {
       profile_id: user.id,
       course_id: courseId,
       rating: myReview.rating,
       // The reviews table has no lesson column, so the lesson is tagged in the comment.
-      comment: lessonReviewTag(active?.id ?? "") + myReview.comment,
-      is_approved: false,
+      comment: lessonReviewTag(active.id) + myReview.comment.trim(),
+      // Lesson reviews show under the video right away for everyone.
+      is_approved: true,
     };
     const { data: existing } = await supabase
       .from("reviews")
       .select("id")
       .eq("course_id", courseId)
       .eq("profile_id", user.id)
-      .like("comment", `${lessonReviewTag(active?.id ?? "")}%`)
-      .maybeSingle();
-    if (existing) {
-      await supabase.from("reviews").update(payload).eq("id", (existing as any).id);
-    } else {
-      await supabase.from("reviews").insert(payload);
-    }
+      .like("comment", `${lessonReviewTag(active.id)}%`)
+      .limit(1);
+    const row = existing?.[0] as { id: string } | undefined;
+    const { error } = row
+      ? await supabase.from("reviews").update(payload).eq("id", row.id)
+      : await supabase.from("reviews").insert(payload);
+    if (error) { toast.error("রিভিউ সেভ হয়নি: " + error.message); return; }
+    toast.success("রিভিউ সেভ হয়েছে");
+    setReviewTick((n) => n + 1);
   };
 
   const submitAssignment = async () => {
@@ -456,7 +461,7 @@ function CourseDetailPage() {
               </div>
             )}
 
-            {active && canWatch && (
+            {active && enrolled && (
               <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
                 <h2 className="font-bold text-ink mb-4">{active.title}</h2>
                 <div className="flex flex-wrap gap-3">
@@ -499,10 +504,10 @@ function CourseDetailPage() {
               </div>
             )}
 
-            {active && canWatch && (
+            {active && (
               <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
                 <div className="flex flex-wrap gap-2 mb-4 border-b border-border pb-3">
-                  {(["overview", "resources", "notes", "qa", "reviews"] as Tab[]).map((t) => (
+                  {(["overview", "resources", "notes", "reviews"] as Tab[]).map((t) => (
                     <button
                       key={t}
                       onClick={() => setTab(t)}
@@ -510,7 +515,7 @@ function CourseDetailPage() {
                         tab === t ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-muted"
                       }`}
                     >
-                      {t === "qa" ? "Q&A" : t}
+                      {!enrolled && (t === "resources" || t === "notes") ? `🔒 ${t}` : t}
                     </button>
                   ))}
                 </div>
@@ -532,19 +537,19 @@ function CourseDetailPage() {
                   </div>
                 )}
 
-                {tab === "resources" && <LessonResources contentId={active.id} pdfUrl={active.pdf_url} />}
+                {!enrolled && (tab === "resources" || tab === "notes") && (
+                  <p className="text-sm text-ink-muted font-bengali">🔒 কোর্সে এনরোল করলে এটি আনলক হবে।</p>
+                )}
 
-                {tab === "notes" && (
+                {enrolled && tab === "resources" && <LessonResources contentId={active.id} pdfUrl={active.pdf_url} />}
+
+                {enrolled && tab === "notes" && (
                   <LessonNotes
                     courseId={courseId}
                     contentId={active.id}
                     currentTime={Math.max(liveTime, progressRow?.last_position_seconds ?? 0)}
                     onSeek={(sec) => { setLiveTime(sec); setSeekRequest({ seconds: sec, key: Date.now() }); }}
                   />
-                )}
-
-                {tab === "qa" && (
-                  <LessonQA courseId={courseId} contentId={active.id} instructorId={(course as any)?.instructor_id} />
                 )}
 
                 {tab === "reviews" && (
