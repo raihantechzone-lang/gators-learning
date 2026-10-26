@@ -8,7 +8,7 @@ const form = { title: "Live lesson", youtube_url: "", thumbnail_url: "https://ex
 describe("Live-first lesson lifecycle", () => {
   it("saves thumbnail and live link without a recording", () => {
     const row = lessonUpdate(form, undefined, now);
-    assert.equal(row.youtube_url, null);
+    assert.equal(row.youtube_url, "");
     assert.equal(row.thumbnail_url, form.thumbnail_url);
     assert.equal(isLessonLive(row, now), true);
   });
