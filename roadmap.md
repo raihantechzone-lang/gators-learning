@@ -9,3 +9,6 @@
 - [x] Generate distinctive non-sequential rolls through one shared helper and preserve existing student rolls.
 - [x] Connect course playback, enrollment playback and dashboard to owner-scoped lesson_progress; external table read returns 200, video mounts, and 14 progress/YouTube tests pass.
 - [ ] Verify playback write → fresh-device resume with a signed-in student: blocked by unavailable authenticated testing session on the external backend.
+- [ ] Support live-first lessons, full lesson editing and free/paid switching.
+- [ ] Show thumbnail/coming-soon before recording and remove recorded lesson live links/badges across student views.
+- [ ] Test lesson lifecycle and check public playback display; authenticated admin save requires an external admin session.
