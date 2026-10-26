@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { courseProgress, hasCourseAccess, progressStorageKey } from "./student-progress";
+import { paymentVerificationUpdate } from "./enrollment-payment";
 
 describe("Student dashboard rules", () => {
   it("counts unwatched lessons as zero in real course progress", () => {
@@ -16,5 +17,18 @@ describe("Student dashboard rules", () => {
   });
   it("keeps browser progress separate for each student", () => {
     assert.notEqual(progressStorageKey("student-a"), progressStorageKey("student-b"));
+  });
+  it("verifies payment without replacing the database-constrained enrollment status", () => {
+    assert.deepEqual(paymentVerificationUpdate("verified"), { payment_status: "verified" });
+    assert.deepEqual({ status: "bounced", ...paymentVerificationUpdate("verified") }, { status: "bounced", payment_status: "verified" });
+  });
+  it("unlocks a verified enrollment with the existing database status", () => {
+    assert.equal(hasCourseAccess({ status: "bounced", payment_status: "verified" }), true);
+    assert.equal(hasCourseAccess({ status: "bounced", payment_status: "pending" }), false);
+  });
+  it("keeps rejected or unrecognized payments locked", () => {
+    assert.equal(hasCourseAccess({ status: "active", payment_status: "failed" }), false);
+    assert.equal(hasCourseAccess({ status: "bounced", payment_status: "failed" }), false);
+    assert.equal(hasCourseAccess({ status: "active", payment_status: "unknown" }), false);
   });
 });
