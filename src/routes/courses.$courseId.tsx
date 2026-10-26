@@ -12,7 +12,9 @@ import { LessonResources } from "@/components/lesson/LessonResources";
 import { LessonNotes } from "@/components/lesson/LessonNotes";
 import { LessonQA } from "@/components/lesson/LessonQA";
 import { isLiveLinkActive, youtubeId, type Course, type CourseContent } from "@/lib/data";
-import { hasCourseAccess, lessonReviewTag, readLocalProgress, saveLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
+import { hasCourseAccess, lessonReviewTag, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
+import { loadStudentProgress, saveStudentProgress } from "@/lib/progress-sync";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
@@ -157,16 +159,30 @@ function CourseDetailPage() {
     };
   }, [user, courseId]);
 
-  // The connected backend has no lesson_progress table, so progress lives in the
-  // shared per-user browser record also read by the dashboard and enrollment page.
   const [progressRecords, setProgressRecords] = useState<LessonProgressRecord[]>([]);
+  const [progressLoaded, setProgressLoaded] = useState(false);
+  const syncWarning = useRef(false);
   useEffect(() => {
-    if (!user) { setProgressRecords([]); return; }
-    const load = () => setProgressRecords(readLocalProgress(user.id).filter((r) => r.course_id === courseId));
+    setProgressLoaded(false);
+    if (!user) { setProgressRecords([]); setProgressLoaded(true); return; }
+    let cancelled = false;
+    const local = () => setProgressRecords(readLocalProgress(user.id).filter((r) => r.course_id === courseId));
+    local();
+    const load = async () => {
+      try {
+        const records = await loadStudentProgress(user.id, courseId);
+        if (!cancelled) setProgressRecords(records);
+      } catch {
+        if (!cancelled && !syncWarning.current) { syncWarning.current = true; toast.error("অগ্রগতি সিঙ্ক হয়নি; আপাতত এই ব্রাউজারে রাখা হচ্ছে।"); }
+      } finally { if (!cancelled) setProgressLoaded(true); }
+    };
     load();
-    window.addEventListener("gl-progress", load);
+    window.addEventListener("gl-progress", local);
     window.addEventListener("storage", load);
-    return () => { window.removeEventListener("gl-progress", load); window.removeEventListener("storage", load); };
+    window.addEventListener("focus", load);
+    const timer = window.setInterval(load, 30000);
+    const channel = supabase.channel(`progress-${user.id}-${courseId}`).on("postgres_changes", { event: "*", schema: "public", table: "lesson_progress", filter: `profile_id=eq.${user.id}` }, load).subscribe();
+    return () => { cancelled = true; clearInterval(timer); supabase.removeChannel(channel); window.removeEventListener("gl-progress", local); window.removeEventListener("storage", load); window.removeEventListener("focus", load); };
   }, [user, courseId]);
   const completedIds = useMemo(() => new Set(progressRecords.filter((r) => r.completed).map((r) => r.lesson_id)), [progressRecords]);
 
@@ -178,7 +194,7 @@ function CourseDetailPage() {
   const progressRow = useMemo(
     () => ({ last_position_seconds: activeRecord && !activeRecord.completed ? activeRecord.last_position_seconds : 0 }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [active?.id, user?.id],
+    [active?.id, user?.id, progressLoaded],
   );
 
   // Assignment lesson type: load assignment + own submission.
@@ -264,12 +280,12 @@ function CourseDetailPage() {
   const toggleComplete = async (contentId: string, next: boolean) => {
     if (!user) return;
     const old = readLocalProgress(user.id).find((r) => r.lesson_id === contentId);
-    saveLocalProgress(user.id, {
+    await saveStudentProgress(user.id, {
       lesson_id: contentId, course_id: courseId, completed: next,
       progress_percent: next ? 100 : 0,
       last_position_seconds: next ? old?.last_position_seconds ?? 0 : 0,
       duration_seconds: old?.duration_seconds ?? 0,
-    });
+    }).catch(() => { if (!syncWarning.current) { syncWarning.current = true; toast.error("অগ্রগতি সিঙ্ক হয়নি; আপাতত এই ব্রাউজারে রাখা হচ্ছে।"); } });
   };
 
   const lastSave = useRef(0);
@@ -278,13 +294,13 @@ function CourseDetailPage() {
     if (Date.now() - lastSave.current < 3000) return;
     lastSave.current = Date.now();
     const old = readLocalProgress(user.id).find((r) => r.lesson_id === active.id);
-    saveLocalProgress(user.id, {
+    await saveStudentProgress(user.id, {
       lesson_id: active.id, course_id: courseId,
       completed: !!old?.completed || seconds / duration >= 0.95,
       progress_percent: Math.round((seconds / duration) * 100),
       last_position_seconds: Math.floor(seconds),
       duration_seconds: Math.floor(duration),
-    });
+    }).catch(() => { if (!syncWarning.current) { syncWarning.current = true; toast.error("অগ্রগতি সিঙ্ক হয়নি; আপাতত এই ব্রাউজারে রাখা হচ্ছে।"); } });
   };
 
   const handleEnded = async () => {
