@@ -12,6 +12,8 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { courseProgress, hasCourseAccess, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
 import { loadStudentProgress } from "@/lib/progress-sync";
+import { AcademicPanel } from "@/components/site/AcademicPanel";
+import { CalendarCheck } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-type DashboardTab = "courses" | "notes" | "live";
+type DashboardTab = "courses" | "notes" | "live" | "results" | "attendance";
 
 function DashboardPage() {
   const { user, profile, loading, signOut } = useAuth();
@@ -240,7 +242,8 @@ function DashboardPage() {
            <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={BookOpen} label="আমার কোর্সসমূহ" color="orange" />
            <TabButton active={activeTab === 'live'} onClick={() => setActiveTab('live')} icon={Video} label="লাইভ ক্লাস" color="red" />
            <TabButton active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} icon={FileText} label="ক্লাস নোটস" color="purple" />
-           <TabButton active={false} onClick={() => showToast("Results will be available after exams.", "Not Ready")} icon={Trophy} label="পরীক্ষার ফলাফল" color="emerald" />
+           <TabButton active={activeTab === 'results'} onClick={() => setActiveTab('results')} icon={Trophy} label="পরীক্ষার ফলাফল" color="emerald" />
+           <TabButton active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} icon={CalendarCheck} label="হাজিরা" color="orange" />
         </div>
 
         {/* Sections */}
@@ -338,6 +341,15 @@ function DashboardPage() {
                </div>
                {!dataLoading && !liveLessons.length && <p className="text-ink-muted">এখন কোনো লাইভ ক্লাস নেই।</p>}
              </section>
+           )}
+
+           {(activeTab === 'results' || activeTab === 'attendance') && user && (
+             <AcademicPanel
+               mode={activeTab}
+               userId={user.id}
+               courses={[...new Map(approved.filter(e => e.courses).map(e => [e.course_id, { id: e.course_id, title: e.courses!.title }])).values()]}
+               lessons={lessons as any}
+             />
            )}
 
            {activeTab === 'notes' && (
