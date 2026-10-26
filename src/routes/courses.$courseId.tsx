@@ -121,6 +121,8 @@ function CourseDetailPage() {
       }
     };
     load();
+    const contentTimer = window.setInterval(load, 30000);
+    window.addEventListener("focus", load);
     const channel = supabase
       .channel(`course-${courseId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "course_contents" }, () => load())
@@ -128,6 +130,8 @@ function CourseDetailPage() {
       .subscribe();
     return () => {
       cancelled = true;
+      clearInterval(contentTimer);
+      window.removeEventListener("focus", load);
       supabase.removeChannel(channel);
     };
   }, [courseId]);

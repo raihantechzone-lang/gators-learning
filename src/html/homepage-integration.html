@@ -925,6 +925,7 @@
     if (document.visibilityState === "visible") {
       loadReviews();
       showInterstitialAd();
+      if (window.currentCourseId) loadCourseDetails(window.currentCourseId);
     }
   };
   window.addEventListener("focus", refreshPublic);
