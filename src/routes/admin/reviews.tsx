@@ -81,21 +81,27 @@ function ReviewsAndAdsAdmin() {
       const hours = Number(adHours);
       const expires_at =
         adHours && hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
-      const base: any = { image_url: url, target_link: adLink || null, is_active: true };
-      let timedSupported = true;
-      if (expires_at) {
-        const { error } = await supabase.from("app_ads").insert({ ...base, expires_at });
-        if (error && (error.code === "42703" || error.code === "PGRST204")) {
-          // expiry column not added yet in the connected database — save the ad anyway
-          timedSupported = false;
-          const { error: retry } = await supabase.from("app_ads").insert(base);
-          if (retry) throw retry;
-        } else if (error) throw error;
-      } else {
-        const { error } = await supabase.from("app_ads").insert(base);
-        if (error) throw error;
+      const base: any = {
+        title: adPhoto.name.replace(/\.[^.]+$/, "") || "Home Page Ad",
+        image_url: url,
+        target_link: adLink || null,
+        is_active: true,
+      };
+      if (expires_at) base.expires_at = expires_at;
+      // Save the ad, ignoring columns the connected database does not have yet
+      // (e.g. expires_at, before the time-limit column is added).
+      let saved = base;
+      for (let i = 0; i < 4; i++) {
+        const { error } = await supabase.from("app_ads").insert(saved);
+        if (!error) break;
+        const m = /'([^']+)' column of 'app_ads'/.exec(error.message || "");
+        if (error.code === "PGRST204" && m && m[1] in saved) {
+          delete saved[m[1]];
+          continue;
+        }
+        throw error;
       }
-      return timedSupported;
+      return expires_at === null ? true : "expires_at" in saved;
     },
     onSuccess: (timedSupported) => {
       setAdPhoto(null);
@@ -231,7 +237,7 @@ function ReviewsAndAdsAdmin() {
                       )}
                    </div>
                    <div className="flex-1">
-                       <p className="font-bold text-slate-900 mb-1">{ad.id.split('-')[0] || "Untitled Ad"}</p>
+                       <p className="font-bold text-slate-900 mb-1">{ad.title || ad.id.split('-')[0] || "Untitled Ad"}</p>
                       <div className="flex items-center gap-2">
                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg ${
                            ad.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
