@@ -822,25 +822,20 @@
       "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.72);backdrop-filter:blur(4px);padding:16px;";
     const box = document.createElement("div");
     box.style.cssText =
-      "position:relative;width:100%;max-width:420px;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 25px 60px rgba(0,0,0,.35);";
+      "position:relative;width:100%;max-width:420px;border-radius:18px;overflow:hidden;background:transparent;box-shadow:0 25px 60px rgba(0,0,0,.35);";
     const img = document.createElement("img");
     img.src = ad.image_url;
     img.alt = ad.title || "Advertisement";
-    img.style.cssText = "width:100%;height:auto;display:block;";
+    img.style.cssText = "width:100%;height:auto;display:block;border:0;outline:0;vertical-align:top;";
     if (ad.target_link) {
       const a = document.createElement("a");
       a.href = ad.target_link;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
+      a.style.cssText = "display:block;line-height:0;font-size:0;";
       a.appendChild(img);
       box.appendChild(a);
     } else box.appendChild(img);
-    if (ad.title) {
-      const cap = document.createElement("p");
-      cap.innerText = ad.title;
-      cap.style.cssText = "margin:0;padding:14px;text-align:center;font-weight:600;font-size:14px;color:#0f172a;";
-      box.appendChild(cap);
-    }
     // Only the X in the top-right corner closes it.
     const close = document.createElement("button");
     close.innerHTML = "&times;";
