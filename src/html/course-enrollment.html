@@ -655,7 +655,7 @@
 
         // Optional YouTube API measures actual playback without delaying the native iframe.
         let trackingTimer, trackedPlayer, trackingReady = false, trackingLesson, trackingUser, savedPosition = 0, savedDuration = 0, ended = false;
-        let remoteProgressAvailable = true, writeInFlight = false;
+        let trackingGeneration = 0, progressWrite = Promise.resolve(), progressWarning = false;
         const getRecords = () => {
             try { const rows = JSON.parse(localStorage.getItem('gl_lesson_progress_' + trackingUser) || '[]'); return Array.isArray(rows) ? rows : []; } catch { return []; }
         };
@@ -667,17 +667,20 @@
             const row = { lesson_id: trackingLesson.lessonId, course_id: trackingLesson.courseId, last_position_seconds: savedPosition, duration_seconds: savedDuration, progress_percent: Math.max(Number(old?.progress_percent) || 0, percent), completed: !!old?.completed || ended, updated_at: new Date().toISOString() };
             const records = [...rows.filter(r => r.lesson_id !== row.lesson_id), row];
             try { localStorage.setItem('gl_lesson_progress_' + trackingUser, JSON.stringify(records)); } catch { window.showToast?.('অগ্রগতি এই ব্রাউজারে সংরক্ষণ করা যায়নি।', 'Storage error'); }
-            if (!window.supabase || !remoteProgressAvailable || writeInFlight) return;
-            writeInFlight = true;
-            try {
-                const { error } = await window.supabase.from('lesson_progress').upsert({ ...row, profile_id: trackingUser }, { onConflict: 'profile_id,lesson_id' });
-                if (error) {
-                    remoteProgressAvailable = false;
-                    window.showToast?.('অগ্রগতি এই ব্রাউজারে সংরক্ষিত হচ্ছে; অন্য ডিভাইসে পাওয়া যাবে না।', 'Progress');
+            window.dispatchEvent(new Event('gl-progress'));
+            if (!window.supabase) return;
+            const owner = trackingUser;
+            progressWrite = progressWrite.catch(() => {}).then(async () => {
+                const { error } = await window.supabase.from('lesson_progress').upsert({ ...row, profile_id: owner }, { onConflict: 'profile_id,lesson_id' });
+                if (error && !progressWarning) {
+                    progressWarning = true;
+                    window.showToast?.('অগ্রগতি সিঙ্ক হয়নি; আপাতত এই ব্রাউজারে রাখা হচ্ছে।', 'Progress');
                 }
-            } finally { writeInFlight = false; }
+            });
+            await progressWrite;
         };
         window.stopLessonTracking = () => {
+            trackingGeneration++;
             clearInterval(trackingTimer);
             if (trackingReady && trackedPlayer) {
                 try { savedPosition = trackedPlayer.getCurrentTime(); savedDuration = trackedPlayer.getDuration(); } catch {}
@@ -685,13 +688,30 @@
             savePlayback();
             trackedPlayer = null; trackingReady = false;
         };
-        window.startLessonTracking = (iframe, lesson) => {
+        window.startLessonTracking = async (iframe, lesson) => {
             window.stopLessonTracking();
+            const generation = trackingGeneration;
             trackingLesson = lesson;
             trackingUser = null; savedPosition = 0; savedDuration = 0; ended = false;
             if (!lesson) return;
             try { trackingUser = JSON.parse(localStorage.getItem('gators-learning-auth') || 'null')?.user?.id; } catch {}
             if (!trackingUser) return;
+            if (window.supabase) {
+                const owner = trackingUser;
+                const { data, error } = await window.supabase.from('lesson_progress').select('lesson_id, course_id, progress_percent, last_position_seconds, duration_seconds, completed, updated_at').eq('profile_id', owner).eq('course_id', lesson.courseId);
+                if (generation !== trackingGeneration || !iframe.isConnected) return;
+                if (!error) {
+                    const records = new Map(getRecords().map(row => [row.lesson_id, row]));
+                    for (const row of data || []) {
+                        const old = records.get(row.lesson_id);
+                        if (!old || !old.updated_at || !row.updated_at || row.updated_at >= old.updated_at) records.set(row.lesson_id, row);
+                    }
+                    try { localStorage.setItem('gl_lesson_progress_' + owner, JSON.stringify([...records.values()])); } catch {}
+                } else if (!progressWarning) {
+                    progressWarning = true;
+                    window.showToast?.('অগ্রগতি সিঙ্ক হয়নি; আপাতত এই ব্রাউজারে রাখা হচ্ছে।', 'Progress');
+                }
+            }
             const resume = getRecords().find(r => r.lesson_id === lesson.lessonId);
             if (resume?.last_position_seconds && !resume.completed) iframe.src += '&start=' + Math.floor(resume.last_position_seconds);
             if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {

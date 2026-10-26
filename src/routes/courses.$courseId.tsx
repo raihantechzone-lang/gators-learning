@@ -407,6 +407,7 @@ function CourseDetailPage() {
               </div>
             ) : active && canWatch && (vid || active.video_file_url) ? (
               <VideoPlayer
+                readyToPlay={progressLoaded}
                 youtubeId={vid ?? undefined}
                 thumbnail={active.thumbnail_url || course?.thumbnail_url || undefined}
                 videoUrl={active.video_file_url ?? undefined}
