@@ -293,8 +293,13 @@ function CourseDetailPage() {
   };
 
   const lastSave = useRef(0);
+  // Live playback position for the notes timestamp, updated on every progress tick.
+  const [liveTime, setLiveTime] = useState(0);
+  useEffect(() => setLiveTime(0), [active?.id]);
   const handleProgress = async (seconds: number, duration: number) => {
-    if (!user || !active || !(duration > 0)) return;
+    if (!active || !(duration > 0)) return;
+    setLiveTime(seconds);
+    if (!user) return;
     if (Date.now() - lastSave.current < 3000) return;
     lastSave.current = Date.now();
     const old = readLocalProgress(user.id).find((r) => r.lesson_id === active.id);
@@ -531,7 +536,7 @@ function CourseDetailPage() {
                   <LessonNotes
                     courseId={courseId}
                     contentId={active.id}
-                    currentTime={progressRow?.last_position_seconds ?? 0}
+                    currentTime={Math.max(liveTime, progressRow?.last_position_seconds ?? 0)}
                   />
                 )}
 
