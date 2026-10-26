@@ -598,19 +598,20 @@
                 pop.className = 'fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4';
                 pop.innerHTML = '<div class="relative w-full max-w-4xl"><button type="button" id="video-popup-close" aria-label="Close video" class="absolute -top-11 right-0 w-9 h-9 rounded-full bg-white text-slate-700 flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button><div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden" id="video-popup-frame"></div></div>';
                 document.body.appendChild(pop);
-                const close = () => { pop.classList.add('hidden'); document.getElementById('video-popup-frame').replaceChildren(); document.body.style.overflow = ''; };
+                const close = () => { window.stopLessonTracking?.(); pop.classList.add('hidden'); document.getElementById('video-popup-frame').replaceChildren(); document.body.style.overflow = ''; };
                 pop.addEventListener('click', (e) => { if (e.target === pop || e.target.closest('#video-popup-close')) close(); });
                 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.classList.contains('hidden')) close(); });
             }
             const iframe = document.createElement('iframe');
             iframe.className = 'w-full h-full absolute inset-0';
-            iframe.src = 'https://www.youtube.com/embed/' + videoId + '?controls=1&playsinline=1&rel=0&autoplay=1';
+            iframe.src = 'https://www.youtube.com/embed/' + videoId + '?controls=1&playsinline=1&rel=0&autoplay=1&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin);
             iframe.title = title || 'Course video';
             iframe.referrerPolicy = 'strict-origin-when-cross-origin';
             iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
             iframe.allowFullscreen = true;
             document.getElementById('video-popup-frame').replaceChildren(iframe);
             pop.classList.remove('hidden');
+            window.startLessonTracking?.(iframe, (window.__playable || [])[window.__currentLessonIndex]);
             document.body.style.overflow = 'hidden';
         };
 
@@ -636,6 +637,69 @@
             window.__currentLessonIndex = index;
             if (autoplay) window.openVideoPopup(videoId, title);
         };
+
+        // Optional YouTube API measures actual playback without delaying the native iframe.
+        let trackingTimer, trackedPlayer, trackingReady = false, trackingLesson, trackingUser, savedPosition = 0, savedDuration = 0, ended = false;
+        let remoteProgressAvailable = true, writeInFlight = false;
+        const getRecords = () => {
+            try { const rows = JSON.parse(localStorage.getItem('gl_lesson_progress_' + trackingUser) || '[]'); return Array.isArray(rows) ? rows : []; } catch { return []; }
+        };
+        const savePlayback = async () => {
+            if (!trackingUser || !trackingLesson || savedDuration <= 0) return;
+            const rows = getRecords();
+            const old = rows.find(r => r.lesson_id === trackingLesson.lessonId);
+            const percent = ended ? 100 : Math.min(100, savedPosition / savedDuration * 100);
+            const row = { lesson_id: trackingLesson.lessonId, course_id: trackingLesson.courseId, last_position_seconds: savedPosition, duration_seconds: savedDuration, progress_percent: Math.max(Number(old?.progress_percent) || 0, percent), completed: !!old?.completed || ended, updated_at: new Date().toISOString() };
+            const records = [...rows.filter(r => r.lesson_id !== row.lesson_id), row];
+            try { localStorage.setItem('gl_lesson_progress_' + trackingUser, JSON.stringify(records)); } catch { window.showToast?.('অগ্রগতি এই ব্রাউজারে সংরক্ষণ করা যায়নি।', 'Storage error'); }
+            if (!window.supabase || !remoteProgressAvailable || writeInFlight) return;
+            writeInFlight = true;
+            try {
+                const { error } = await window.supabase.from('lesson_progress').upsert({ ...row, profile_id: trackingUser }, { onConflict: 'profile_id,lesson_id' });
+                if (error) {
+                    remoteProgressAvailable = false;
+                    window.showToast?.('অগ্রগতি এই ব্রাউজারে সংরক্ষিত হচ্ছে; অন্য ডিভাইসে পাওয়া যাবে না।', 'Progress');
+                }
+            } finally { writeInFlight = false; }
+        };
+        window.stopLessonTracking = () => {
+            clearInterval(trackingTimer);
+            if (trackingReady && trackedPlayer) {
+                try { savedPosition = trackedPlayer.getCurrentTime(); savedDuration = trackedPlayer.getDuration(); } catch {}
+            }
+            savePlayback();
+            trackedPlayer = null; trackingReady = false;
+        };
+        window.startLessonTracking = (iframe, lesson) => {
+            window.stopLessonTracking();
+            trackingLesson = lesson;
+            trackingUser = null; savedPosition = 0; savedDuration = 0; ended = false;
+            if (!lesson) return;
+            try { trackingUser = JSON.parse(localStorage.getItem('gators-learning-auth') || 'null')?.user?.id; } catch {}
+            if (!trackingUser) return;
+            const resume = getRecords().find(r => r.lesson_id === lesson.lessonId);
+            if (resume?.last_position_seconds && !resume.completed) iframe.src += '&start=' + Math.floor(resume.last_position_seconds);
+            if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+                const script = document.createElement('script'); script.src = 'https://www.youtube.com/iframe_api'; script.async = true; document.head.appendChild(script);
+            }
+            let attempts = 0;
+            trackingTimer = setInterval(() => {
+                attempts++;
+                if (!trackedPlayer && window.YT?.Player && iframe.isConnected) {
+                    trackedPlayer = new window.YT.Player(iframe, { events: {
+                        onReady: () => { trackingReady = true; },
+                        onStateChange: event => { if (event.data === 0) { ended = true; savedDuration = trackedPlayer.getDuration(); savedPosition = savedDuration; savePlayback(); } }
+                    } });
+                }
+                if (trackingReady && trackedPlayer) {
+                    savedPosition = trackedPlayer.getCurrentTime(); savedDuration = trackedPlayer.getDuration();
+                    if (attempts % 5 === 0) savePlayback();
+                }
+                if (!trackedPlayer && attempts > 30) clearInterval(trackingTimer);
+            }, 1000);
+        };
+        window.addEventListener('pagehide', () => window.stopLessonTracking?.());
+
 
         // Close modals on clicking outside
         document.querySelectorAll('.modal-overlay').forEach(overlay => {

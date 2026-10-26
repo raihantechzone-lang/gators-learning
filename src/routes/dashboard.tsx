@@ -7,6 +7,9 @@ import {
   ChevronRight, Lock, CheckCircle2, Download, Award, User, LogOut, Camera, Video, PenSquare, Play
 } from "lucide-react";
 import type { Course, Enrollment } from "@/lib/data";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { courseProgress, hasCourseAccess, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [
@@ -30,6 +33,17 @@ function DashboardPage() {
   const [toast, setToast] = useState<{ title: string, desc: string, show: boolean }>({ title: "", desc: "", show: false });
   const [newlyUnlockedCertId, setNewlyUnlockedCertId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [catalog, setCatalog] = useState<Course[]>([]);
+  const [lessons, setLessons] = useState<{ id: string; course_id: string; title?: string; pdf_url?: string | null }[]>([]);
+  const [progress, setProgress] = useState<LessonProgressRecord[]>([]);
+  const [dataError, setDataError] = useState("");
+  const [browserProgressOnly, setBrowserProgressOnly] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
+  const approved = enrollments.filter(hasCourseAccess);
+  const otherCourses = catalog.filter(course => !approved.some(e => e.course_id === course.id));
+  const getProgress = (id: string) => courseProgress(lessons.filter(l => l.course_id === id).map(l => l.id), progress);
+  const totalProgress = courseProgress(lessons.filter(l => approved.some(e => e.course_id === l.course_id)).map(l => l.id), progress);
+  const resumeCourse = approved.find(e => progress.some(p => p.course_id === e.course_id && p.progress_percent > 0 && !p.completed)) || approved[0];
 
   useEffect(() => {
     if (!loading && !user) router.navigate({ to: "/auth", search: { mode: "login" }, replace: true });
@@ -38,10 +52,24 @@ function DashboardPage() {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: enc } = await supabase.from("enrollments").select("*, courses(*)").eq("profile_id", user.id);
-      setEnrollments((enc as any) ?? []);
+      const [enc, courses, contents, saved] = await Promise.all([
+        supabase.from("enrollments").select("*, courses(*)").eq("profile_id", user.id),
+        supabase.from("courses").select("*").eq("is_published", true),
+        supabase.from("course_contents").select("id, course_id, title, pdf_url"),
+        supabase.from("lesson_progress").select("*").eq("profile_id", user.id),
+      ]);
+      setDataError(enc.error?.message || courses.error?.message || contents.error?.message || "");
+      setEnrollments((enc.data as any) ?? []);
+      setCatalog((courses.data as Course[]) ?? []);
+      setLessons(contents.data ?? []);
+      setBrowserProgressOnly(!!saved.error);
+      setProgress([...(saved.data as LessonProgressRecord[] ?? []), ...readLocalProgress(user.id)]);
+      setDataLoading(false);
     };
     load();
+    const refresh = () => { load(); };
+    window.addEventListener('focus', refresh);
+    window.addEventListener('storage', refresh);
 
     // Subscribe to enrollment changes (specifically for certificates)
     const channel = supabase
@@ -65,9 +93,15 @@ function DashboardPage() {
           load(); // Refresh the list to show the badge
         }
       )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress', filter: `profile_id=eq.${user.id}` }, load)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'enrollments', filter: `profile_id=eq.${user.id}` }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'courses' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_contents' }, load)
       .subscribe();
 
     return () => {
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('storage', refresh);
       supabase.removeChannel(channel);
     };
   }, [user]);
@@ -183,10 +217,10 @@ function DashboardPage() {
                  
                  <div className="flex gap-4 mt-4 justify-center sm:justify-start">
                     <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-orange-200 text-xs font-bold text-gray-700 shadow-sm flex items-center gap-2">
-                       <BookOpen size={14} className="text-orange-500" /> Enrolled: {enrollments.length}
+                       <BookOpen size={14} className="text-orange-500" /> Enrolled: {approved.length}
                     </div>
                     <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-purple-200 text-xs font-bold text-gray-700 shadow-sm flex items-center gap-2">
-                       <CheckCircle2 size={14} className="text-purple-500" /> Completed: 0%
+                       <CheckCircle2 size={14} className="text-purple-500" /> Completed: {totalProgress}%
                     </div>
                  </div>
               </div>
@@ -208,31 +242,31 @@ function DashboardPage() {
            {activeTab === 'courses' && (
              <>
                {/* Resume Watching */}
-               {enrollments.length > 0 && (
-                 <div className="bg-slate-900 rounded-[2rem] p-6 sm:p-8 flex items-center justify-between group cursor-pointer border border-slate-800 hover:border-slate-700 transition-all shadow-xl shadow-slate-200/50">
+               {resumeCourse && (
+                 <Link to="/enroll/$courseId" params={{ courseId: resumeCourse.course_id }} reloadDocument className="bg-slate-900 rounded-[2rem] p-6 sm:p-8 flex items-center justify-between group cursor-pointer border border-slate-800 hover:border-slate-700 transition-all shadow-xl shadow-slate-200/50">
                     <div className="flex-1 min-w-0 pr-4">
                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Continue Watching</span>
-                       <h4 className="font-['Hind_Siliguri',sans-serif] font-bold text-white text-lg sm:text-xl truncate">{enrollments[0].courses?.title}</h4>
+                       <h4 className="font-['Hind_Siliguri',sans-serif] font-bold text-white text-lg sm:text-xl truncate">{resumeCourse.courses?.title}</h4>
                        <div className="mt-4 flex items-center gap-4">
-                          <div className="flex-1 max-w-[200px] h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                             <div className="w-1/4 h-full bg-[#0f9d58] rounded-full"></div>
-                          </div>
-                          <span className="text-xs font-bold text-slate-500">25% Done</span>
+                          <Progress className="flex-1 max-w-[200px]" value={getProgress(resumeCourse.course_id)} />
+                          <span className="text-xs font-bold text-muted-foreground">{getProgress(resumeCourse.course_id)}% Done</span>
                        </div>
                     </div>
-                    <button className="w-14 h-14 rounded-full bg-[#0f9d58] text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-emerald-500 transition-all shrink-0">
-                       <Play size={24} fill="currentColor" className="ml-1" />
-                    </button>
-                 </div>
+                    <span className="w-14 h-14 rounded-full bg-brand text-brand-foreground flex items-center justify-center shrink-0"><Play size={24} fill="currentColor" /></span>
+                 </Link>
                )}
 
+               {dataLoading && <p className="text-ink-muted">কোর্স লোড হচ্ছে…</p>}
+               {dataError && <p role="alert" className="text-destructive">{dataError}</p>}
+               {browserProgressOnly && <p className="text-sm text-ink-muted">অগ্রগতি এই ব্রাউজারে সংরক্ষিত হচ্ছে; অন্য ডিভাইসে পাওয়া যাবে না।</p>}
+               {!dataLoading && !approved.length && <p className="text-ink-muted">এখনো কোনো কোর্সে অনুমোদিত এনরোলমেন্ট নেই।</p>}
                {/* Course Grid */}
                <div>
                   <h3 className="text-xl sm:text-2xl font-['Hind_Siliguri',sans-serif] font-bold text-gray-900 mb-6 flex items-center gap-3">
                     <span className="w-1.5 h-8 bg-[#0f9d58] rounded-full"></span> এনরোলকৃত কোর্সসমূহ
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                     {enrollments.map(e => (
+                     {approved.map(e => (
                         <div key={e.id} className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                            <div className="h-40 relative">
                               <img src={e.courses?.thumbnail_url || ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
@@ -240,9 +274,10 @@ function DashboardPage() {
                            </div>
                            <div className="p-5">
                               <h4 className="font-['Hind_Siliguri',sans-serif] font-bold text-slate-800 line-clamp-2 min-h-[3rem]">{e.courses?.title}</h4>
+                              <div className="mt-3"><Progress value={getProgress(e.course_id)} /><p className="text-xs text-ink-muted mt-1">{getProgress(e.course_id)}% সম্পন্ন</p></div>
                               <div className="mt-4 flex items-center justify-between">
                                  <Link 
-                                   to="/courses/$courseId" 
+                                   to="/enroll/$courseId" reloadDocument 
                                    params={{ courseId: e.course_id }}
                                    className="text-[#0f9d58] font-bold text-xs flex items-center gap-1 hover:underline"
                                  >
@@ -259,6 +294,25 @@ function DashboardPage() {
                      ))}
                   </div>
                </div>
+               <section>
+                 <h3 className="text-xl font-bold text-ink mb-6 font-bengali">অন্যান্য কোর্সসমূহ</h3>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                   {otherCourses.map(course => {
+                     const request = enrollments.find(e => e.course_id === course.id) as (Enrollment & { payment_status?: string }) | undefined;
+                     return <div key={course.id} className="bg-background border border-border rounded-lg overflow-hidden">
+                       {course.thumbnail_url && <img src={course.thumbnail_url} alt={course.title} className="h-40 w-full object-cover" />}
+                       <div className="p-5">
+                         <h4 className="font-bold text-ink font-bengali">{course.title}</h4>
+                         <p className="mt-2 text-sm text-ink-muted">৳{course.discount_price ?? course.price ?? 0}</p>
+                         {request?.payment_status === 'pending' && <p className="text-sm text-ink-muted mt-2">পেমেন্ট যাচাইয়ের অপেক্ষায়</p>}
+                         {request?.payment_status === 'failed' && <p className="text-sm text-destructive mt-2">পেমেন্ট অনুমোদিত হয়নি</p>}
+                         <Button asChild variant="outline" className="mt-4"><Link to="/enroll/$courseId" params={{ courseId: course.id }} reloadDocument>কোর্স দেখুন <ChevronRight size={14} /></Link></Button>
+                       </div>
+                     </div>;
+                   })}
+                 </div>
+                 {!dataLoading && !otherCourses.length && <p className="text-ink-muted">আর কোনো প্রকাশিত কোর্স নেই।</p>}
+               </section>
              </>
            )}
 
@@ -271,20 +325,8 @@ function DashboardPage() {
                 </div>
                 <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-between group hover:bg-emerald-100 transition-colors cursor-pointer">
-                         <div className="flex items-center gap-4 min-w-0">
-                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-rose-500 shrink-0 shadow-sm">
-                               <FileText size={24} />
-                            </div>
-                            <div className="truncate">
-                               <p className="font-['Hind_Siliguri',sans-serif] font-bold text-sm text-slate-800 truncate">Lecture Sheet 01 - Bangla Grammar</p>
-                               <span className="text-[10px] font-black text-[#0f9d58] uppercase">University Prep</span>
-                            </div>
-                         </div>
-                         <button className="w-10 h-10 rounded-full bg-white text-[#0f9d58] flex items-center justify-center shadow-sm group-hover:bg-[#0f9d58] group-hover:text-white transition-all">
-                            <Download size={18} />
-                         </button>
-                      </div>
+                     {lessons.filter(l => l.pdf_url && approved.some(e => e.course_id === l.course_id)).map(l => <a key={l.id} href={l.pdf_url || undefined} target="_blank" rel="noopener noreferrer" className="p-4 bg-brand-soft border border-border rounded-lg flex items-center justify-between text-ink"><span>{l.title}</span><Download size={18} /></a>)}
+                     {!lessons.some(l => l.pdf_url && approved.some(e => e.course_id === l.course_id)) && <p className="text-ink-muted">কোনো ক্লাস নোটস নেই।</p>}
                    </div>
                 </div>
              </div>
