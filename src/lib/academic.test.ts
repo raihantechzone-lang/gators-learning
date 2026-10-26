@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import { attendanceSummary, marksByCourse, performanceAdvice } from "./academic";
 
 describe("mark sheets", () => {
@@ -8,8 +9,8 @@ describe("mark sheets", () => {
       { course_id: "B", exam_name: "Mid", profile_id: "u", score: 10, max_score: 50 },
     ];
     const out = marksByCourse(marks, ["A"]);
-    expect(out.get("A")?.get("Mid")?.score).toBe(40);
-    expect(out.has("B")).toBe(false);
+    assert.equal(out.get("A")?.get("Mid")?.score, 40);
+    assert.equal(out.has("B"), false);
   });
 });
 
@@ -22,14 +23,14 @@ describe("attendance", () => {
   ];
   it("counts missed classes and missed live classes, ignoring future classes", () => {
     const s = attendanceSummary(classes, [{ profile_id: "u", course_id: "A", lesson_id: "2", attended_on: "2026-10-25" }], now);
-    expect(s.total).toBe(2);
-    expect(s.present).toBe(1);
-    expect(s.missed).toBe(1);
-    expect(s.missedLive).toBe(1);
-    expect(s.percent).toBe(50);
+    assert.equal(s.total, 2);
+    assert.equal(s.present, 1);
+    assert.equal(s.missed, 1);
+    assert.equal(s.missedLive, 1);
+    assert.equal(s.percent, 50);
   });
   it("rates low attendance and marks as needing improvement", () => {
-    expect(performanceAdvice(40, 30).level).toBe("bad");
-    expect(performanceAdvice(95, 90).level).toBe("good");
+    assert.equal(performanceAdvice(40, 30).level, "bad");
+    assert.equal(performanceAdvice(95, 90).level, "good");
   });
 });
