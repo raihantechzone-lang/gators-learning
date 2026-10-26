@@ -1,3 +1,4 @@
+- [ ] Fix payment verification constraint failure and verify approval/access rules.
 - [x] Add separate signup password, save name/phone, and show roll welcome popup on explicit sign-in.
 - [x] Separate enrolled and other published courses and display persisted progress with labeled browser fallback.
 - [x] Verify existing-account sign-in → actual roll welcome → dashboard; seven progress/access tests pass, build OK.
