@@ -1,102 +1,82 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, CalendarCheck, Clock, User } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { approvedEnrollmentFilter } from "@/lib/enrollment-payment";
+import { attendanceSummary, type AttendanceRow, type ClassLite } from "@/lib/academic";
 
 export const Route = createFileRoute("/admin/attendance")({
+  head: () => ({ meta: [
+    { title: "Class Attendance | Gators Learning Admin" },
+    { name: "description", content: "See which students attended each class, date by date." },
+    { property: "og:title", content: "Class Attendance | Gators Learning Admin" },
+    { property: "og:description", content: "See which students attended each class, date by date." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: AttendanceAdmin,
 });
 
 function AttendanceAdmin() {
-  const [search, setSearch] = useState("");
-  const queryClient = useQueryClient();
-
-  // In this schema, we'll use profiles' created_at or last_login if available.
-  // Or we can track attendance based on enrollment_requests / enrollments for now.
-  // As per instructions, only use existing real data.
-  const { data: profiles, isLoading } = useQuery({
-    queryKey: ["admin-attendance-profiles"],
+  const [courseId, setCourseId] = useState("");
+  const { data: courses = [] } = useQuery({
+    queryKey: ["admin-att-courses"],
+    queryFn: async () => (await supabase.from("courses").select("id, title").order("created_at", { ascending: false })).data ?? [],
+  });
+  const { data, error } = useQuery({
+    queryKey: ["admin-att", courseId],
+    enabled: !!courseId,
+    refetchInterval: 30000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(`*, enrollments(count)`)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      const [en, cls, att] = await Promise.all([
+        supabase.from("enrollments").select("profile_id, profiles(full_name, roll_number)").eq("course_id", courseId).or(approvedEnrollmentFilter),
+        supabase.from("course_contents").select("id, course_id, title, created_at, live_url").eq("course_id", courseId),
+        supabase.from("class_attendance").select("profile_id, course_id, lesson_id, attended_on").eq("course_id", courseId),
+      ]);
+      if (att.error) throw att.error;
+      const seen = new Set<string>();
+      return {
+        students: (en.data ?? []).filter((r: any) => !seen.has(r.profile_id) && seen.add(r.profile_id)) as any[],
+        classes: (cls.data ?? []) as ClassLite[],
+        rows: (att.data ?? []) as AttendanceRow[],
+      };
     },
   });
 
-  const filtered = profiles?.filter(p => 
-    p.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.roll_number?.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
-    <div className="p-8 animate-in fade-in duration-500 space-y-8">
-      <h2 className="text-2xl font-bold text-slate-900">Student Attendance Tracker</h2>
-      <p className="text-slate-500 mt-2">Monitor registered students and their platform engagement.</p>
-
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-        <Search className="text-slate-400" />
-        <input 
-          placeholder="Search students..." 
-          className="flex-1 bg-transparent border-none focus:ring-0"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 text-xs font-black text-slate-400 uppercase">
-             <tr>
-               <th className="px-6 py-4">Student</th>
-               <th className="px-6 py-4">Join Date</th>
-               <th className="px-6 py-4">Engagement</th>
-               <th className="px-6 py-4">Status</th>
-             </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {isLoading ? (
-              <tr><td colSpan={4} className="px-6 py-10 text-center text-slate-400 italic">Loading...</td></tr>
-            ) : filtered?.length === 0 ? (
-              <tr><td colSpan={4} className="px-6 py-10 text-center text-slate-400 italic">No students found.</td></tr>
-            ) : (
-              filtered?.map(p => (
-                <tr key={p.id}>
-                  <td className="px-6 py-4 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                      <User size={16} />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900">{p.full_name}</div>
-                      <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Roll: {p.roll_number}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} className="text-slate-300" />
-                      {new Date(p.created_at).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">
-                      {p.enrollments?.[0]?.count || 0} Courses
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-                      Online
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+    <div className="p-4 sm:p-8 space-y-6">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2"><CalendarCheck /> Class Attendance</h2>
+      <p className="text-slate-500 text-sm">শিক্ষার্থীরা ভিডিও পেজ থেকে প্রতিটি ক্লাসে "I'm here" দিলে এখানে দেখাবে।</p>
+      <select value={courseId} onChange={(e) => setCourseId(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 bg-white">
+        <option value="">কোর্স নির্বাচন করুন</option>
+        {courses.map((c: any) => <option key={c.id} value={c.id}>{c.title}</option>)}
+      </select>
+      {error && <p className="text-rose-600 text-sm">হাজিরা টেবিল পাওয়া যায়নি: {(error as Error).message}</p>}
+      {data && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-xs font-black text-slate-400 uppercase">
+              <tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Present</th><th className="px-4 py-3">Missed</th><th className="px-4 py-3">Missed live</th><th className="px-4 py-3">Attendance</th></tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {data.students.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">এই কোর্সে অনুমোদিত কোনো শিক্ষার্থী নেই।</td></tr>}
+              {data.students.map((s) => {
+                const sum = attendanceSummary(data.classes, data.rows.filter((r) => r.profile_id === s.profile_id));
+                return (
+                  <tr key={s.profile_id}>
+                    <td className="px-4 py-2"><p className="font-bold">{s.profiles?.full_name || "Student"}</p><p className="text-xs text-slate-400">{s.profiles?.roll_number}</p></td>
+                    <td className="px-4 py-2 text-emerald-600 font-bold">{sum.present}/{sum.total}</td>
+                    <td className="px-4 py-2 text-rose-600">{sum.missed}</td>
+                    <td className="px-4 py-2 text-rose-600">{sum.missedLive}</td>
+                    <td className="px-4 py-2 font-black">{sum.percent}%</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

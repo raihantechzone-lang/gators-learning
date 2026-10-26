@@ -10,6 +10,7 @@ import { ArticleLesson } from "@/components/lesson/ArticleLesson";
 import { QuizRunner } from "@/components/lesson/QuizRunner";
 import { LessonResources } from "@/components/lesson/LessonResources";
 import { LessonNotes } from "@/components/lesson/LessonNotes";
+import { AttendanceButton } from "@/components/lesson/AttendanceButton";
 import { isLiveLinkActive, youtubeId, type Course, type CourseContent } from "@/lib/data";
 import { hasCourseAccess, lessonReviewTag, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
 import { loadStudentProgress, saveStudentProgress } from "@/lib/progress-sync";
@@ -484,6 +485,7 @@ function CourseDetailPage() {
               </div>
             )}
 
+            {active && user && enrolled && <AttendanceButton userId={user.id} courseId={courseId} lessonId={active.id} />}
             {active && (
               <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
                 <div className="flex flex-wrap gap-2 mb-4 border-b border-border pb-3">
