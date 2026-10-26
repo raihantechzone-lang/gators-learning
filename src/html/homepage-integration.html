@@ -2,6 +2,7 @@
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
   /* STUDENT_ROLL_HELPER */
+  /* PUBLIC_EXPERIENCE_HELPER */
 
   const supabase = createClient(
     "https://jouwcthdcjoegcqgwlpl.supabase.co",
@@ -570,17 +571,18 @@
   }
 
   async function loadReviews() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("reviews")
-      .select("comment, rating, created_at, profiles(full_name, photo_url)")
+      .select("comment, rating, created_at, profiles(full_name)")
       .eq("is_approved", true)
       .order("created_at", { ascending: false });
+    if (error) { console.error("Reviews could not load:", error.message); return; }
     window.db.feedbacks = (data || []).map((r) => ({
       name: r.profiles?.full_name || "Student",
       role: r.rating ? r.rating + " ★ Student Review" : "Student",
       text: r.comment,
       status: "approved",
-      photo: r.profiles?.photo_url,
+      photo: null,
     }));
     window.renderTestimonialsList?.();
   }
@@ -727,7 +729,7 @@
 
       if (type === "Signup") {
         const { data: sd, error } = await supabase.auth.signUp({
-          email: String(fd.get("email")),
+          email: normalizeStudentEmail(fd.get("email")),
           password: String(fd.get("password")),
           options: {
             data: { full_name: fd.get("name"), phone: fd.get("phone") },
@@ -758,11 +760,11 @@
           .select("email, roll_number")
           .eq("roll_number", roll)
           .maybeSingle();
-        if (lookupErr) return finish(lookupErr.message, "Login failed");
+        if (lookupErr) return finish("রোল দিয়ে লগইন পাওয়া যাচ্ছে না। আপনার ইমেইল ও সাইনআপের পাসওয়ার্ড দিয়ে লগইন করুন।", "Login failed");
         if (!prof?.email) return finish("Roll number not found.", "Login failed");
         const { data: rd, error } = await supabase.auth.signInWithPassword({
           email: prof.email,
-          password: roll,
+          password: String(fd.get("password") || ""),
         });
         if (error) return finish(error.message, "Login failed");
         if (!rd?.session) return finish("Could not start a session.", "Login failed");
@@ -773,7 +775,7 @@
 
       }
 
-      const email = String(fd.get("email"));
+      const email = normalizeStudentEmail(fd.get("email"));
       const password = String(fd.get("password"));
 
       const { data: ld, error } = await supabase.auth.signInWithPassword({
@@ -859,7 +861,6 @@
       if (existing.dataset.adId === ad.id) return;
       existing.remove();
     }
-    try { localStorage.setItem(seenKey, "1"); } catch (e) { /* storage unavailable */ }
 
 
     const overlay = document.createElement("div");
@@ -871,7 +872,9 @@
     box.style.cssText =
       "position:relative;width:100%;max-width:420px;border-radius:18px;overflow:hidden;background:transparent;box-shadow:0 25px 60px rgba(0,0,0,.35);";
     const img = document.createElement("img");
-    img.src = ad.image_url;
+    img.fetchPriority = "high";
+    img.loading = "eager";
+    img.src = adDisplayImage(ad.image_url);
     img.alt = ad.title || "Advertisement";
     img.style.cssText = "width:100%;height:auto;display:block;border:0;outline:0;vertical-align:top;";
     if (ad.target_link) {
@@ -892,17 +895,35 @@
     close.onclick = () => overlay.remove();
     box.appendChild(close);
     overlay.appendChild(box);
-    document.body.appendChild(overlay);
+    img.onload = () => {
+      if (document.getElementById("gl-interstitial-ad")) return;
+      document.body.appendChild(overlay);
+      try { localStorage.setItem(seenKey, "1"); } catch { /* storage unavailable */ }
+    };
+    img.onerror = () => overlay.remove();
+    if (img.complete && img.naturalWidth > 0) img.onload();
   }
 
   /* ---------- boot ---------- */
+  const publicLoads = Promise.all([loadSettings(), loadCourses(), loadReviews(), showInterstitialAd()]);
+  // Realtime may not be enabled on the connected backend: also refresh on focus
+  // and periodically while Home is visible.
+  const refreshPublic = () => {
+    if (document.visibilityState === "visible") {
+      loadReviews();
+      showInterstitialAd();
+    }
+  };
+  window.addEventListener("focus", refreshPublic);
+  document.addEventListener("visibilitychange", refreshPublic);
+  setInterval(refreshPublic, 30000);
   (async () => {
     const { data } = await supabase.auth.getSession();
     currentUser = data.session?.user ?? null;
     if (window.currentCourseId) loadCourseDetails(window.currentCourseId);
     await loadProfile();
     renderAuthState();
-    await Promise.all([loadSettings(), loadCourses(), loadReviews(), showInterstitialAd()]);
+    await publicLoads;
 
 
     // Redundant listeners removed. The 'public-site-sync' channel in loadCourses handles updates globally.

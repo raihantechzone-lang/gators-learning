@@ -5,6 +5,7 @@ import { useAuth, signInWithGoogle } from "@/lib/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { normalizeStudentEmail } from "@/lib/public-experience.js";
 import { saveStudentProfile } from "@/lib/student-profile";
 
 type Mode = "login" | "signup";
@@ -51,11 +52,11 @@ function AuthPage() {
     const res =
       mode === "signup"
         ? await supabase.auth.signUp({
-            email,
+            email: normalizeStudentEmail(email),
             password,
             options: { data: { full_name: fullName.trim(), phone: phone.trim() }, emailRedirectTo: window.location.origin },
           })
-        : await supabase.auth.signInWithPassword({ email, password });
+        : await supabase.auth.signInWithPassword({ email: normalizeStudentEmail(email), password });
     if (res.error) throw res.error;
     if (!res.data.session || !res.data.user) {
       setError("Account created. Email confirmation is still enabled for your account service; confirm your email before signing in.");
@@ -115,13 +116,13 @@ function AuthPage() {
                minLength={mode === "signup" ? 6 : undefined}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === "signup" ? "Password" : "Password or Roll number"}
+              placeholder={mode === "signup" ? "Password" : "Password"}
               className="w-full rounded-xl border border-border bg-surface-alt px-4 py-3 text-sm outline-none focus:border-brand"
             />
             {mode === "login" && (
               <>
                 <p className="text-xs text-ink-muted font-bengali">
-                  কোর্স কেনার সময় পাওয়া Roll Number দিয়েই লগ ইন করতে পারবেন।
+                  সাইনআপের সময় দেওয়া পাসওয়ার্ড দিয়ে লগ ইন করুন।
                 </p>
                 <button
                   type="button"
