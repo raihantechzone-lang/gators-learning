@@ -11,6 +11,7 @@ export const Route = createFileRoute("/admin/transactions")({
 
 function TransactionsAdmin() {
   const [search, setSearch] = useState("");
+  const [whatsAppPopup, setWhatsAppPopup] = useState<{ name: string; phone: string; message: string } | null>(null);
   const queryClient = useQueryClient();
 
   // Pending bKash payments live in the enrollments table until verified.
@@ -44,15 +45,14 @@ function TransactionsAdmin() {
       const name = req.profiles?.full_name || "Student";
       const courseTitle = req.courses?.title || "the course";
       const trx = req.bkash_trx_id || "";
-      const text = encodeURIComponent(
+      const text =
         message ||
         (status === 'verified'
           ? `Hello ${name}, your payment for ${courseTitle} has been verified successfully. You can now access your course.`
-          : `Hello ${name}, we couldn't verify your transaction (TrxID: ${trx}) for ${courseTitle}. Please contact support.`)
-      );
-      const phone = req.profiles?.phone;
+          : `Hello ${name}, we couldn't verify your transaction (TrxID: ${trx}) for ${courseTitle}. Please contact support.`);
+      const phone = String(req.profiles?.phone || "").replace(/\D/g, "");
       if (phone) {
-        window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${text}`, '_blank');
+        setWhatsAppPopup({ name, phone, message: text });
       }
     },
     onSuccess: () => {
