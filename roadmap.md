@@ -1,3 +1,5 @@
-- [ ] Add separate signup password, save name/phone, and show roll welcome popup on explicit sign-in.
-- [ ] Separate enrolled and other published courses and display persisted progress.
-- [ ] Verify flows; resolve or report external auth configuration blocker.
+- [x] Add separate signup password, save name/phone, and show roll welcome popup on explicit sign-in.
+- [x] Separate enrolled and other published courses and display persisted progress with labeled browser fallback.
+- [x] Verify existing-account sign-in → actual roll welcome → dashboard; seven progress/access tests pass, build OK.
+- [ ] Disable email confirmation: blocked by inaccessible settings on the external backend used by the app (verified currently enabled).
+- [ ] Enable cross-device progress: blocked by missing lesson_progress on the external backend; actual YouTube playback/save is not end-to-end verified.
