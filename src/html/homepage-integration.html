@@ -575,6 +575,7 @@
       .from("reviews")
       .select("comment, rating, created_at, profiles(full_name)")
       .eq("is_approved", true)
+      .is("course_id", null)
       .order("created_at", { ascending: false });
     if (error) { console.error("Reviews could not load:", error.message); return; }
     window.db.feedbacks = (data || []).map((r) => ({

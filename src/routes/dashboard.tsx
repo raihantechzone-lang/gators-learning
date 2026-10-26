@@ -241,7 +241,7 @@ function DashboardPage() {
              <>
                {/* Resume Watching */}
                {resumeCourse && (
-                 <Link to="/enroll/$courseId" params={{ courseId: resumeCourse.course_id }} reloadDocument className="bg-slate-900 rounded-[2rem] p-6 sm:p-8 flex items-center justify-between group cursor-pointer border border-slate-800 hover:border-slate-700 transition-all shadow-xl shadow-slate-200/50">
+                 <Link to="/courses/$courseId" params={{ courseId: resumeCourse.course_id }} className="bg-slate-900 rounded-[2rem] p-6 sm:p-8 flex items-center justify-between group cursor-pointer border border-slate-800 hover:border-slate-700 transition-all shadow-xl shadow-slate-200/50">
                     <div className="flex-1 min-w-0 pr-4">
                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Continue Watching</span>
                        <h4 className="font-['Hind_Siliguri',sans-serif] font-bold text-white text-lg sm:text-xl truncate">{resumeCourse.courses?.title}</h4>
@@ -273,7 +273,7 @@ function DashboardPage() {
                               <div className="mt-3"><Progress value={getProgress(e.course_id)} /><p className="text-xs text-ink-muted mt-1">{getProgress(e.course_id)}% সম্পন্ন</p></div>
                               <div className="mt-4 flex items-center justify-between">
                                  <Link 
-                                   to="/enroll/$courseId" reloadDocument 
+                                   to="/courses/$courseId"
                                    params={{ courseId: e.course_id }}
                                    className="text-[#0f9d58] font-bold text-xs flex items-center gap-1 hover:underline"
                                  >
