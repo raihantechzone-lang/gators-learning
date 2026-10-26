@@ -639,6 +639,16 @@
   window.showStudentWelcome = async function(user) {
     currentUser = user;
     await loadProfile();
+    const values = {
+      id: user.id,
+      full_name: currentProfile?.full_name || user.user_metadata?.full_name || "Student",
+      phone: currentProfile?.phone || user.user_metadata?.phone || null,
+      email: user.email,
+      roll_number: currentProfile?.roll_number || "GL" + user.id.replaceAll("-", "").toUpperCase(),
+    };
+    const { error } = await supabase.from("profiles").upsert(values, { onConflict: "id" });
+    if (error) throw new Error("অ্যাকাউন্টের তথ্য সংরক্ষণ করা যায়নি: " + error.message);
+    currentProfile = { ...currentProfile, ...values };
     renderAuthState();
     window.closeModal("authModal");
     document.getElementById("student-welcome")?.remove();

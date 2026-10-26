@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, signInWithGoogle } from "@/lib/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { saveStudentProfile } from "@/lib/student-profile";
 
 type Mode = "login" | "signup";
 
@@ -16,6 +19,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Log in or create your Gators Learning student account." },
       { property: "og:title", content: "Log in — Gators Learning" },
       { property: "og:description", content: "Access your courses, live classes and certificates." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
@@ -28,29 +33,39 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [welcome, setWelcome] = useState<{ name: string; roll: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Session is persisted, so a logged-in visitor goes straight to the dashboard.
   useEffect(() => {
-    if (user) router.navigate({ to: "/dashboard", replace: true });
-  }, [user, router]);
+    if (user && !busy && !welcome) router.navigate({ to: "/dashboard", replace: true });
+  }, [user, router, busy, welcome]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    try {
     const res =
       mode === "signup"
         ? await supabase.auth.signUp({
             email,
             password,
-            options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin + "/dashboard" },
+            options: { data: { full_name: fullName.trim(), phone: phone.trim() }, emailRedirectTo: window.location.origin },
           })
         : await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (res.error) setError(res.error.message);
-    else router.navigate({ to: "/dashboard" });
+    if (res.error) throw res.error;
+    if (!res.data.session || !res.data.user) {
+      setError("Account created. Email confirmation is still enabled for your account service; confirm your email before signing in.");
+      return;
+    }
+    const profile = await saveStudentProfile(res.data.user);
+    setWelcome({ name: profile.full_name, roll: profile.roll_number });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sign in. Please try again.");
+    } finally { setBusy(false); }
   };
 
   return (
@@ -76,7 +91,7 @@ function AuthPage() {
           </div>
 
           <form onSubmit={submit} className="space-y-4">
-            {mode === "signup" && (
+            {mode === "signup" && (<>
               <input
                 required
                 value={fullName}
@@ -84,7 +99,8 @@ function AuthPage() {
                 placeholder="Full name"
                 className="w-full rounded-xl border border-border bg-surface-alt px-4 py-3 text-sm outline-none focus:border-brand"
               />
-            )}
+              <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone number" autoComplete="tel" className="w-full rounded-xl border border-border bg-surface-alt px-4 py-3 text-sm outline-none focus:border-brand" />
+            </>)}
             <input
               required
               type="email"
@@ -96,6 +112,7 @@ function AuthPage() {
             <input
               required
               type="password"
+               minLength={mode === "signup" ? 6 : undefined}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={mode === "signup" ? "Password" : "Password or Roll number"}
@@ -144,6 +161,13 @@ function AuthPage() {
           </p>
         </div>
       </main>
+      <Dialog open={!!welcome} onOpenChange={open => { if (!open) router.navigate({ to: "/dashboard", replace: true }); }}>
+        <DialogContent>
+          <DialogTitle className="text-brand font-bengali">স্বাগতম, {welcome?.name}!</DialogTitle>
+          <DialogDescription className="break-all">Roll No: {welcome?.roll}</DialogDescription>
+          <Button onClick={() => router.navigate({ to: "/dashboard", replace: true })}>আমার ড্যাশবোর্ড</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
