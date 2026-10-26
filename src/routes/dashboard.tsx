@@ -41,7 +41,8 @@ function DashboardPage() {
   const [dataError, setDataError] = useState("");
   const [dataLoading, setDataLoading] = useState(true);
   const approved = enrollments.filter(hasCourseAccess);
-  const liveLessons = lessons.filter(l => isLessonLive(l) && (l.is_free || approved.some(e => e.course_id === l.course_id)));
+  // Live classes are only for students with an approved enrollment in that course, even for free lessons.
+  const liveLessons = lessons.filter(l => isLessonLive(l) && approved.some(e => e.course_id === l.course_id));
   const otherCourses = catalog.filter(course => !approved.some(e => e.course_id === course.id));
   const getProgress = (id: string) => courseProgress(lessons.filter(l => l.course_id === id).map(l => l.id), progress);
   const totalProgress = courseProgress(lessons.filter(l => approved.some(e => e.course_id === l.course_id)).map(l => l.id), progress);
