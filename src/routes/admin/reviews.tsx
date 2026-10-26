@@ -101,7 +101,7 @@ function ReviewsAndAdsAdmin() {
         }
         throw error;
       }
-      return "expires_at" in saved;
+      return expires_at === null ? true : "expires_at" in saved;
     },
     onSuccess: (timedSupported) => {
       setAdPhoto(null);
