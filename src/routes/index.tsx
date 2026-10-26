@@ -3,8 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 // Only an extra script is appended for auth + database wiring.
 import homepageHtml from "../html/homepage.html?raw";
 import integrationHtml from "../html/homepage-integration.html?raw";
+import studentRollSource from "../lib/student-roll.js?raw";
 
-const page = homepageHtml.replace("</body>", `${integrationHtml}\n</body>`);
+const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", studentRollSource.replace("export function", "function"));
+const page = homepageHtml.replace("</body>", `${integration}\n</body>`);
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
