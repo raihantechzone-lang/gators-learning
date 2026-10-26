@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { courseProgress, hasCourseAccess, progressStorageKey } from "./student-progress";
+import { mergeProgress, courseProgress, hasCourseAccess, progressStorageKey } from "./student-progress";
 import { paymentVerificationUpdate } from "./enrollment-payment";
 
 describe("Student dashboard rules", () => {
@@ -30,5 +30,15 @@ describe("Student dashboard rules", () => {
     assert.equal(hasCourseAccess({ status: "active", payment_status: "failed" }), false);
     assert.equal(hasCourseAccess({ status: "bounced", payment_status: "failed" }), false);
     assert.equal(hasCourseAccess({ status: "active", payment_status: "unknown" }), false);
+  });
+});
+describe("mergeProgress", () => {
+  const base = { lesson_id: "l1", course_id: "c1", last_position_seconds: 60, duration_seconds: 100, progress_percent: 60, completed: false };
+  it("never lowers watched percentage", () => {
+    assert.equal(mergeProgress([base], { ...base, progress_percent: 20 })[0].progress_percent, 60);
+  });
+  it("unmarking a completed lesson resets it", () => {
+    const done = { ...base, progress_percent: 100, completed: true };
+    assert.equal(mergeProgress([done], { ...base, progress_percent: 0, completed: false })[0].progress_percent, 0);
   });
 });

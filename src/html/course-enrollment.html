@@ -634,11 +634,23 @@
             play.className = 'absolute inset-0 flex items-center justify-center bg-black/20 group-hover/thumb:bg-black/30 transition';
             play.innerHTML = '<span class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/95 text-brand-600 flex items-center justify-center shadow-xl group-hover/thumb:scale-110 transition"><i class="fa-solid fa-play text-2xl ml-1"></i></span>';
             btn.append(img, play);
-            btn.onclick = () => window.openVideoPopup(videoId, title);
+            const playInline = () => {
+                const iframe = document.createElement('iframe');
+                iframe.className = 'absolute inset-0 w-full h-full border-0';
+                iframe.src = 'https://www.youtube.com/embed/' + videoId + '?controls=1&playsinline=1&rel=0&autoplay=1&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin);
+                iframe.title = title || 'Course video';
+                iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                iframe.allowFullscreen = true;
+                mount.replaceChildren(iframe);
+                window.startLessonTracking?.(iframe, (window.__playable || [])[window.__currentLessonIndex]);
+            };
+            btn.onclick = playInline;
+            window.stopLessonTracking?.();
             mount.replaceChildren(btn);
             mount.dataset.videoId = videoId;
             window.__currentLessonIndex = index;
-            if (autoplay) window.openVideoPopup(videoId, title);
+            if (autoplay) { mount.scrollIntoView?.({ behavior: 'smooth', block: 'center' }); playInline(); }
         };
 
         // Optional YouTube API measures actual playback without delaying the native iframe.

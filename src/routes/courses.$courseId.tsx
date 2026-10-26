@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -12,7 +12,7 @@ import { LessonResources } from "@/components/lesson/LessonResources";
 import { LessonNotes } from "@/components/lesson/LessonNotes";
 import { LessonQA } from "@/components/lesson/LessonQA";
 import { isLiveLinkActive, youtubeId, type Course, type CourseContent } from "@/lib/data";
-import { hasCourseAccess } from "@/lib/student-progress";
+import { hasCourseAccess, lessonReviewTag, readLocalProgress, saveLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
 
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
@@ -86,8 +86,6 @@ function CourseDetailPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [enrolled, setEnrolled] = useState(false);
   const [pending, setPending] = useState(false);
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-  const [progressRow, setProgressRow] = useState<{ last_position_seconds: number } | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [instructor, setInstructor] = useState<InstructorProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -159,55 +157,29 @@ function CourseDetailPage() {
     };
   }, [user, courseId]);
 
-  // Load progress rows for the whole course (completion + resume position).
+  // The connected backend has no lesson_progress table, so progress lives in the
+  // shared per-user browser record also read by the dashboard and enrollment page.
+  const [progressRecords, setProgressRecords] = useState<LessonProgressRecord[]>([]);
   useEffect(() => {
-    if (!user) {
-      setCompletedIds(new Set());
-      return;
-    }
-    let cancelled = false;
-    const load = async () => {
-      const { data } = await supabase
-        .from("lesson_progress")
-        .select("content_id, completed")
-        .eq("user_id", user.id)
-        .eq("course_id", courseId);
-      if (cancelled) return;
-      setCompletedIds(new Set((data ?? []).filter((r: any) => r.completed).map((r: any) => r.content_id)));
-    };
+    if (!user) { setProgressRecords([]); return; }
+    const load = () => setProgressRecords(readLocalProgress(user.id).filter((r) => r.course_id === courseId));
     load();
-    const channel = supabase
-      .channel(`lp-${courseId}-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "lesson_progress" }, () => load())
-      .subscribe();
-    return () => {
-      cancelled = true;
-      supabase.removeChannel(channel);
-    };
+    window.addEventListener("gl-progress", load);
+    window.addEventListener("storage", load);
+    return () => { window.removeEventListener("gl-progress", load); window.removeEventListener("storage", load); };
   }, [user, courseId]);
+  const completedIds = useMemo(() => new Set(progressRecords.filter((r) => r.completed).map((r) => r.lesson_id)), [progressRecords]);
 
   const active = contents.find((c) => c.id === activeId) ?? null;
   const canWatch = enrolled || active?.is_free;
 
-  useEffect(() => {
-    if (!user || !active) {
-      setProgressRow(null);
-      return;
-    }
-    let cancelled = false;
-    supabase
-      .from("lesson_progress")
-      .select("last_position_seconds")
-      .eq("user_id", user.id)
-      .eq("content_id", active.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setProgressRow((data as any) ?? { last_position_seconds: 0 });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user, active?.id]);
+  const activeRecord = progressRecords.find((r) => r.lesson_id === active?.id);
+  // Resume position is read once per lesson so live progress saves do not restart the video.
+  const progressRow = useMemo(
+    () => ({ last_position_seconds: activeRecord && !activeRecord.completed ? activeRecord.last_position_seconds : 0 }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [active?.id, user?.id],
+  );
 
   // Assignment lesson type: load assignment + own submission.
   useEffect(() => {
@@ -245,21 +217,25 @@ function CourseDetailPage() {
     };
   }, [active?.id, active?.lesson_type, user]);
 
-  // Reviews for the course + own review.
+  // Reviews belong to the lesson currently open.
+  const activeLessonId = activeId;
   useEffect(() => {
+    if (!activeLessonId) { setReviews([]); return; }
     let cancelled = false;
     const load = async () => {
       const { data } = await supabase
         .from("reviews")
-        .select("id, profile_id, rating, comment, is_approved, created_at, profiles(full_name, photo_url)")
+        .select("id, profile_id, rating, comment, is_approved, created_at, profiles(full_name)")
         .eq("course_id", courseId)
         .eq("is_approved", true)
+        .like("comment", `${lessonReviewTag(activeLessonId ?? "")}%`)
         .order("created_at", { ascending: false });
       if (cancelled) return;
       const formatted = (data || []).map((r: any) => ({
         ...r,
+        comment: String(r.comment ?? "").slice(lessonReviewTag(activeLessonId ?? "").length),
         student_name: r.profiles?.full_name,
-        student_photo: r.profiles?.photo_url
+        student_photo: null
       }));
       setReviews(formatted as Review[]);
       if (user) {
@@ -268,8 +244,10 @@ function CourseDetailPage() {
           .select("rating, comment")
           .eq("course_id", courseId)
           .eq("profile_id", user.id)
+          .like("comment", `${lessonReviewTag(activeLessonId ?? "")}%`)
           .maybeSingle();
-        if (!cancelled) setMyReview(mine ? { rating: (mine as any).rating, comment: (mine as any).comment ?? "" } : { rating: 5, comment: "" });
+        const tagLen = lessonReviewTag(activeLessonId ?? "").length;
+        if (!cancelled) setMyReview(mine ? { rating: (mine as any).rating, comment: String((mine as any).comment ?? "").slice(tagLen) } : { rating: 5, comment: "" });
       }
     };
     load();
@@ -281,42 +259,36 @@ function CourseDetailPage() {
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [courseId, user]);
+  }, [courseId, user, activeLessonId]);
 
   const toggleComplete = async (contentId: string, next: boolean) => {
     if (!user) return;
-    setCompletedIds((prev) => {
-      const s = new Set(prev);
-      if (next) s.add(contentId);
-      else s.delete(contentId);
-      return s;
+    const old = readLocalProgress(user.id).find((r) => r.lesson_id === contentId);
+    saveLocalProgress(user.id, {
+      lesson_id: contentId, course_id: courseId, completed: next,
+      progress_percent: next ? 100 : 0,
+      last_position_seconds: next ? old?.last_position_seconds ?? 0 : 0,
+      duration_seconds: old?.duration_seconds ?? 0,
     });
-    await supabase
-      .from("lesson_progress")
-      .upsert(
-        { profile_id: user.id, course_id: courseId, content_id: contentId, completed: next, updated_at: new Date().toISOString() },
-        { onConflict: "profile_id,content_id" }
-      );
   };
 
+  const lastSave = useRef(0);
   const handleProgress = async (seconds: number, duration: number) => {
-    if (!user || !active) return;
-    await supabase.from("lesson_progress").upsert(
-      {
-        profile_id: user.id,
-        course_id: courseId,
-        content_id: active.id,
-        last_position_seconds: Math.floor(seconds),
-        seconds_watched: Math.floor(seconds),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "profile_id,content_id" }
-    );
+    if (!user || !active || !(duration > 0)) return;
+    if (Date.now() - lastSave.current < 3000) return;
+    lastSave.current = Date.now();
+    const old = readLocalProgress(user.id).find((r) => r.lesson_id === active.id);
+    saveLocalProgress(user.id, {
+      lesson_id: active.id, course_id: courseId,
+      completed: !!old?.completed || seconds / duration >= 0.95,
+      progress_percent: Math.round((seconds / duration) * 100),
+      last_position_seconds: Math.floor(seconds),
+      duration_seconds: Math.floor(duration),
+    });
   };
 
   const handleEnded = async () => {
-    if (!active) return;
-    await toggleComplete(active.id, true);
+    if (active) await toggleComplete(active.id, true);
   };
 
   const submitReview = async () => {
@@ -325,7 +297,8 @@ function CourseDetailPage() {
       profile_id: user.id,
       course_id: courseId,
       rating: myReview.rating,
-      comment: myReview.comment,
+      // The reviews table has no lesson column, so the lesson is tagged in the comment.
+      comment: lessonReviewTag(active?.id ?? "") + myReview.comment,
       is_approved: false,
     };
     const { data: existing } = await supabase
@@ -333,6 +306,7 @@ function CourseDetailPage() {
       .select("id")
       .eq("course_id", courseId)
       .eq("profile_id", user.id)
+      .like("comment", `${lessonReviewTag(active?.id ?? "")}%`)
       .maybeSingle();
     if (existing) {
       await supabase.from("reviews").update(payload).eq("id", (existing as any).id);
@@ -418,6 +392,7 @@ function CourseDetailPage() {
             ) : active && canWatch && (vid || active.video_file_url) ? (
               <VideoPlayer
                 youtubeId={vid ?? undefined}
+                thumbnail={active.thumbnail_url || course?.thumbnail_url || undefined}
                 videoUrl={active.video_file_url ?? undefined}
                 title={active.title}
                 startSeconds={progressRow?.last_position_seconds ?? 0}
@@ -588,7 +563,7 @@ function CourseDetailPage() {
           </div>
 
           <aside className="rounded-2xl bg-background border border-border p-4 shadow-sm h-fit">
-            <CourseProgress courseId={courseId} contents={contents} sections={sections} />
+            <CourseProgress records={progressRecords} contents={contents} sections={sections} />
             <h2 className="font-bold text-ink px-2 py-2">Lessons ({contents.length})</h2>
             {grouped ? (
               <div className="space-y-4">
