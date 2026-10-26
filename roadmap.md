@@ -1,0 +1,3 @@
+- [ ] Add separate signup password, save name/phone, and show roll welcome popup on explicit sign-in.
+- [ ] Separate enrolled and other published courses and display persisted progress.
+- [ ] Verify flows; resolve or report external auth configuration blocker.
