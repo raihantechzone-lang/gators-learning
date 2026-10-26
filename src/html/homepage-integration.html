@@ -528,16 +528,7 @@
               badge.className = 'text-red-600 text-xs font-bold ml-2';
               badge.textContent = 'LIVE';
               item.querySelector('h4')?.appendChild(badge);
-              if (!isLocked) {
-                const join = document.createElement('a');
-                join.href = c.live_url;
-                join.target = '_blank';
-                join.rel = 'noopener noreferrer';
-                join.className = 'text-brand-600 text-xs font-bold ml-2';
-                join.textContent = 'Join live class';
-                join.onclick = event => event.stopPropagation();
-                item.appendChild(join);
-              }
+              // Join links live only on the enrolled student's dashboard/course page.
             }
             list.appendChild(item);
           });
