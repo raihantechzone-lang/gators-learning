@@ -333,7 +333,7 @@
 
     <!-- Auth Modal -->
     <div id="authModal" class="modal fixed inset-0 z-[100] items-center justify-center bg-black/60 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white/95 backdrop-blur-xl rounded-[28px] w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.1),0_0_20px_rgba(16,185,129,0.05)] border border-emerald-50/50 overflow-hidden relative transform translate-y-8 transition-all duration-300" id="auth-modal-card">
+        <div class="bg-white/95 backdrop-blur-xl rounded-[28px] w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.1),0_0_20px_rgba(16,185,129,0.05)] border border-emerald-50/50 overflow-hidden relative transform translate-y-8 transition-all duration-300" id="auth-modal-card" style="max-height: calc(100dvh - 2rem); overflow-y: auto;">
             
             <!-- Close Button -->
             <button onclick="closeModal('authModal')" class="absolute top-5 right-5 w-9 h-9 flex items-center justify-center bg-white text-gray-400 hover:text-emerald-600 rounded-full shadow-sm border border-gray-100 transition-all hover:scale-110 active:scale-95 z-20">
@@ -410,6 +410,10 @@
                             <i class="fa-solid fa-phone text-xs"></i>
                         </div>
                         <input type="tel" name="phone" required class="w-full h-[56px] bg-white border border-gray-100 rounded-[16px] pl-16 pr-4 text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm placeholder:text-gray-400" placeholder="Phone Number">
+                    </div>
+                    <div class="relative group">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600"><i class="fa-solid fa-lock text-xs"></i></div>
+                        <input type="password" name="password" required minlength="6" autocomplete="new-password" class="w-full h-[56px] bg-white border border-gray-100 rounded-[16px] pl-16 pr-4 text-sm font-medium focus:outline-none focus:border-emerald-500 transition-all" placeholder="Password">
                     </div>
                     <button type="submit" class="w-full h-[56px] bg-emerald-600 text-white font-bold rounded-[16px] hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98] flex items-center justify-center gap-2 mt-2">
                         Create Account <i class="fa-solid fa-arrow-right text-sm"></i>
