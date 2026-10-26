@@ -497,7 +497,7 @@
              };
              const playableId = vidId(c.youtube_url);
              let myIndex = -1;
-             if (!isLocked && playableId) {
+             if (!isLocked) {
                 window.__playable = window.__playable || [];
                 myIndex = window.__playable.length;
                 window.__playable.push({ vId: playableId, title: c.title, thumb: c.thumbnail_url, lessonId: c.id, courseId: id });
@@ -506,10 +506,6 @@
              item.onclick = () => {
                 if (isLocked) {
                    window.showToast("Enroll to unlock this lesson.", "Locked Content");
-                   return;
-                }
-                if (!playableId) {
-                   window.showToast("এই ক্লাসে কোনো ভিডিও যুক্ত করা হয়নি।", "No Video");
                    return;
                 }
                 if (window.loadLesson) {
@@ -527,7 +523,23 @@
                 }
              };
 
-           list.appendChild(item);
+            if (isLessonLive(c)) {
+              const badge = document.createElement('span');
+              badge.className = 'text-red-600 text-xs font-bold ml-2';
+              badge.textContent = 'LIVE';
+              item.querySelector('h4')?.appendChild(badge);
+              if (!isLocked) {
+                const join = document.createElement('a');
+                join.href = c.live_url;
+                join.target = '_blank';
+                join.rel = 'noopener noreferrer';
+                join.className = 'text-brand-600 text-xs font-bold ml-2';
+                join.textContent = 'Join live class';
+                join.onclick = event => event.stopPropagation();
+                item.appendChild(join);
+              }
+            }
+            list.appendChild(item);
           });
 
           // Mount native controls immediately; the student presses YouTube's play button.

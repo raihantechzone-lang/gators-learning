@@ -20,3 +20,4 @@
 
 - Course-page reviews are lesson-scoped via a `[lesson:<id>] ` comment prefix (external reviews table has no lesson column); the homepage shows only reviews with null course_id.
 - Course-page and dashboard progress use the shared owner-scoped progress-sync helper with serialized cloud writes and a timestamped browser cache; cloud loads happen before capturing resume position so fresh devices resume correctly.
+- Lesson lifecycle writes use the shared lessonUpdate helper; React and full-document pages share isLessonLive from the raw-injected public-experience helper to keep recording/expiry visibility consistent.
