@@ -6,7 +6,8 @@ import {
   BookOpen, Trophy, FileText, Settings, 
   ChevronRight, Lock, CheckCircle2, Download, Award, User, LogOut, Camera, Video, PenSquare, Play
 } from "lucide-react";
-import type { Course, Enrollment } from "@/lib/data";
+import type { Course, Enrollment, CourseContent } from "@/lib/data";
+import { isLessonLive } from "@/lib/public-experience.js";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { courseProgress, hasCourseAccess, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-type DashboardTab = "courses" | "notes";
+type DashboardTab = "courses" | "notes" | "live";
 
 function DashboardPage() {
   const { user, profile, loading, signOut } = useAuth();
@@ -35,11 +36,12 @@ function DashboardPage() {
   const [newlyUnlockedCertId, setNewlyUnlockedCertId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [catalog, setCatalog] = useState<Course[]>([]);
-  const [lessons, setLessons] = useState<{ id: string; course_id: string; title?: string; pdf_url?: string | null }[]>([]);
+  const [lessons, setLessons] = useState<CourseContent[]>([]);
   const [progress, setProgress] = useState<LessonProgressRecord[]>([]);
   const [dataError, setDataError] = useState("");
   const [dataLoading, setDataLoading] = useState(true);
   const approved = enrollments.filter(hasCourseAccess);
+  const liveLessons = lessons.filter(l => isLessonLive(l) && (l.is_free || approved.some(e => e.course_id === l.course_id)));
   const otherCourses = catalog.filter(course => !approved.some(e => e.course_id === course.id));
   const getProgress = (id: string) => courseProgress(lessons.filter(l => l.course_id === id).map(l => l.id), progress);
   const totalProgress = courseProgress(lessons.filter(l => approved.some(e => e.course_id === l.course_id)).map(l => l.id), progress);
@@ -55,7 +57,7 @@ function DashboardPage() {
       const [enc, courses, contents, saved] = await Promise.all([
         supabase.from("enrollments").select("*, courses(*)").eq("profile_id", user.id),
         supabase.from("courses").select("*").eq("is_published", true),
-        supabase.from("course_contents").select("id, course_id, title, pdf_url"),
+        supabase.from("course_contents").select("*"),
         loadStudentProgress(user.id).catch(() => readLocalProgress(user.id)),
       ]);
       setDataError(enc.error?.message || courses.error?.message || contents.error?.message || "");
@@ -235,7 +237,7 @@ function DashboardPage() {
         {/* Dashboard Nav Tabs */}
         <div className="flex gap-8 sm:gap-14 overflow-x-auto pb-4 mb-10 border-b border-gray-100 no-scrollbar">
            <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={BookOpen} label="আমার কোর্সসমূহ" color="orange" />
-           <TabButton active={false} onClick={() => showToast("Live classes session is coming soon!", "Stay Tuned")} icon={Video} label="লাইভ ক্লাস" color="red" />
+           <TabButton active={activeTab === 'live'} onClick={() => setActiveTab('live')} icon={Video} label="লাইভ ক্লাস" color="red" />
            <TabButton active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} icon={FileText} label="ক্লাস নোটস" color="purple" />
            <TabButton active={false} onClick={() => showToast("Results will be available after exams.", "Not Ready")} icon={Trophy} label="পরীক্ষার ফলাফল" color="emerald" />
         </div>
@@ -315,6 +317,26 @@ function DashboardPage() {
                  {!dataLoading && !otherCourses.length && <p className="text-ink-muted">আর কোনো প্রকাশিত কোর্স নেই।</p>}
                </section>
              </>
+           )}
+
+           {activeTab === 'live' && (
+             <section className="space-y-6">
+               <h3 className="text-xl font-bold text-ink font-bengali">লাইভ ক্লাস</h3>
+               {dataLoading && <p className="text-ink-muted">ক্লাস লোড হচ্ছে…</p>}
+               {dataError && <p role="alert" className="text-destructive">{dataError}</p>}
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                 {liveLessons.map(lesson => <div key={lesson.id} className="bg-background border border-border rounded-lg overflow-hidden">
+                   {lesson.thumbnail_url && <img src={lesson.thumbnail_url} alt={lesson.title} className="w-full aspect-video object-cover" />}
+                   <div className="p-5 space-y-3">
+                     <span className="text-destructive text-xs font-bold">LIVE</span>
+                     <h4 className="text-ink font-bold">{lesson.title}</h4>
+                     <p className="text-sm text-ink-muted">{catalog.find(c => c.id === lesson.course_id)?.title}</p>
+                     <Button asChild variant="destructive"><a href={lesson.live_url || undefined} target="_blank" rel="noopener noreferrer"><Video size={16} /> লাইভ ক্লাসে যোগ দিন</a></Button>
+                   </div>
+                 </div>)}
+               </div>
+               {!dataLoading && !liveLessons.length && <p className="text-ink-muted">এখন কোনো লাইভ ক্লাস নেই।</p>}
+             </section>
            )}
 
            {activeTab === 'notes' && (

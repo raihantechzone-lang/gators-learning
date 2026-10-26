@@ -620,21 +620,29 @@
 
         window.loadLesson = function(videoId, title, index, autoplay = true, thumb) {
             const mount = document.getElementById('yt-mount');
-            if (!mount || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) return;
-            const src = thumb || window.__courseThumb || ('https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg');
+            if (!mount) return;
+            const hasRecording = /^[a-zA-Z0-9_-]{11}$/.test(videoId || '');
+            const src = thumb || window.__courseThumb || (hasRecording ? 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg' : '');
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'absolute inset-0 w-full h-full group/thumb';
             btn.setAttribute('aria-label', 'Play ' + (title || 'video'));
             const img = document.createElement('img');
-            img.src = src; img.alt = title || 'Video thumbnail';
+            if (src) img.src = src; img.alt = title || 'Video thumbnail';
             img.className = 'absolute inset-0 w-full h-full object-cover';
-            img.onerror = () => { img.onerror = null; img.src = 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg'; };
+            img.onerror = () => { img.onerror = null; if (hasRecording) img.src = 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg'; };
             const play = document.createElement('span');
             play.className = 'absolute inset-0 flex items-center justify-center bg-black/20 group-hover/thumb:bg-black/30 transition';
             play.innerHTML = '<span class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/95 text-brand-600 flex items-center justify-center shadow-xl group-hover/thumb:scale-110 transition"><i class="fa-solid fa-play text-2xl ml-1"></i></span>';
             btn.append(img, play);
             const playInline = () => {
+                if (!hasRecording) {
+                    const message = document.createElement('p');
+                    message.setAttribute('role', 'status');
+                    message.textContent = 'Recorded video coming soon';
+                    mount.replaceChildren(message);
+                    return;
+                }
                 const iframe = document.createElement('iframe');
                 iframe.className = 'absolute inset-0 w-full h-full border-0';
                 iframe.src = 'https://www.youtube.com/embed/' + videoId + '?controls=1&playsinline=1&rel=0&autoplay=1&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin);

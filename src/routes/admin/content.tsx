@@ -5,8 +5,18 @@ import { Video, FileText, Globe, Plus, Trash2, Edit2, Link as LinkIcon, Calendar
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { uploadToImageKit } from "@/lib/imagekit";
+import { Button } from "@/components/ui/button";
+import { lessonUpdate, type LessonForm } from "@/lib/lesson-lifecycle";
 
 export const Route = createFileRoute("/admin/content")({
+  head: () => ({ meta: [
+    { title: "Course Content Admin | Gators Learning" },
+    { name: "description", content: "Manage Gators Learning lessons, live classes and recordings." },
+    { property: "og:title", content: "Course Content Admin | Gators Learning" },
+    { property: "og:description", content: "Manage lessons, live classes and recordings." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ContentAdmin,
 });
 
@@ -57,7 +67,8 @@ function ContentAdmin() {
     },
   });
 
-  const [form, setForm] = useState({
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<LessonForm>({
     title: "",
     youtube_url: "",
     pdf_url: "",
@@ -69,45 +80,27 @@ function ContentAdmin() {
   });
 
   const addMutation = useMutation({
-    mutationFn: async (payload: any) => {
-      console.log("Adding lesson to course:", selectedCourseId, "with payload:", payload);
-      
-      if (!selectedCourseId) {
-        throw new Error("No course selected");
-      }
-
-      const { data: countData, error: countError } = await supabase
-        .from("course_contents")
-        .select("id")
-        .eq("course_id", selectedCourseId);
-        
-      if (countError) {
-        console.error("Error fetching content count:", countError);
-      }
-
-      const position = (countData?.length || 0) + 1;
-
-      const { error } = await supabase.from("course_contents").insert({
-        title: payload.title.trim(),
-        youtube_url: payload.youtube_url || null,
-        pdf_url: payload.pdf_url || null,
-        live_url: payload.live_url || null,
-        exam_link: payload.exam_link || null,
-        exam_enabled: !!payload.exam_enabled,
-        thumbnail_url: payload.thumbnail_url || null,
-        is_free: !!payload.is_free,
-        course_id: selectedCourseId,
-        position,
-        live_expires_at: payload.live_url ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null,
-      });
-      if (error) {
-        console.error("Supabase Error Details:", error.message, error.details, error.hint);
-        throw error;
+    mutationFn: async (payload: LessonForm) => {
+      if (!selectedCourseId) throw new Error("No course selected");
+      if (!payload.title.trim()) throw new Error("Lesson title is required");
+      const previous = contents?.find(content => content.id === editingId);
+      const values = lessonUpdate(payload, previous);
+      if (editingId) {
+        const { data, error } = await supabase.from("course_contents").update(values).eq("id", editingId).select("id");
+        if (error) throw error;
+        if (!data?.length) throw new Error("Lesson could not be updated. Check your account permissions.");
+      } else {
+        const position = Math.max(0, ...(contents || []).map(content => content.position || 0)) + 1;
+        const { data, error } = await supabase.from("course_contents").insert({ ...values, course_id: selectedCourseId, position }).select("id");
+        if (error) throw error;
+        if (!data?.length) throw new Error("Lesson could not be saved.");
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["course-content", selectedCourseId] });
-      toast.success("Lesson added successfully");
+      toast.success(editingId ? "Lesson updated successfully" : "Lesson added successfully");
+      setEditingId(null);
+      setPreviewUrl("");
       setForm({ title: "", youtube_url: "", pdf_url: "", live_url: "", exam_link: "", exam_enabled: false, thumbnail_url: "", is_free: false });
     },
     onError: (err: any) => {
@@ -132,7 +125,7 @@ function ContentAdmin() {
         <select 
           className="w-full md:w-64 p-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 transition font-bold text-sm"
           value={selectedCourseId}
-          onChange={(e) => setSelectedCourseId(e.target.value)}
+          onChange={(e) => { setSelectedCourseId(e.target.value); setEditingId(null); setForm({ title: "", youtube_url: "", pdf_url: "", live_url: "", exam_link: "", exam_enabled: false, thumbnail_url: "", is_free: false }); setPreviewUrl(""); }}
         >
           {courses?.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
         </select>
@@ -141,7 +134,7 @@ function ContentAdmin() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm sticky top-8">
-             <h3 className="font-bold text-slate-900 mb-4">Add New Video</h3>
+             <h3 className="font-bold text-slate-900 mb-4">{editingId ? "Edit Lesson" : "Add New Video"}</h3>
              <div className="space-y-4">
                 <input 
                   type="text" placeholder="Lesson Title" 
@@ -181,7 +174,7 @@ function ContentAdmin() {
                       try {
                         setIsUploading(true);
                         const url = await uploadToImageKit(file, "/lessons");
-                        setForm({...form, thumbnail_url: url});
+                        setForm(current => ({...current, thumbnail_url: url}));
                         toast.success("Thumbnail uploaded");
                       } catch (err: any) {
                         toast.error(err.message);
@@ -243,13 +236,14 @@ function ContentAdmin() {
                     <span className="text-xs font-bold text-slate-600">Is Free</span>
                   </label>
                 </div>
-                <button 
+                <Button
                   onClick={() => addMutation.mutate(form)}
-                  disabled={!form.title || addMutation.isPending}
-                  className="w-full py-3.5 bg-red-600 text-white rounded-xl font-bold shadow-lg shadow-red-500/20 hover:bg-red-700 active:scale-95 transition disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+                  disabled={!form.title.trim() || addMutation.isPending || isUploading}
+                  className="w-full h-auto py-3.5 font-bold"
                 >
-                  {addMutation.isPending ? "Adding..." : "Add Content"}
-                </button>
+                  {addMutation.isPending ? "Saving..." : editingId ? "Save Changes" : "Add Content"}
+                </Button>
+                {editingId && <Button variant="outline" className="w-full" onClick={() => { setEditingId(null); setPreviewUrl(""); setForm({ title: "", youtube_url: "", pdf_url: "", live_url: "", exam_link: "", exam_enabled: false, thumbnail_url: "", is_free: false }); }}>Cancel</Button>}
              </div>
           </div>
         </div>
@@ -290,32 +284,15 @@ function ContentAdmin() {
                                <Play size={18} />
                              </button>
                            )}
-                           <button 
+                           <Button variant="ghost" size="icon" title="Edit lesson" aria-label={`Edit ${content.title}`}
                              onClick={() => {
-                               const newTitle = window.prompt("Edit Lesson Title:", content.title);
-                               const newYoutube = window.prompt("Edit YouTube URL:", content.youtube_url || "");
-                               if (newTitle !== null) {
-                                 const updateLesson = async () => {
-                                   const { error } = await supabase
-                                     .from("course_contents")
-                                     .update({ title: newTitle, youtube_url: newYoutube })
-                                     .eq("id", content.id);
-                                   
-                                    if (error) {
-                                      console.error("Supabase Error Details:", error.message, error.details, error.hint);
-                                      toast.error(`Error: ${error.message}`);
-                                    } else {
-                                     queryClient.invalidateQueries({ queryKey: ["course-content", selectedCourseId] });
-                                     toast.success("Lesson updated");
-                                   }
-                                 };
-                                 updateLesson();
-                               }
-                             }}
-                             className="p-2 rounded-lg text-slate-300 hover:text-brand hover:bg-brand/10 transition opacity-0 group-hover:opacity-100"
-                           >
+                               setEditingId(content.id);
+                               setForm({ title: content.title, youtube_url: content.youtube_url || "", thumbnail_url: content.thumbnail_url || "", pdf_url: content.pdf_url || "", live_url: content.live_url || "", exam_link: content.exam_link || "", exam_enabled: Boolean(content.exam_enabled), is_free: Boolean(content.is_free) });
+                               setPreviewUrl("");
+                               window.scrollTo({ top: 0, behavior: "smooth" });
+                             }}>
                              <Edit2 size={18} />
-                           </button>
+                           </Button>
                            <button 
                              onClick={() => window.confirm("Delete this lesson?") && deleteMutation.mutate(content.id)}
                              className="p-2 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition opacity-0 group-hover:opacity-100"

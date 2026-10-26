@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { parseYouTubeId } from "./youtube";
+import { isLessonLive } from "./public-experience.js";
 
 export interface Category {
   id: string;
@@ -73,8 +74,7 @@ export interface ExamResult {
 }
 
 export function isLiveLinkActive(content: CourseContent) {
-  if (!content.live_url || !content.live_expires_at) return false;
-  return new Date(content.live_expires_at) > new Date();
+  return isLessonLive(content);
 }
 
 export function youtubeId(url: string | null | undefined) {
