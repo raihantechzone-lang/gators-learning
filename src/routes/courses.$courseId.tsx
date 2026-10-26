@@ -536,7 +536,7 @@ function CourseDetailPage() {
                   <LessonNotes
                     courseId={courseId}
                     contentId={active.id}
-                    currentTime={progressRow?.last_position_seconds ?? 0}
+                    currentTime={Math.max(liveTime, progressRow?.last_position_seconds ?? 0)}
                   />
                 )}
 
