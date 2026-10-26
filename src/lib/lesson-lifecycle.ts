@@ -14,7 +14,8 @@ export function lessonUpdate(form: LessonForm, previous?: { live_url?: string | 
   const live = recording ? "" : form.live_url.trim();
   return {
     title: form.title.trim(),
-    youtube_url: recording || null,
+    // External DB requires youtube_url NOT NULL; empty string means "no recording yet".
+    youtube_url: recording,
     thumbnail_url: form.thumbnail_url.trim() || null,
     pdf_url: form.pdf_url.trim() || null,
     exam_link: form.exam_link.trim() || null,
