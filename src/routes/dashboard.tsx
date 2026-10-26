@@ -61,7 +61,6 @@ function DashboardPage() {
       setEnrollments((enc.data as any) ?? []);
       setCatalog((courses.data as Course[]) ?? []);
       setLessons(contents.data ?? []);
-      setBrowserProgressOnly(!!saved.error);
       setProgress([...(saved.data as LessonProgressRecord[] ?? []), ...readLocalProgress(user.id)]);
       setDataLoading(false);
     };
