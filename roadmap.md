@@ -7,4 +7,5 @@
 - [x] Verify existing-account sign-in → actual roll welcome → dashboard; seven progress/access tests pass, build OK.
 - [x] Email confirmation is now disabled on the connected backend; settings read and test signup both confirm immediate sessions.
 - [x] Generate distinctive non-sequential rolls through one shared helper and preserve existing student rolls.
-- [ ] Enable cross-device progress: blocked by missing lesson_progress on the external backend; actual YouTube playback/save is not end-to-end verified.
+- [x] Connect course playback, enrollment playback and dashboard to owner-scoped lesson_progress; external table read returns 200, video mounts, and 14 progress/YouTube tests pass.
+- [ ] Verify playback write → fresh-device resume with a signed-in student: blocked by unavailable authenticated testing session on the external backend.

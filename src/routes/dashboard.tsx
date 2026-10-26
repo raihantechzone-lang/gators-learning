@@ -10,6 +10,7 @@ import type { Course, Enrollment } from "@/lib/data";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { courseProgress, hasCourseAccess, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
+import { loadStudentProgress } from "@/lib/progress-sync";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [
@@ -55,19 +56,21 @@ function DashboardPage() {
         supabase.from("enrollments").select("*, courses(*)").eq("profile_id", user.id),
         supabase.from("courses").select("*").eq("is_published", true),
         supabase.from("course_contents").select("id, course_id, title, pdf_url"),
-        supabase.from("lesson_progress").select("*").eq("profile_id", user.id),
+        loadStudentProgress(user.id).catch(() => readLocalProgress(user.id)),
       ]);
       setDataError(enc.error?.message || courses.error?.message || contents.error?.message || "");
       setEnrollments((enc.data as any) ?? []);
       setCatalog((courses.data as Course[]) ?? []);
       setLessons(contents.data ?? []);
-      setProgress([...(saved.data as LessonProgressRecord[] ?? []), ...readLocalProgress(user.id)]);
+      setProgress(saved);
       setDataLoading(false);
     };
     load();
     const refresh = () => { load(); };
     window.addEventListener('focus', refresh);
     window.addEventListener('storage', refresh);
+    window.addEventListener('gl-progress', refresh);
+    const refreshTimer = window.setInterval(refresh, 30000);
 
     // Subscribe to enrollment changes (specifically for certificates)
     const channel = supabase
@@ -100,6 +103,8 @@ function DashboardPage() {
     return () => {
       window.removeEventListener('focus', refresh);
       window.removeEventListener('storage', refresh);
+      window.removeEventListener('gl-progress', refresh);
+      clearInterval(refreshTimer);
       supabase.removeChannel(channel);
     };
   }, [user]);

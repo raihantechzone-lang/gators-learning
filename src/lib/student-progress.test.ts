@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mergeProgress, courseProgress, hasCourseAccess, progressStorageKey } from "./student-progress";
+import { mergeProgress, reconcileProgress, courseProgress, hasCourseAccess, progressStorageKey } from "./student-progress";
 import { paymentVerificationUpdate } from "./enrollment-payment";
 
 describe("Student dashboard rules", () => {
@@ -40,5 +40,14 @@ describe("mergeProgress", () => {
   it("unmarking a completed lesson resets it", () => {
     const done = { ...base, progress_percent: 100, completed: true };
     assert.equal(mergeProgress([done], { ...base, progress_percent: 0, completed: false })[0].progress_percent, 0);
+  });
+  it("loads a saved playback position on a device with no browser history", () => {
+    const saved = { ...base, last_position_seconds: 60, updated_at: "2026-10-26T16:00:00Z" };
+    assert.equal(reconcileProgress([], [saved])[0].last_position_seconds, 60);
+  });
+  it("uses a newer cloud reset rather than stale completed browser progress", () => {
+    const stale = { ...base, completed: true, progress_percent: 100, updated_at: "2026-10-26T15:00:00Z" };
+    const remote = { ...base, progress_percent: 0, last_position_seconds: 0, updated_at: "2026-10-26T16:00:00Z" };
+    assert.equal(courseProgress(["l1"], reconcileProgress([stale], [remote])), 0);
   });
 });

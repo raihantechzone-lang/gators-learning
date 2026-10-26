@@ -11,6 +11,7 @@ export interface VideoPlayerProps {
   thumbnail?: string;
   onProgress?: (seconds: number, duration: number) => void;
   onEnded?: () => void;
+  readyToPlay?: boolean;
 }
 
 type YouTubePlayer = {
@@ -37,6 +38,7 @@ export function VideoPlayer({
   thumbnail,
   onProgress,
   onEnded,
+  readyToPlay = true,
 }: VideoPlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -98,7 +100,7 @@ export function VideoPlayer({
   return (
     <div className="relative w-full aspect-video overflow-hidden rounded-2xl bg-ink">
       {!started ? (
-        <button type="button" onClick={() => setStarted(true)} aria-label={`Play ${title || "video"}`} className="group absolute inset-0 w-full h-full">
+        <button type="button" disabled={!readyToPlay} onClick={() => setStarted(true)} aria-label={`Play ${title || "video"}`} className="group absolute inset-0 w-full h-full">
           <img
             src={thumbnail || (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "")}
             alt={title || "Video thumbnail"}

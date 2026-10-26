@@ -5,6 +5,7 @@ export interface LessonProgressRecord {
   last_position_seconds: number;
   duration_seconds: number;
   completed: boolean;
+  updated_at?: string;
 }
 
 export const progressStorageKey = (userId: string) => `gl_lesson_progress_${userId}`;
@@ -30,6 +31,16 @@ export function readLocalProgress(userId: string): LessonProgressRecord[] {
   } catch { return []; }
 }
 export const lessonReviewTag = (lessonId: string) => `[lesson:${lessonId}] `;
+
+// One record per lesson; a newer cloud record can also reset completion.
+export function reconcileProgress(local: LessonProgressRecord[], remote: LessonProgressRecord[]) {
+  const rows = new Map(local.map(row => [row.lesson_id, row]));
+  for (const row of remote) {
+    const cached = rows.get(row.lesson_id);
+    if (!cached || !cached.updated_at || !row.updated_at || row.updated_at >= cached.updated_at) rows.set(row.lesson_id, row);
+  }
+  return [...rows.values()];
+}
 
 export function mergeProgress(records: LessonProgressRecord[], row: LessonProgressRecord): LessonProgressRecord[] {
   const old = records.find(r => r.lesson_id === row.lesson_id);
