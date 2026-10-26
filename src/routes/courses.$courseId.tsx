@@ -10,7 +10,6 @@ import { ArticleLesson } from "@/components/lesson/ArticleLesson";
 import { QuizRunner } from "@/components/lesson/QuizRunner";
 import { LessonResources } from "@/components/lesson/LessonResources";
 import { LessonNotes } from "@/components/lesson/LessonNotes";
-import { LessonQA } from "@/components/lesson/LessonQA";
 import { isLiveLinkActive, youtubeId, type Course, type CourseContent } from "@/lib/data";
 import { hasCourseAccess, lessonReviewTag, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
 import { loadStudentProgress, saveStudentProgress } from "@/lib/progress-sync";
@@ -77,7 +76,7 @@ interface AssignmentSubmission {
   status: string;
 }
 
-type Tab = "overview" | "resources" | "notes" | "qa" | "reviews";
+type Tab = "overview" | "resources" | "notes" | "reviews";
 
 function CourseDetailPage() {
   const { courseId } = Route.useParams();
@@ -238,6 +237,7 @@ function CourseDetailPage() {
   }, [active?.id, active?.lesson_type, user]);
 
   // Reviews belong to the lesson currently open.
+  const [reviewTick, setReviewTick] = useState(0);
   const activeLessonId = activeId;
   useEffect(() => {
     if (!activeLessonId) { setReviews([]); return; }
@@ -317,7 +317,6 @@ function CourseDetailPage() {
     if (active) await toggleComplete(active.id, true);
   };
 
-  const [reviewTick, setReviewTick] = useState(0);
   const submitReview = async () => {
     if (!user || !myReview || !active) return;
     if (!myReview.comment.trim()) { toast.error("রিভিউ লিখুন।"); return; }
