@@ -13,12 +13,15 @@ export interface VideoPlayerProps {
   onProgress?: (seconds: number, duration: number) => void;
   onEnded?: () => void;
   readyToPlay?: boolean;
+  /** Change `key` to jump the video to `seconds` (e.g. from a note timestamp). */
+  seekRequest?: { seconds: number; key: number } | null;
 }
 
 type YouTubePlayer = {
   getCurrentTime: () => number;
   getDuration: () => number;
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  playVideo?: () => void;
   destroy: () => void;
 };
 type YouTubeApi = {
@@ -40,17 +43,53 @@ export function VideoPlayer({
   onProgress,
   onEnded,
   readyToPlay = true,
+  seekRequest,
 }: VideoPlayerProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const readyRef = useRef(false);
+  const pendingSeek = useRef<number | null>(null);
   const callbacks = useRef({ onProgress, onEnded, startSeconds });
   callbacks.current = { onProgress, onEnded, startSeconds };
   const id = parseYouTubeId(youtubeId);
   // Thumbnail shows first; the player replaces it in place after the play click.
   const [started, setStarted] = useState(false);
+  // Start position captured at play time so later changes never reload the iframe.
+  const [startAt, setStartAt] = useState(0);
   useEffect(() => setStarted(false), [id, videoUrl]);
 
-  // The native iframe renders immediately; the API only adds resume and progress.
+  const begin = (seconds: number) => {
+    setStartAt(Math.max(0, Math.floor(seconds)));
+    setStarted(true);
+  };
+
+  // Jump to a requested time (note timestamps).
+  useEffect(() => {
+    if (!seekRequest || (!id && !videoUrl)) return;
+    const sec = Math.max(0, Math.floor(seekRequest.seconds));
+    wrapRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (!started) {
+      pendingSeek.current = sec;
+      begin(sec);
+      return;
+    }
+    if (id) {
+      if (readyRef.current && playerRef.current) {
+        playerRef.current.seekTo(sec, true);
+        playerRef.current.playVideo?.();
+      } else {
+        pendingSeek.current = sec;
+      }
+    } else if (videoRef.current) {
+      videoRef.current.currentTime = sec;
+      void videoRef.current.play().catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seekRequest?.key]);
+
+  // The native iframe renders immediately; the API only adds resume, seek and progress.
   useEffect(() => {
     if (!id || !started) return;
     if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
@@ -60,7 +99,7 @@ export function VideoPlayer({
       document.head.appendChild(script);
     }
     let player: YouTubePlayer | undefined;
-    let ready = false;
+    readyRef.current = false;
     let attempts = 0;
     const timer = setInterval(() => {
       const api = (window as Window & { YT?: YouTubeApi }).YT;
@@ -68,8 +107,11 @@ export function VideoPlayer({
         player = new api.Player(iframeRef.current, {
           events: {
             onReady: ({ target }) => {
-              ready = true;
-              if (callbacks.current.startSeconds > 0) target.seekTo(callbacks.current.startSeconds, true);
+              readyRef.current = true;
+              playerRef.current = target;
+              const seek = pendingSeek.current ?? (callbacks.current.startSeconds > 0 ? callbacks.current.startSeconds : null);
+              pendingSeek.current = null;
+              if (seek !== null) target.seekTo(seek, true);
             },
             onStateChange: ({ data }) => {
               if (data === 0) callbacks.current.onEnded?.();
@@ -77,7 +119,7 @@ export function VideoPlayer({
           },
         });
       }
-      if (ready && player) {
+      if (readyRef.current && player) {
         const duration = player.getDuration();
         if (duration > 0) callbacks.current.onProgress?.(player.getCurrentTime(), duration);
       }
@@ -86,14 +128,16 @@ export function VideoPlayer({
     }, 1000);
     return () => {
       clearInterval(timer);
+      readyRef.current = false;
+      playerRef.current = null;
       player?.destroy();
     };
   }, [id, started]);
 
   return (
-    <div className="relative w-full aspect-video overflow-hidden rounded-2xl bg-ink">
+    <div ref={wrapRef} className="relative w-full aspect-video overflow-hidden rounded-2xl bg-ink">
       {!started ? (
-        <Button variant="ghost" type="button" disabled={!readyToPlay} onClick={() => setStarted(true)} aria-label={`Play ${title || "video"}`} className="group absolute inset-0 w-full h-full p-0">
+        <Button variant="ghost" type="button" disabled={!readyToPlay} onClick={() => begin(startSeconds)} aria-label={`Play ${title || "video"}`} className="group absolute inset-0 w-full h-full p-0">
           {(thumbnail || id) && <img
             src={thumbnail || (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "")}
             alt={title || "Video thumbnail"}
@@ -109,7 +153,7 @@ export function VideoPlayer({
           key={id}
           ref={iframeRef}
           className="absolute inset-0 w-full h-full border-0"
-          src={`https://www.youtube.com/embed/${id}?controls=1&playsinline=1&rel=0&autoplay=1&enablejsapi=1${startSeconds > 0 ? `&start=${Math.floor(startSeconds)}` : ""}`}
+          src={`https://www.youtube.com/embed/${id}?controls=1&playsinline=1&rel=0&autoplay=1&enablejsapi=1${startAt > 0 ? `&start=${startAt}` : ""}`}
           title={title || "Course video"}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerPolicy="strict-origin-when-cross-origin"
@@ -119,7 +163,11 @@ export function VideoPlayer({
         <div role="status" className="absolute inset-0 flex items-center justify-center text-background font-bold text-center px-6">Recorded video coming soon</div>
       ) : (
         <video key={videoUrl} ref={videoRef} autoPlay className="w-full h-full" src={videoUrl} controls playsInline
-          onLoadedMetadata={() => { if (videoRef.current) videoRef.current.currentTime = callbacks.current.startSeconds; }}
+          onLoadedMetadata={() => {
+            if (!videoRef.current) return;
+            videoRef.current.currentTime = pendingSeek.current ?? startAt;
+            pendingSeek.current = null;
+          }}
           onTimeUpdate={(event) => onProgress?.(event.currentTarget.currentTime, event.currentTarget.duration)}
           onEnded={onEnded}>
           {subtitlesUrl && <track kind="subtitles" src={subtitlesUrl} srcLang="en" label="Subtitles" />}

@@ -295,7 +295,8 @@ function CourseDetailPage() {
   const lastSave = useRef(0);
   // Live playback position for the notes timestamp, updated on every progress tick.
   const [liveTime, setLiveTime] = useState(0);
-  useEffect(() => setLiveTime(0), [active?.id]);
+  const [seekRequest, setSeekRequest] = useState<{ seconds: number; key: number } | null>(null);
+  useEffect(() => { setLiveTime(0); setSeekRequest(null); }, [active?.id]);
   const handleProgress = async (seconds: number, duration: number) => {
     if (!active || !(duration > 0)) return;
     setLiveTime(seconds);
@@ -426,6 +427,7 @@ function CourseDetailPage() {
                 watermark={user?.email ?? undefined}
                 onProgress={handleProgress}
                 onEnded={handleEnded}
+                seekRequest={seekRequest}
               />
             ) : (
               <div className="aspect-video rounded-2xl bg-ink/90 flex flex-col items-center justify-center text-background text-center px-6">
@@ -537,6 +539,7 @@ function CourseDetailPage() {
                     courseId={courseId}
                     contentId={active.id}
                     currentTime={Math.max(liveTime, progressRow?.last_position_seconds ?? 0)}
+                    onSeek={(sec) => { setLiveTime(sec); setSeekRequest({ seconds: sec, key: Date.now() }); }}
                   />
                 )}
 
