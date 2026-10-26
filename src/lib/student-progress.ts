@@ -35,8 +35,9 @@ export function mergeProgress(records: LessonProgressRecord[], row: LessonProgre
   const old = records.find(r => r.lesson_id === row.lesson_id);
   const merged = {
     ...old, ...row,
-    progress_percent: Math.max(Number(old?.progress_percent) || 0, Math.min(100, row.progress_percent)),
-    completed: row.completed || (!!old?.completed && row.progress_percent >= 0 && row.completed !== false),
+    // Unmarking a completed lesson resets its percentage; otherwise progress never goes backwards.
+    progress_percent: old?.completed && !row.completed ? row.progress_percent : Math.max(Number(old?.progress_percent) || 0, Math.min(100, row.progress_percent)),
+    completed: row.completed,
   };
   return [...records.filter(r => r.lesson_id !== row.lesson_id), merged];
 }

@@ -32,3 +32,14 @@ describe("Student dashboard rules", () => {
     assert.equal(hasCourseAccess({ status: "active", payment_status: "unknown" }), false);
   });
 });
+import { mergeProgress } from "./student-progress";
+describe("mergeProgress", () => {
+  const base = { lesson_id: "l1", course_id: "c1", last_position_seconds: 60, duration_seconds: 100, progress_percent: 60, completed: false };
+  it("never lowers watched percentage", () => {
+    expect(mergeProgress([base], { ...base, progress_percent: 20 })[0].progress_percent).toBe(60);
+  });
+  it("unmarking a completed lesson resets it", () => {
+    const done = { ...base, progress_percent: 100, completed: true };
+    expect(mergeProgress([done], { ...base, progress_percent: 0, completed: false })[0].progress_percent).toBe(0);
+  });
+});
