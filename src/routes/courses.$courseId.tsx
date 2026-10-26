@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -12,7 +12,7 @@ import { LessonResources } from "@/components/lesson/LessonResources";
 import { LessonNotes } from "@/components/lesson/LessonNotes";
 import { LessonQA } from "@/components/lesson/LessonQA";
 import { isLiveLinkActive, youtubeId, type Course, type CourseContent } from "@/lib/data";
-import { hasCourseAccess } from "@/lib/student-progress";
+import { hasCourseAccess, lessonReviewTag, readLocalProgress, saveLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
 
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
@@ -388,6 +388,7 @@ function CourseDetailPage() {
             ) : active && canWatch && (vid || active.video_file_url) ? (
               <VideoPlayer
                 youtubeId={vid ?? undefined}
+                thumbnail={active.thumbnail_url || course?.thumbnail_url || undefined}
                 videoUrl={active.video_file_url ?? undefined}
                 title={active.title}
                 startSeconds={progressRow?.last_position_seconds ?? 0}

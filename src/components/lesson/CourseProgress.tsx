@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
 import { useAuth } from "@/lib/auth";
+import { courseProgress, type LessonProgressRecord } from "@/lib/student-progress";
 
 interface ContentLite {
   id: string;
@@ -12,45 +12,17 @@ interface SectionLite {
 }
 
 export function CourseProgress({
-  courseId,
+  records,
   contents,
   sections,
 }: {
-  courseId: string;
+  records: LessonProgressRecord[];
   contents: ContentLite[];
   sections: SectionLite[];
 }) {
   const { user } = useAuth();
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    const load = async () => {
-      const { data } = await supabase
-        .from("lesson_progress")
-        .select("content_id, completed")
-        .eq("user_id", user.id)
-        .eq("course_id", courseId)
-        .eq("completed", true);
-      if (cancelled) return;
-      setCompletedIds(new Set((data ?? []).map((r: any) => r.content_id)));
-    };
-    load();
-    const channel = supabase
-      .channel(`progress-${courseId}-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "lesson_progress" }, () => load())
-      .subscribe();
-    return () => {
-      cancelled = true;
-      supabase.removeChannel(channel);
-    };
-  }, [user, courseId]);
-
-  const overallPct = useMemo(() => {
-    if (contents.length === 0) return 0;
-    return Math.round((completedIds.size / contents.length) * 100);
-  }, [contents.length, completedIds]);
+  const overallPct = useMemo(() => courseProgress(contents.map((c) => c.id), records), [contents, records]);
+  const completedIds = useMemo(() => new Set(records.filter((r) => r.completed).map((r) => r.lesson_id)), [records]);
 
   const bySection = useMemo(() => {
     return sections.map((s) => {
@@ -69,7 +41,7 @@ export function CourseProgress({
         <span className="text-sm font-bold text-brand">{overallPct}%</span>
       </div>
       <div className="w-full h-2 rounded-full bg-muted mb-2">
-        <div className="h-full rounded-full bg-brand" style={{ width: `${overallPct}%` }} />
+        <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${overallPct}%` }} />
       </div>
       {bySection.length > 0 && (
         <ul className="space-y-1.5 mt-2">
