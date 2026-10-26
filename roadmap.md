@@ -1,3 +1,6 @@
+- [ ] Repair repeat sign-in and verify signup → logout → login.
+- [ ] Speed up homepage ad loading without showing blank images or repeating seen ads.
+- [ ] Add verified review deletion/approval and show existing approved reviews on Home.
 - [x] Fix verification constraint failure by preserving enrollment status; approval/access tests pass and approved-payment read succeeds. Authenticated Verify → WhatsApp flow remains unverified on the external backend.
 - [x] Add separate signup password, save name/phone, and show roll welcome popup on explicit sign-in.
 - [x] Separate enrolled and other published courses and display persisted progress with labeled browser fallback.
