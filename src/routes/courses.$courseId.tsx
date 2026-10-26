@@ -143,14 +143,16 @@ function CourseDetailPage() {
     }
     const load = async () => {
       // Pending payments and active enrollments both live in the enrollments table.
-      const { data: en } = await supabase
+      // A student may have several rows for one course (old duplicates); any approved row unlocks it.
+      const { data: rows } = await supabase
         .from("enrollments")
         .select("id, status, payment_status")
         .eq("profile_id", user.id)
-        .eq("course_id", courseId)
-        .maybeSingle();
-      setEnrolled(!!en && hasCourseAccess(en));
-      setPending(!!en && (en.status === "pending" || en.payment_status === "pending"));
+        .eq("course_id", courseId);
+      const list = rows ?? [];
+      const ok = list.some(hasCourseAccess);
+      setEnrolled(ok);
+      setPending(!ok && list.some((en) => en.status === "pending" || en.payment_status === "pending"));
     };
     load();
     const channel = supabase
@@ -319,29 +321,19 @@ function CourseDetailPage() {
 
   const submitReview = async () => {
     if (!user || !myReview || !active) return;
-    if (!myReview.comment.trim()) { toast.error("রিভিউ লিখুন।"); return; }
+    if (!myReview.comment.trim()) { toast.error("কমেন্ট লিখুন।"); return; }
     const payload = {
       profile_id: user.id,
       course_id: courseId,
-      rating: myReview.rating,
+      rating: 5,
       // The reviews table has no lesson column, so the lesson is tagged in the comment.
       comment: lessonReviewTag(active.id) + myReview.comment.trim(),
-      // Lesson reviews show under the video right away for everyone.
       is_approved: true,
     };
-    const { data: existing } = await supabase
-      .from("reviews")
-      .select("id")
-      .eq("course_id", courseId)
-      .eq("profile_id", user.id)
-      .like("comment", `${lessonReviewTag(active.id)}%`)
-      .limit(1);
-    const row = existing?.[0] as { id: string } | undefined;
-    const { error } = row
-      ? await supabase.from("reviews").update(payload).eq("id", row.id)
-      : await supabase.from("reviews").insert(payload);
-    if (error) { toast.error("রিভিউ সেভ হয়নি: " + error.message); return; }
-    toast.success("রিভিউ সেভ হয়েছে");
+    const { error } = await supabase.from("reviews").insert(payload);
+    if (error) { toast.error("কমেন্ট সেভ হয়নি: " + error.message); return; }
+    toast.success("কমেন্ট যোগ হয়েছে");
+    setMyReview({ rating: 5, comment: "" });
     setReviewTick((n) => n + 1);
   };
 
