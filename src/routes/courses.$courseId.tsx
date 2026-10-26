@@ -143,14 +143,16 @@ function CourseDetailPage() {
     }
     const load = async () => {
       // Pending payments and active enrollments both live in the enrollments table.
-      const { data: en } = await supabase
+      // A student may have several rows for one course (old duplicates); any approved row unlocks it.
+      const { data: rows } = await supabase
         .from("enrollments")
         .select("id, status, payment_status")
         .eq("profile_id", user.id)
-        .eq("course_id", courseId)
-        .maybeSingle();
-      setEnrolled(!!en && hasCourseAccess(en));
-      setPending(!!en && (en.status === "pending" || en.payment_status === "pending"));
+        .eq("course_id", courseId);
+      const list = rows ?? [];
+      const ok = list.some(hasCourseAccess);
+      setEnrolled(ok);
+      setPending(!ok && list.some((en) => en.status === "pending" || en.payment_status === "pending"));
     };
     load();
     const channel = supabase
@@ -257,18 +259,7 @@ function CourseDetailPage() {
         student_photo: null
       }));
       setReviews(formatted as Review[]);
-      if (user) {
-        const { data: mineRows } = await supabase
-          .from("reviews")
-          .select("rating, comment")
-          .eq("course_id", courseId)
-          .eq("profile_id", user.id)
-          .like("comment", `${lessonReviewTag(activeLessonId ?? "")}%`)
-          .limit(1);
-        const mine = mineRows?.[0];
-        const tagLen = lessonReviewTag(activeLessonId ?? "").length;
-        if (!cancelled) setMyReview(mine ? { rating: (mine as any).rating, comment: String((mine as any).comment ?? "").slice(tagLen) } : { rating: 5, comment: "" });
-      }
+      if (user && !cancelled) setMyReview((r) => r ?? { rating: 5, comment: "" });
     };
     load();
     const channel = supabase
@@ -319,29 +310,19 @@ function CourseDetailPage() {
 
   const submitReview = async () => {
     if (!user || !myReview || !active) return;
-    if (!myReview.comment.trim()) { toast.error("রিভিউ লিখুন।"); return; }
+    if (!myReview.comment.trim()) { toast.error("কমেন্ট লিখুন।"); return; }
     const payload = {
       profile_id: user.id,
       course_id: courseId,
-      rating: myReview.rating,
+      rating: 5,
       // The reviews table has no lesson column, so the lesson is tagged in the comment.
       comment: lessonReviewTag(active.id) + myReview.comment.trim(),
-      // Lesson reviews show under the video right away for everyone.
       is_approved: true,
     };
-    const { data: existing } = await supabase
-      .from("reviews")
-      .select("id")
-      .eq("course_id", courseId)
-      .eq("profile_id", user.id)
-      .like("comment", `${lessonReviewTag(active.id)}%`)
-      .limit(1);
-    const row = existing?.[0] as { id: string } | undefined;
-    const { error } = row
-      ? await supabase.from("reviews").update(payload).eq("id", row.id)
-      : await supabase.from("reviews").insert(payload);
-    if (error) { toast.error("রিভিউ সেভ হয়নি: " + error.message); return; }
-    toast.success("রিভিউ সেভ হয়েছে");
+    const { error } = await supabase.from("reviews").insert(payload);
+    if (error) { toast.error("কমেন্ট সেভ হয়নি: " + error.message); return; }
+    toast.success("কমেন্ট যোগ হয়েছে");
+    setMyReview({ rating: 5, comment: "" });
     setReviewTick((n) => n + 1);
   };
 
@@ -514,7 +495,7 @@ function CourseDetailPage() {
                         tab === t ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-muted"
                       }`}
                     >
-                      {!enrolled && (t === "resources" || t === "notes") ? `🔒 ${t}` : t}
+                      {!enrolled && (t === "resources" || t === "notes") ? `🔒 ${t}` : t === "reviews" ? "comments" : t}
                     </button>
                   ))}
                 </div>
@@ -555,25 +536,14 @@ function CourseDetailPage() {
                   <div className="space-y-4">
                     {user && myReview && (
                       <div className="p-4 rounded-xl bg-surface-alt border border-border space-y-2">
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((n) => (
-                            <button
-                              key={n}
-                              onClick={() => setMyReview((r) => (r ? { ...r, rating: n } : r))}
-                              className={n <= myReview.rating ? "text-brand" : "text-ink-muted"}
-                            >
-                              ★
-                            </button>
-                          ))}
-                        </div>
                         <textarea
                           value={myReview.comment}
                           onChange={(e) => setMyReview((r) => (r ? { ...r, comment: e.target.value } : r))}
-                          placeholder="Share your experience..."
+                          placeholder="এই ভিডিও নিয়ে কমেন্ট লিখুন..."
                           className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm text-ink"
                         />
                         <button onClick={submitReview} className="px-4 py-2 rounded-xl bg-brand text-brand-foreground text-sm font-bold">
-                          {reviews.some((r) => r.profile_id === user.id) ? "Update review" : "Submit review"}
+                          Post comment
                         </button>
                       </div>
                     )}
@@ -583,7 +553,6 @@ function CourseDetailPage() {
                           <div className="flex items-center gap-2 mb-1">
                             {r.student_photo && <img src={r.student_photo} className="h-6 w-6 rounded-full object-cover" alt="" />}
                             <span className="text-xs font-bold text-ink">{r.student_name}</span>
-                            <span className="text-brand text-xs">{"★".repeat(r.rating)}</span>
                           </div>
                           <p className="text-sm text-ink-muted">{r.comment}</p>
                         </li>
