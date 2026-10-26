@@ -1,10 +1,10 @@
-- [ ] Repair repeat sign-in and verify signup → logout → login.
-- [ ] Speed up homepage ad loading without showing blank images or repeating seen ads.
-- [ ] Add verified review deletion/approval and show existing approved reviews on Home.
+- [x] Repair repeat sign-in; real test signup → logout → same password login and welcome → dashboard pass. Rolls no longer substitute for passwords.
+- [x] Start public loads without waiting for the profile and request display-sized ad photos; loaded photo and once-per-ad display verified.
+- [x] Add review deletion and approval with saved-row checks; existing approved review now renders on Home. Admin mutations remain unverified without an external admin session.
 - [x] Fix verification constraint failure by preserving enrollment status; approval/access tests pass and approved-payment read succeeds. Authenticated Verify → WhatsApp flow remains unverified on the external backend.
 - [x] Add separate signup password, save name/phone, and show roll welcome popup on explicit sign-in.
 - [x] Separate enrolled and other published courses and display persisted progress with labeled browser fallback.
 - [x] Verify existing-account sign-in → actual roll welcome → dashboard; seven progress/access tests pass, build OK.
-- [ ] Disable email confirmation: blocked by inaccessible settings on the external backend used by the app (verified currently enabled).
+- [x] Email confirmation is now disabled on the connected backend; settings read and test signup both confirm immediate sessions.
 - [x] Generate distinctive non-sequential rolls through one shared helper and preserve existing student rolls.
 - [ ] Enable cross-device progress: blocked by missing lesson_progress on the external backend; actual YouTube playback/save is not end-to-end verified.
