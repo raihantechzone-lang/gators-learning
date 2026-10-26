@@ -29,3 +29,21 @@ export function readLocalProgress(userId: string): LessonProgressRecord[] {
     return Array.isArray(records) ? records.filter(row => row && typeof row.lesson_id === "string" && typeof row.course_id === "string") : [];
   } catch { return []; }
 }
+export const lessonReviewTag = (lessonId: string) => `[lesson:${lessonId}] `;
+
+export function mergeProgress(records: LessonProgressRecord[], row: LessonProgressRecord): LessonProgressRecord[] {
+  const old = records.find(r => r.lesson_id === row.lesson_id);
+  const merged = {
+    ...old, ...row,
+    progress_percent: Math.max(Number(old?.progress_percent) || 0, Math.min(100, row.progress_percent)),
+    completed: row.completed || (!!old?.completed && row.progress_percent >= 0 && row.completed !== false),
+  };
+  return [...records.filter(r => r.lesson_id !== row.lesson_id), merged];
+}
+
+export function saveLocalProgress(userId: string, row: LessonProgressRecord) {
+  const records = mergeProgress(readLocalProgress(userId), row);
+  try { localStorage.setItem(progressStorageKey(userId), JSON.stringify(records)); } catch { /* storage full */ }
+  window.dispatchEvent(new Event("gl-progress"));
+  return records;
+}
