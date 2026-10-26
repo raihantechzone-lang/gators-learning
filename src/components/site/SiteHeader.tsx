@@ -121,7 +121,7 @@ export function SiteHeader() {
           <Link to="/courses" onClick={() => setMenuOpen(false)} className="text-base font-bold border-b border-border pb-3">
             Our Courses
           </Link>
-          <button type="button" onClick={() => { setMenuOpen(false); setContactOpen(true); }} className="text-left ="text-base font-bold border-b border-border pb-3">
+          <button type="button" onClick={() => { setMenuOpen(false); setContactOpen(true); }} className="text-left text-base font-bold border-b border-border pb-3">
             Contact Us
           </button>
           {!user ? (
