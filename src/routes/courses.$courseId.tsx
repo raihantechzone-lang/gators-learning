@@ -287,6 +287,10 @@ function CourseDetailPage() {
     });
   };
 
+  const handleEnded = async () => {
+    if (active) await toggleComplete(active.id, true);
+  };
+
   const submitReview = async () => {
     if (!user || !myReview) return;
     const payload = {
