@@ -9,6 +9,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { FloatingWhatsApp } from "@/components/site/ContactPopup";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -95,6 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -132,6 +134,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster position="top-center" richColors />
+        <FloatingWhatsApp />
       </AuthProvider>
     </QueryClientProvider>
   );
