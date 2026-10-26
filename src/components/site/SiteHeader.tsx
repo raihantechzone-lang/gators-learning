@@ -1,13 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { ContactPopup } from "@/components/site/ContactPopup";
 
 export function SiteHeader() {
   const { user, profile, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   return (
+    <>
+    <ContactPopup open={contactOpen} onClose={() => setContactOpen(false)} />
     <header className="fixed top-2 sm:top-6 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
       <nav className="bg-background/90 backdrop-blur-xl border border-border shadow-[0_4px_30px_rgb(0,0,0,0.05)] rounded-2xl px-4 py-2 sm:px-6 sm:py-3 grid grid-cols-3 items-center">
         <div className="flex justify-start items-center">
@@ -28,9 +32,9 @@ export function SiteHeader() {
             <Link to="/courses" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
               Our Courses
             </Link>
-            <Link to="/contact" className="text-sm font-semibold text-ink hover:text-brand transition-colors">
+            <button type="button" onClick={() => setContactOpen(true)} className="text-sm font-semibold text-ink hover:text-brand transition-colors">
               Contact Us
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -117,9 +121,9 @@ export function SiteHeader() {
           <Link to="/courses" onClick={() => setMenuOpen(false)} className="text-base font-bold border-b border-border pb-3">
             Our Courses
           </Link>
-          <Link to="/contact" onClick={() => setMenuOpen(false)} className="text-base font-bold border-b border-border pb-3">
+          <button type="button" onClick={() => { setMenuOpen(false); setContactOpen(true); }} className="text-left ="text-base font-bold border-b border-border pb-3">
             Contact Us
-          </Link>
+          </button>
           {!user ? (
             <div className="flex flex-col gap-3 pt-2">
               <Link
@@ -163,5 +167,6 @@ export function SiteHeader() {
         </div>
       )}
     </header>
+    </>
   );
 }

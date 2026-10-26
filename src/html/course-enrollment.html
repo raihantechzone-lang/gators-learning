@@ -465,15 +465,16 @@
             <button onclick="closeModal('contactModal')" class="absolute top-5 right-5 w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-100 rounded-full transition-colors z-10"><i class="fa-solid fa-xmark"></i></button>
             
             <div class="mb-6">
-                <h3 class="font-bold text-2xl text-surface-900">Hello there</h3>
+                <h3 class="font-bold text-2xl text-surface-900">Contact Us</h3>
                 <p class="text-sm text-slate-500 mt-1">How can we help you today?</p>
             </div>
             
-            <form onsubmit="window.handleGoogleScriptSubmit(event, 'Contact')" class="flex flex-col gap-4">
-                <input type="text" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-surface-900 transition-all" name="name" placeholder="Name">
-                <textarea rows="4" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-surface-900 transition-all resize-none" name="message" placeholder="Your message..."></textarea>
-                <button type="submit" class="w-full bg-surface-900 text-white font-semibold py-3.5 rounded-xl hover:bg-surface-800 transition-colors mt-2">Send Message</button>
-            </form>
+            <div class="flex flex-col gap-3">
+                <a href="https://www.facebook.com/gatorslearning/" target="_blank" class="flex items-center gap-3 rounded-2xl border border-gray-200 p-3 font-semibold text-gray-800 hover:bg-gray-50 transition"><span class="w-10 h-10 rounded-full bg-[#1877F2] text-white flex items-center justify-center text-lg"><i class="fa-brands fa-facebook-f"></i></span>Facebook Page</a>
+                <a href="https://wa.me/8801789407200" target="_blank" class="flex items-center gap-3 rounded-2xl border border-gray-200 p-3 font-semibold text-gray-800 hover:bg-gray-50 transition"><span class="w-10 h-10 rounded-full bg-[#25D366] text-white flex items-center justify-center text-lg"><i class="fa-brands fa-whatsapp"></i></span>WhatsApp: 01789-407200</a>
+                <a href="https://www.instagram.com/gatorslearning?vrfl=NTdtYnU2eWF2ZHlu" target="_blank" class="flex items-center gap-3 rounded-2xl border border-gray-200 p-3 font-semibold text-gray-800 hover:bg-gray-50 transition"><span class="w-10 h-10 rounded-full bg-[#E1306C] text-white flex items-center justify-center text-lg"><i class="fa-brands fa-instagram"></i></span>Instagram</a>
+                <a href="mailto:adel111@gmail.com" class="flex items-center gap-3 rounded-2xl border border-gray-200 p-3 font-semibold text-gray-800 hover:bg-gray-50 transition"><span class="w-10 h-10 rounded-full bg-[#EA4335] text-white flex items-center justify-center text-lg"><i class="fa-solid fa-envelope"></i></span>Gmail</a>
+            </div>
         </div>
     </div>
 
@@ -486,7 +487,7 @@
     </div>
 
     <!-- Floating WhatsApp -->
-    <a id="contact-whatsapp" hidden href="#" target="_blank" class="fixed bottom-6 left-6 z-[90] w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center text-3xl shadow-lg shadow-green-500/30 hover:scale-110 hover:-translate-y-1 transition-all duration-300">
+    <a id="contact-whatsapp" href="https://wa.me/8801789407200" target="_blank" class="fixed bottom-6 right-6 z-[90] w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center text-3xl shadow-lg shadow-green-500/30 hover:scale-110 hover:-translate-y-1 transition-all duration-300">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
 
