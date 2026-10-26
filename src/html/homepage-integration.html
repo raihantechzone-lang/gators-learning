@@ -84,8 +84,15 @@
   async function checkEnrollment(courseId) {
     if (!currentUser) return false;
     // Admin-verified payments unlock access without rewriting the backend's constrained status.
-    const { data } = await supabase.from("enrollments").select("id").eq("profile_id", currentUser.id).eq("course_id", courseId).or("payment_status.eq.verified,and(status.eq.active,payment_status.is.null)").maybeSingle();
-    return !!data;
+    const rows = await enrollmentRows(courseId);
+    return rows.some(r => r.payment_status === "verified" || (r.status === "active" && r.payment_status == null));
+  }
+
+  // Duplicate rows can exist; read them all instead of expecting one.
+  async function enrollmentRows(courseId) {
+    if (!currentUser) return [];
+    const { data } = await supabase.from("enrollments").select("id, status, payment_status").eq("profile_id", currentUser.id).eq("course_id", courseId);
+    return data || [];
   }
 
   supabase.auth.onAuthStateChange((event, session) => {
@@ -319,9 +326,18 @@
       if (payEl) {
         const { data: bk } = await supabase.from("settings").select("setting_value").eq("setting_key", "bkash_number").maybeSingle();
         const amount = course.discount_price || course.price;
-        const num = bk && bk.setting_value ? bk.setting_value : "";
-        if (num && amount) {
-          payEl.innerHTML = 'নিচের bKash নম্বরে <b>৳' + amount + '</b> সেন্ড মানি করুন: <b class="font-mono">' + num + '</b><br>তারপর Transaction ID নিচে দিন।';
+        const saved = bk && bk.setting_value ? String(bk.setting_value).trim() : "";
+        const num = saved && !saved.includes("X") ? saved : "01400667121";
+        if (amount) {
+          payEl.innerHTML = 'নিচের bKash নম্বরে <b>৳' + amount + '</b> সেন্ড মানি করুন:<br><button type="button" id="bkash-copy" class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-pink-200 font-mono font-bold text-pink-700"></button><br>তারপর Transaction ID নিচে দিন।';
+          const copyBtn = document.getElementById('bkash-copy');
+          copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> ';
+          copyBtn.append(num);
+          copyBtn.onclick = async () => {
+            try { await navigator.clipboard.writeText(num); }
+            catch { const t = document.createElement('textarea'); t.value = num; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+            window.showToast?.('bKash নম্বর কপি হয়েছে: ' + num, 'Copied');
+          };
         } else {
           payEl.innerText = "পেমেন্ট তথ্য এখনো যোগ করা হয়নি। অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।";
         }
@@ -344,13 +360,18 @@
 
     // Enrollment logic integration
     const enrollBtn = document.getElementById('enroll-main-btn');
-    const isEnrolled = !!(currentUser && await checkEnrollment(id));
+    const myRows = await enrollmentRows(id);
+    const isEnrolled = myRows.some(r => r.payment_status === "verified" || (r.status === "active" && r.payment_status == null));
+    const isPending = !isEnrolled && myRows.some(r => r.payment_status === "pending" || r.status === "pending");
 
     if (enrollBtn) {
       enrollBtn.disabled = false;
       if (isEnrolled) {
         enrollBtn.innerText = "Continue Learning";
         enrollBtn.onclick = () => window.location.href = "/courses/" + id;
+      } else if (isPending) {
+        enrollBtn.innerText = "পেমেন্ট যাচাই হচ্ছে";
+        enrollBtn.onclick = () => window.showToast("আপনার এনরোলমেন্ট রিকোয়েস্ট জমা আছে। অ্যাডমিন যাচাই করলে কোর্স আনলক হবে।", "Pending");
       } else {
         enrollBtn.onclick = () => {
           if (currentUser) {
@@ -399,6 +420,15 @@
           const { error: profileError } = await supabase.from("profiles").update({ full_name: fullName, phone: phone }).eq("id", userId);
           if (profileError) console.error("Profile update failed:", profileError.message);
 
+          // One course can only be enrolled once: block a second request.
+          const existingRows = await enrollmentRows(id);
+          if (existingRows.some(r => r.payment_status !== "failed")) {
+            window.closeModal("paymentModal");
+            window.showToast("আপনি এই কোর্সে আগেই এনরোল করেছেন।", "Already enrolled");
+            await loadCourseDetails(id);
+            return;
+          }
+
           // 2. Save the payment as a pending enrollment row (admin approves it later)
           const amount = course?.discount_price || course?.price || 0;
           const { error: enrollError } = await supabase.from("enrollments").insert({
@@ -413,6 +443,7 @@
 
           window.closeModal("paymentModal");
           window.showOrderPending(course?.title || "এই কোর্স");
+          loadCourseDetails(id);
         } catch (err) {
           if (err.message !== "User not authenticated") {
             window.showToast(err.message, "Enrollment Error");
