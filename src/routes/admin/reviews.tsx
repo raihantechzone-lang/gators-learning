@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, Check, X, Image as ImageIcon, Trash2, Power, Pause, Play, Plus, Users } from "lucide-react";
+import { Star, Check, X, Image as ImageIcon, Trash2, Power, Pause, Play, Plus, Users, Clock } from "lucide-react";
 import { uploadToImageKit } from "@/lib/imagekit";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -68,6 +68,22 @@ function ReviewsAndAdsAdmin() {
       queryClient.invalidateQueries({ queryKey: ["admin-ads"] });
       toast.success("Ad deleted");
     },
+  });
+
+  const [expiryEdits, setExpiryEdits] = useState<Record<string, string>>({});
+
+  const setExpiryMutation = useMutation({
+    mutationFn: async ({ id, hours }: { id: string; hours: string }) => {
+      const n = Number(hours);
+      const expires_at = hours && n > 0 ? new Date(Date.now() + n * 3600_000).toISOString() : null;
+      const { error } = await supabase.from("app_ads").update({ expires_at }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-ads"] });
+      toast.success("Ad timer updated");
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   const [adPhoto, setAdPhoto] = useState<File | null>(null);
@@ -247,14 +263,32 @@ function ReviewsAndAdsAdmin() {
                          {ad.target_link && <p className="text-xs text-brand truncate max-w-[150px]">{ad.target_link}</p>}
                       </div>
                       {(ad as any).expires_at && (
-                        <p className={`text-xs mt-1 font-medium ${new Date((ad as any).expires_at) > new Date() ? 'text-slate-400' : 'text-rose-500'}`}>
+                         <p className={`text-xs mt-1 font-medium ${new Date((ad as any).expires_at) > new Date() ? 'text-slate-400' : 'text-rose-500'}`}>
                           {new Date((ad as any).expires_at) > new Date()
                             ? `Shows until ${new Date((ad as any).expires_at).toLocaleString()}`
                             : 'Expired'}
                         </p>
                       )}
+                      <div className="flex items-center gap-1.5 mt-2">
+                        <input
+                          type="number"
+                          min={1}
+                          value={expiryEdits[ad.id] ?? ""}
+                          onChange={(e) => setExpiryEdits((prev) => ({ ...prev, [ad.id]: e.target.value }))}
+                          placeholder="Hours"
+                          className="w-24 p-1.5 text-xs rounded-lg bg-slate-50 border border-slate-100 focus:ring-2 focus:ring-brand/20 font-medium"
+                        />
+                        <button
+                          onClick={() => setExpiryMutation.mutate({ id: ad.id, hours: expiryEdits[ad.id] ?? "" })}
+                          disabled={setExpiryMutation.isPending}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 text-slate-600 text-xs font-bold hover:bg-slate-100 transition disabled:opacity-50"
+                        >
+                          <Clock size={13} />
+                          Set Timer
+                        </button>
+                      </div>
                    </div>
-                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                   <div className="flex items-center gap-2">
                       <button 
                          onClick={() => toggleAdMutation.mutate({ id: ad.id, active: !ad.is_active })}
                          className={`p-2.5 rounded-xl transition ${
