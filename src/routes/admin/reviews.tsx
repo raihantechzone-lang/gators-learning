@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, Check, X, Image as ImageIcon, Trash2, Power, Pause, Play, Plus, Users } from "lucide-react";
+import { Star, Check, X, Image as ImageIcon, Trash2, Power, Pause, Play, Plus, Users, Clock } from "lucide-react";
 import { uploadToImageKit } from "@/lib/imagekit";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -68,6 +68,22 @@ function ReviewsAndAdsAdmin() {
       queryClient.invalidateQueries({ queryKey: ["admin-ads"] });
       toast.success("Ad deleted");
     },
+  });
+
+  const [expiryEdits, setExpiryEdits] = useState<Record<string, string>>({});
+
+  const setExpiryMutation = useMutation({
+    mutationFn: async ({ id, hours }: { id: string; hours: string }) => {
+      const n = Number(hours);
+      const expires_at = hours && n > 0 ? new Date(Date.now() + n * 3600_000).toISOString() : null;
+      const { error } = await supabase.from("app_ads").update({ expires_at }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-ads"] });
+      toast.success("Ad timer updated");
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   const [adPhoto, setAdPhoto] = useState<File | null>(null);
