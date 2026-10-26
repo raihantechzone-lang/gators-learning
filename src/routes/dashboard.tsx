@@ -258,8 +258,8 @@ function DashboardPage() {
 
                {dataLoading && <p className="text-ink-muted">কোর্স লোড হচ্ছে…</p>}
                {dataError && <p role="alert" className="text-destructive">{dataError}</p>}
-               {browserProgressOnly && <p className="text-sm text-ink-muted">অগ্রগতি এই ব্রাউজারে সংরক্ষিত হচ্ছে; অন্য ডিভাইসে পাওয়া যাবে না।</p>}
-               {!dataLoading && !approved.length && <p className="text-ink-muted">এখনো কোনো কোর্সে অনুমোদিত এনরোলমেন্ট নেই।</p>}
+               {browserProgressOnly && null}
+               {!dataLoading && !approved.length && null}
                {/* Course Grid */}
                <div>
                   <h3 className="text-xl sm:text-2xl font-['Hind_Siliguri',sans-serif] font-bold text-gray-900 mb-6 flex items-center gap-3">

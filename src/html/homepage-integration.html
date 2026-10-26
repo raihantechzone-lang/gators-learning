@@ -409,11 +409,8 @@
           });
           if (enrollError) throw enrollError;
 
-          window.showToast("Enrollment submitted! We will verify your payment shortly.", "Success");
           window.closeModal("paymentModal");
-          
-          // Redirect to dashboard where they can see pending status
-          setTimeout(() => window.location.href = "/dashboard", 2000);
+          window.showOrderPending(course?.title || "এই কোর্স");
         } catch (err) {
           if (err.message !== "User not authenticated") {
             window.showToast(err.message, "Enrollment Error");
