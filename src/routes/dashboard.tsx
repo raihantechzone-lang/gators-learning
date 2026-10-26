@@ -37,7 +37,6 @@ function DashboardPage() {
   const [lessons, setLessons] = useState<{ id: string; course_id: string; title?: string; pdf_url?: string | null }[]>([]);
   const [progress, setProgress] = useState<LessonProgressRecord[]>([]);
   const [dataError, setDataError] = useState("");
-  const [browserProgressOnly, setBrowserProgressOnly] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const approved = enrollments.filter(hasCourseAccess);
   const otherCourses = catalog.filter(course => !approved.some(e => e.course_id === course.id));
@@ -62,7 +61,6 @@ function DashboardPage() {
       setEnrollments((enc.data as any) ?? []);
       setCatalog((courses.data as Course[]) ?? []);
       setLessons(contents.data ?? []);
-      setBrowserProgressOnly(!!saved.error);
       setProgress([...(saved.data as LessonProgressRecord[] ?? []), ...readLocalProgress(user.id)]);
       setDataLoading(false);
     };
@@ -258,8 +256,6 @@ function DashboardPage() {
 
                {dataLoading && <p className="text-ink-muted">কোর্স লোড হচ্ছে…</p>}
                {dataError && <p role="alert" className="text-destructive">{dataError}</p>}
-               {browserProgressOnly && <p className="text-sm text-ink-muted">অগ্রগতি এই ব্রাউজারে সংরক্ষিত হচ্ছে; অন্য ডিভাইসে পাওয়া যাবে না।</p>}
-               {!dataLoading && !approved.length && <p className="text-ink-muted">এখনো কোনো কোর্সে অনুমোদিত এনরোলমেন্ট নেই।</p>}
                {/* Course Grid */}
                <div>
                   <h3 className="text-xl sm:text-2xl font-['Hind_Siliguri',sans-serif] font-bold text-gray-900 mb-6 flex items-center gap-3">
