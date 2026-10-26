@@ -6,8 +6,17 @@ import {
   LineChart, Line, AreaChart, Area
 } from "recharts";
 import { Users, BookOpen, CreditCard, Star, TrendingUp, DollarSign } from "lucide-react";
+import { approvedEnrollmentFilter } from "@/lib/enrollment-payment";
 
 export const Route = createFileRoute("/admin/")({
+  head: () => ({ meta: [
+    { title: "Admin Overview — Gators Learning" },
+    { name: "description", content: "Course enrollments and payment overview for Gators Learning." },
+    { property: "og:title", content: "Admin Overview — Gators Learning" },
+    { property: "og:description", content: "Course enrollments and payment overview for Gators Learning." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: AdminDashboard,
 });
 
@@ -21,7 +30,7 @@ function AdminDashboard() {
         supabase.from("enrollments").select("id, status"),
         supabase.from("reviews").select("id", { count: "exact" }),
         supabase.from("enrollments").select("*, courses(title), profiles(full_name)").eq("payment_status", "pending").order("enrolled_at", { ascending: false }).limit(5),
-        supabase.from("enrollments").select("id, courses(price)").eq("status", "active").or("payment_status.is.null,payment_status.not.in.(pending,failed)")
+        supabase.from("enrollments").select("id, courses(price)").or(approvedEnrollmentFilter)
       ]);
 
       const totalRevenue = (earnings.data || []).reduce((sum, item) => {

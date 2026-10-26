@@ -2,8 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, TrendingUp, Calendar, CreditCard, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { approvedEnrollmentFilter } from "@/lib/enrollment-payment";
 
 export const Route = createFileRoute("/admin/earnings")({
+  head: () => ({ meta: [
+    { title: "Course Earnings — Gators Learning" },
+    { name: "description", content: "Verified course payments and earnings for Gators Learning." },
+    { property: "og:title", content: "Course Earnings — Gators Learning" },
+    { property: "og:description", content: "Verified course payments and earnings for Gators Learning." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: EarningsAdmin,
 });
 
@@ -23,7 +32,7 @@ function EarningsAdmin() {
             price
           )
         `)
-        .eq("status", "active").or("payment_status.is.null,payment_status.not.in.(pending,failed)");
+        .or(approvedEnrollmentFilter);
       
       if (error) throw error;
 

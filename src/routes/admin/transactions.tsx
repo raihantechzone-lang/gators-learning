@@ -4,8 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
 import { useState } from "react";
+import { paymentVerificationUpdate } from "@/lib/enrollment-payment";
 
 export const Route = createFileRoute("/admin/transactions")({
+  head: () => ({ meta: [
+    { title: "Payment Verification — Gators Learning" },
+    { name: "description", content: "Review and verify course enrollment payments." },
+    { property: "og:title", content: "Payment Verification — Gators Learning" },
+    { property: "og:description", content: "Review and verify course enrollment payments." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: TransactionsAdmin,
 });
 
@@ -30,11 +39,15 @@ function TransactionsAdmin() {
 
   const verifyMutation = useMutation({
     mutationFn: async ({ req, status, message }: { req: any; status: 'verified' | 'failed'; message?: string }) => {
-      const { error } = await supabase
+      const { data: saved, error } = await supabase
         .from("enrollments")
-        .update(status === 'verified' ? { status: 'active', payment_status: 'verified' } : { payment_status: 'failed' })
-        .eq("id", req.id);
+        .update(paymentVerificationUpdate(status))
+        .eq("id", req.id)
+        .eq("payment_status", "pending")
+        .select("id, payment_status")
+        .single();
       if (error) throw error;
+      if (saved?.payment_status !== status) throw new Error("Payment verification was not saved. Please refresh and try again.");
 
       if (status === 'verified') {
         toast.success("Payment verified and enrollment unlocked!");

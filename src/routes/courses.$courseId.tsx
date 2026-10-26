@@ -12,6 +12,7 @@ import { LessonResources } from "@/components/lesson/LessonResources";
 import { LessonNotes } from "@/components/lesson/LessonNotes";
 import { LessonQA } from "@/components/lesson/LessonQA";
 import { isLiveLinkActive, youtubeId, type Course, type CourseContent } from "@/lib/data";
+import { hasCourseAccess } from "@/lib/student-progress";
 
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
@@ -145,7 +146,7 @@ function CourseDetailPage() {
         .eq("profile_id", user.id)
         .eq("course_id", courseId)
         .maybeSingle();
-      setEnrolled(en?.status === "active" && !["pending", "failed"].includes((en as any)?.payment_status));
+      setEnrolled(!!en && hasCourseAccess(en));
       setPending(!!en && (en.status === "pending" || en.payment_status === "pending"));
     };
     load();

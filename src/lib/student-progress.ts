@@ -19,7 +19,8 @@ export function courseProgress(lessonIds: string[], records: LessonProgressRecor
 }
 
 export function hasCourseAccess(enrollment: { status?: string; payment_status?: string | null }) {
-  return enrollment.status === "active" && !["pending", "failed"].includes(enrollment.payment_status || "");
+  if (enrollment.payment_status === "verified") return true;
+  return enrollment.status === "active" && enrollment.payment_status == null;
 }
 
 export function readLocalProgress(userId: string): LessonProgressRecord[] {
