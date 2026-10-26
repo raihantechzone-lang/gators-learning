@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { parseYouTubeId } from "@/lib/youtube";
+import { Button } from "@/components/ui/button";
 
 export interface VideoPlayerProps {
   youtubeId?: string;
@@ -89,28 +90,20 @@ export function VideoPlayer({
     };
   }, [id, started]);
 
-  if (!id && !videoUrl) {
-    return (
-      <div className="w-full aspect-video flex items-center justify-center bg-ink rounded-2xl text-background/50 text-sm">
-        No video source provided
-      </div>
-    );
-  }
-
   return (
     <div className="relative w-full aspect-video overflow-hidden rounded-2xl bg-ink">
       {!started ? (
-        <button type="button" disabled={!readyToPlay} onClick={() => setStarted(true)} aria-label={`Play ${title || "video"}`} className="group absolute inset-0 w-full h-full">
-          <img
+        <Button variant="ghost" type="button" disabled={!readyToPlay} onClick={() => setStarted(true)} aria-label={`Play ${title || "video"}`} className="group absolute inset-0 w-full h-full p-0">
+          {(thumbnail || id) && <img
             src={thumbnail || (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : "")}
             alt={title || "Video thumbnail"}
             className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => { if (id) e.currentTarget.src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`; }}
-          />
+          />}
           <span className="absolute inset-0 flex items-center justify-center bg-ink/20 group-hover:bg-ink/30 transition">
             <span className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-background/95 text-brand flex items-center justify-center shadow-xl group-hover:scale-110 transition text-2xl pl-1">▶</span>
           </span>
-        </button>
+        </Button>
       ) : id ? (
         <iframe
           key={id}
@@ -122,6 +115,8 @@ export function VideoPlayer({
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
         />
+      ) : !videoUrl ? (
+        <div role="status" className="absolute inset-0 flex items-center justify-center text-background font-bold text-center px-6">Recorded video coming soon</div>
       ) : (
         <video key={videoUrl} ref={videoRef} autoPlay className="w-full h-full" src={videoUrl} controls playsInline
           onLoadedMetadata={() => { if (videoRef.current) videoRef.current.currentTime = callbacks.current.startSeconds; }}

@@ -405,7 +405,7 @@ function CourseDetailPage() {
                   </>
                 )}
               </div>
-            ) : active && canWatch && (vid || active.video_file_url) ? (
+            ) : active && canWatch ? (
               <VideoPlayer
                 readyToPlay={progressLoaded}
                 youtubeId={vid ?? undefined}
@@ -451,7 +451,7 @@ function CourseDetailPage() {
                 <div className="flex flex-wrap gap-3">
                   {isLiveLinkActive(active) && (
                     <a
-                      href={active.live_url!}
+                      href={active.live_url || undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 rounded-xl bg-destructive text-background text-sm font-bold"
@@ -480,7 +480,7 @@ function CourseDetailPage() {
                     </a>
                   )}
                 </div>
-                {active.live_url && !isLiveLinkActive(active) && (
+                {active.live_url && !active.youtube_url && !active.video_file_url && !isLiveLinkActive(active) && (
                   <p className="text-xs text-ink-muted mt-4 font-bengali">
                     লাইভ ক্লাসের লিংকটির মেয়াদ শেষ হয়ে গেছে (২৪ ঘণ্টা পর স্বয়ংক্রিয়ভাবে মুছে যায়)।
                   </p>

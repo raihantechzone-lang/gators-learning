@@ -3,6 +3,12 @@ export function normalizeStudentEmail(value) {
   return String(value ?? "").trim().toLowerCase();
 }
 
+/** Recorded lessons never expose their old live session; live links expire after one day. */
+export function isLessonLive(lesson, now = Date.now()) {
+  return Boolean(lesson?.live_url && !String(lesson.youtube_url || lesson.video_file_url || "").trim()
+    && lesson.live_expires_at && Date.parse(lesson.live_expires_at) > now);
+}
+
 /** Resize only ImageKit assets; leave other storage providers' URLs intact. */
 export function adDisplayImage(value) {
   try {
