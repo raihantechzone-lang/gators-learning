@@ -19,8 +19,8 @@
  */
 
 @theme inline {
-  --font-sans: "Inter", "SutonnyMJ Unicode", "Noto Serif Bengali", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Poppins", "SutonnyMJ Unicode", "Noto Serif Bengali", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Poppins", "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
   --font-bengali: var(--site-bengali-font);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
