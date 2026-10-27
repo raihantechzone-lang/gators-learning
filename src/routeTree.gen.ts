@@ -20,6 +20,7 @@ import { Route as PurchasesRouteImport } from './routes/purchases'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as TeacherRouteImport } from './routes/teacher'
+import { Route as TeacherLoginRouteImport } from './routes/teacher-login'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAttendanceRouteImport } from './routes/admin/attendance'
@@ -102,6 +103,11 @@ const ReviewsRoute = ReviewsRouteImport.update({
 const TeacherRoute = TeacherRouteImport.update({
   id: '/teacher',
   path: '/teacher',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeacherLoginRoute = TeacherLoginRouteImport.update({
+  id: '/teacher-login',
+  path: '/teacher-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WishlistRoute = WishlistRouteImport.update({
@@ -258,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/teacher': typeof TeacherRoute
+  '/teacher-login': typeof TeacherLoginRoute
   '/wishlist': typeof WishlistRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -298,6 +305,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/teacher': typeof TeacherRoute
+  '/teacher-login': typeof TeacherLoginRoute
   '/wishlist': typeof WishlistRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/teacher': typeof TeacherRoute
+  '/teacher-login': typeof TeacherLoginRoute
   '/wishlist': typeof WishlistRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -383,6 +392,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/teacher'
+    | '/teacher-login'
     | '/wishlist'
     | '/admin/attendance'
     | '/admin/categories'
@@ -423,6 +433,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/teacher'
+    | '/teacher-login'
     | '/wishlist'
     | '/admin/attendance'
     | '/admin/categories'
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/teacher'
+    | '/teacher-login'
     | '/wishlist'
     | '/admin/attendance'
     | '/admin/categories'
@@ -506,6 +518,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
   TeacherRoute: typeof TeacherRoute
+  TeacherLoginRoute: typeof TeacherLoginRoute
   WishlistRoute: typeof WishlistRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   DetailsCourseIdRoute: typeof DetailsCourseIdRoute
@@ -592,6 +605,13 @@ declare module '@tanstack/react-router' {
       path: '/teacher'
       fullPath: '/teacher'
       preLoaderRoute: typeof TeacherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teacher-login': {
+      id: '/teacher-login'
+      path: '/teacher-login'
+      fullPath: '/teacher-login'
+      preLoaderRoute: typeof TeacherLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wishlist': {
@@ -874,6 +894,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
   TeacherRoute: TeacherRoute,
+  TeacherLoginRoute: TeacherLoginRoute,
   WishlistRoute: WishlistRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   DetailsCourseIdRoute: DetailsCourseIdRoute,

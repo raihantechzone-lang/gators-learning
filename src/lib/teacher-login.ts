@@ -32,7 +32,12 @@ export async function createTeacherAccount(form: { display_name: string; passwor
     const { data: exists, error: setupError } = await (supabase as any).rpc('teacher_login_exists', { login_name_input: loginName });
     if (setupError) throw new Error('Run the updated Teacher setup SQL first.');
     if (exists) throw new Error('This teacher name is already in use. Choose a different name.');
-    const { data, error } = await isolated.auth.signUp({ email, password, options: { data: { full_name: form.display_name.trim() } } });
+    let { data, error } = await isolated.auth.signUp({ email, password, options: { data: { full_name: form.display_name.trim() } } });
+    // Recover an orphaned signup using the original password; never expose or reset it.
+    if (error || !data.session) {
+      const retry = await isolated.auth.signInWithPassword({ email, password });
+      if (!retry.error && retry.data.session) { data = retry.data; error = null; }
+    }
     if (error) throw error;
     if (!data.session || !data.user) throw new Error('Teacher account needs confirmation. Disable email confirmation on your connected account service before creating teachers.');
     const { error: bindError } = await (supabase as any).rpc('register_teacher_account', {
