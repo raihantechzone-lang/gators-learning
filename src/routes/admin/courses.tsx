@@ -26,7 +26,8 @@ function CoursesAdmin() {
     discount_price: "0",
     category: "",
     thumbnail_url: "",
-    is_published: true
+    is_published: true,
+    certificate_enabled: false
   });
 
   const handleCourseSubmit = async () => {
@@ -94,6 +95,7 @@ function CoursesAdmin() {
         category: formData.category,
         thumbnail_url: currentThumbnailUrl || null,
         is_published: !!formData.is_published,
+        certificate_enabled: !!formData.certificate_enabled,
       };
 
       console.log("[CourseSubmit] Payload:", JSON.stringify(payload, null, 2));
@@ -146,7 +148,8 @@ function CoursesAdmin() {
         discount_price: "0",
         category: categories && categories.length > 0 ? categories[0].name : "",
         thumbnail_url: "",
-        is_published: true
+        is_published: true,
+        certificate_enabled: false
       });
     } catch (err: any) {
       console.error("[CourseSubmit] Catch block triggered:", err);
@@ -241,7 +244,8 @@ function CoursesAdmin() {
               discount_price: "0",
               category: categories && categories.length > 0 ? categories[0].name : "",
               thumbnail_url: "",
-              is_published: true
+              is_published: true,
+              certificate_enabled: false
             });
             setSelectedFile(null);
             setIsModalOpen(true);
@@ -385,6 +389,17 @@ function CoursesAdmin() {
                 <label htmlFor="published" className="text-sm font-bold text-slate-700">Publish immediately</label>
               </div>
 
+              <div className="flex items-center gap-3 py-2">
+                <input
+                  type="checkbox"
+                  id="certificate_enabled"
+                  className="w-5 h-5 rounded border-slate-200 text-brand focus:ring-brand"
+                  checked={formData.certificate_enabled}
+                  onChange={e => setFormData({...formData, certificate_enabled: e.target.checked})}
+                />
+                <label htmlFor="certificate_enabled" className="text-sm font-bold text-slate-700">Certificate available (unlocks at 100% completion)</label>
+              </div>
+
               <button 
                 type="button" 
                 onClick={handleCourseSubmit} 
@@ -461,7 +476,8 @@ function CoursesAdmin() {
                             discount_price: course.discount_price?.toString() || "0",
                             category: course.category || "",
                             thumbnail_url: course.thumbnail_url || "",
-                            is_published: course.is_published
+                            is_published: course.is_published,
+                            certificate_enabled: !!(course as any).certificate_enabled
                           });
                           setSelectedFile(null);
                           setIsModalOpen(true);

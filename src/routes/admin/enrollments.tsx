@@ -11,6 +11,7 @@ export const Route = createFileRoute("/admin/enrollments")({
 
 function EnrollmentsAdmin() {
   const [search, setSearch] = useState("");
+  const [courseFilter, setCourseFilter] = useState("all");
   const queryClient = useQueryClient();
 
   const { data: enrollments, isLoading } = useQuery({
@@ -41,10 +42,19 @@ function EnrollmentsAdmin() {
     onError: (err: any) => toast.error(err.message),
   });
 
-  const filtered = enrollments?.filter(e => 
-    e.profiles?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+  const courseOptions = Array.from(
+    new Map(
+      (enrollments ?? [])
+        .filter((e) => e.courses?.title)
+        .map((e) => [e.course_id, e.courses!.title as string])
+    ).entries()
+  );
+
+  const filtered = enrollments?.filter(e =>
+    (courseFilter === "all" || e.course_id === courseFilter) &&
+    (e.profiles?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     e.profiles?.roll_number?.toLowerCase().includes(search.toLowerCase()) ||
-    e.courses?.title?.toLowerCase().includes(search.toLowerCase())
+    e.courses?.title?.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -83,14 +93,28 @@ function EnrollmentsAdmin() {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-        <Search className="text-slate-400" />
-        <input 
-          placeholder="Search enrollments..." 
-          className="flex-1 bg-transparent border-none focus:ring-0"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-4">
+        <div className="flex-1 flex items-center gap-4">
+          <Search className="text-slate-400" />
+          <input
+            placeholder="Search enrollments..."
+            className="flex-1 bg-transparent border-none focus:ring-0"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <select
+          value={courseFilter}
+          onChange={(e) => setCourseFilter(e.target.value)}
+          className="px-4 py-2.5 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 text-sm font-bold text-slate-700"
+        >
+          <option value="all">All courses ({enrollments?.length ?? 0})</option>
+          {courseOptions.map(([id, title]) => (
+            <option key={id} value={id}>
+              {title} ({enrollments?.filter((e) => e.course_id === id).length ?? 0})
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">

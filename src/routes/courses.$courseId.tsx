@@ -77,7 +77,7 @@ interface AssignmentSubmission {
   status: string;
 }
 
-type Tab = "overview" | "resources" | "notes" | "reviews";
+type Tab = "overview" | "resources" | "notes" | "reviews" | "certificate";
 
 function CourseDetailPage() {
   const { courseId } = Route.useParams();
@@ -88,6 +88,7 @@ function CourseDetailPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [enrolled, setEnrolled] = useState(false);
   const [pending, setPending] = useState(false);
+  const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [instructor, setInstructor] = useState<InstructorProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -147,13 +148,14 @@ function CourseDetailPage() {
       // A student may have several rows for one course (old duplicates); any approved row unlocks it.
       const { data: rows } = await supabase
         .from("enrollments")
-        .select("id, status, payment_status")
+        .select("id, status, payment_status, certificate_url")
         .eq("profile_id", user.id)
         .eq("course_id", courseId);
       const list = rows ?? [];
       const ok = list.some(hasCourseAccess);
       setEnrolled(ok);
       setPending(!ok && list.some((en) => en.status === "pending" || en.payment_status === "pending"));
+      setCertificateUrl(list.find((en) => en.certificate_url)?.certificate_url ?? null);
     };
     load();
     const channel = supabase
@@ -191,6 +193,8 @@ function CourseDetailPage() {
     return () => { cancelled = true; clearInterval(timer); supabase.removeChannel(channel); window.removeEventListener("gl-progress", local); window.removeEventListener("storage", load); window.removeEventListener("focus", load); };
   }, [user, courseId]);
   const completedIds = useMemo(() => new Set(progressRecords.filter((r) => r.completed).map((r) => r.lesson_id)), [progressRecords]);
+  const courseComplete = contents.length > 0 && contents.every((c) => completedIds.has(c.id));
+  const certificateEnabled = !!(course as any)?.certificate_enabled;
 
   const active = contents.find((c) => c.id === activeId) ?? null;
   const canWatch = enrolled || active?.is_free;
@@ -489,7 +493,7 @@ function CourseDetailPage() {
             {active && (
               <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
                 <div className="flex flex-wrap gap-2 mb-4 border-b border-border pb-3">
-                  {(["overview", "resources", "notes", "reviews"] as Tab[]).map((t) => (
+                  {(["overview", "resources", "notes", "reviews", ...(enrolled && certificateEnabled ? ["certificate"] : [])] as Tab[]).map((t) => (
                     <button
                       key={t}
                       onClick={() => setTab(t)}
@@ -497,7 +501,13 @@ function CourseDetailPage() {
                         tab === t ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-muted"
                       }`}
                     >
-                      {!enrolled && (t === "resources" || t === "notes") ? `🔒 ${t}` : t === "reviews" ? "comments" : t}
+                      {!enrolled && (t === "resources" || t === "notes")
+                        ? `🔒 ${t}`
+                        : t === "reviews"
+                          ? "comments"
+                          : t === "certificate"
+                            ? `${certificateUrl ? "🎓" : "🔒"} certificate`
+                            : t}
                     </button>
                   ))}
                 </div>
@@ -560,6 +570,35 @@ function CourseDetailPage() {
                         </li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {enrolled && tab === "certificate" && (
+                  <div className="p-6 rounded-xl bg-surface-alt border border-border text-center space-y-3">
+                    {certificateUrl ? (
+                      <>
+                        <p className="text-3xl">🎓</p>
+                        <p className="font-bold text-ink">Congratulations! Your certificate is ready.</p>
+                        <a
+                          href={certificateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block px-6 py-3 rounded-xl bg-brand text-brand-foreground text-sm font-bold"
+                        >
+                          View / Download Certificate
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-3xl">🔒</p>
+                        <p className="font-bold text-ink">Certificate coming soon</p>
+                        <p className="text-sm text-ink-muted">
+                          {courseComplete
+                            ? "You have completed the course. The admin has not issued your certificate yet — please wait a little longer."
+                            : "It is not time yet. Complete 100% of the course lessons to unlock your certificate."}
+                        </p>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
