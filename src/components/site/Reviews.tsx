@@ -22,6 +22,7 @@ export function useApprovedReviews() {
         .from("reviews")
         .select("id, rating, comment, created_at, profiles(full_name)")
         .eq("is_approved", true)
+        .is("course_id", null)
         .order("created_at", { ascending: false })
         .then(({ data }) => {
           if (!cancelled) {

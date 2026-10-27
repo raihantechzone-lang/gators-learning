@@ -1,4 +1,9 @@
 export function normalizeStudentEmail(value: unknown): string;
+export function accountLoginEmail(value: unknown): Promise<string>;
+export function accountDashboard(client: any, user: { id: string; email?: string | null }): Promise<'/dashboard' | '/teacher'>;
+export function coursePrices(course: { price?: unknown; discount_price?: unknown }): { original: number; payable: number; discounted: boolean };
+export function isHomepageReview(review: { course_id?: string | null; comment?: string | null }): boolean;
+export function paymentConfirmationMessage(name: string, title: string): string;
 export function whatsappPhone(value: unknown): string;
 export function courseFaqs(value: unknown): { question: string; answer: string }[];
 export function adDisplayImage(value: string): string;

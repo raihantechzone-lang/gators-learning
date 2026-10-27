@@ -34,3 +34,10 @@
 - [x] Per-course enrollment count (editable base + live enrollments) on enrollment page.
 - [x] Homepage নোটিশ ticker (bold red, right→left) managed from admin.
 - [ ] Activate notices, templates and editable enrollment count: waits on user running notice-enrollment-templates.sql on the external database.
+- [x] Remove Site Settings and Transaction Verification; legacy addresses redirect.
+- [x] Replace individual exam marks with course-shared PDF links in existing settings.
+- [x] Use normal name/password login for teachers without separate entry; public form and redirect verified.
+- [x] Enlarge bKash logo; real homepage course shows 5000 before struck-through 7000; remove upper Course Details.
+- [x] Restrict Student Reviews to homepage and attendance to active live classes; rule tests pass.
+- [x] Use requested WhatsApp enrollment confirmation message with editable number dialog.
+- [ ] Verify real admin PDF save → enrolled student PDF read, successful teacher login and payment approval → WhatsApp: external authenticated accounts unavailable; public checks and 33 tests passed.

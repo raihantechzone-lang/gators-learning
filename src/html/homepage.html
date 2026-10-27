@@ -1056,7 +1056,7 @@
                             <div class="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 group-focus-within:bg-emerald-100 transition-colors">
                                 <i class="fa-solid fa-envelope text-xs"></i>
                             </div>
-                            <input type="email" name="email" required class="w-full h-[56px] bg-white border border-gray-100 rounded-[16px] pl-16 pr-4 text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm placeholder:text-gray-400" placeholder="Email Address">
+                            <input type="text" name="email" autocomplete="username" required class="w-full h-[56px] bg-white border border-gray-100 rounded-[16px] pl-16 pr-4 text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm placeholder:text-gray-400" placeholder="Email or teacher name">
                         </div>
                     </div>
                     <div class="space-y-1.5">
@@ -1251,7 +1251,7 @@
                             <img src="${thumbImage}" loading="lazy" alt="Cover" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             
-                            <div class="absolute top-0 right-0 bg-yellow-400 text-black text-[11px] font-extrabold px-3 py-1 rounded-bl-lg z-10 shadow-sm">${discountPercentage}% ছাড়</div>
+                            ${savingAmount > 0 ? `<div class="absolute top-0 right-0 bg-yellow-400 text-black text-[11px] font-extrabold px-3 py-1 rounded-bl-lg z-10 shadow-sm">${discountPercentage}% ছাড়</div>` : ''}
                             
                             <div class="absolute top-2 left-2 bg-pink-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full z-10 uppercase tracking-widest shadow-sm">${course.category} Bundle</div>
                             <div class="absolute bottom-3 left-0 w-full text-center z-10">
@@ -1266,8 +1266,8 @@
                             
                             <div class="flex items-center gap-2 mb-4">
                                 <span class="text-2xl font-black text-rs-green">৳${course.discountPrice}</span>
-                                <span class="text-sm text-gray-400 line-through font-semibold">৳${course.price}</span>
-                                <span class="text-[10px] font-bold text-rs-green border border-rs-green px-1.5 py-0.5 rounded ml-auto bg-emerald-50">৳${savingAmount} ছাড়</span>
+                                ${savingAmount > 0 ? `<span class="text-sm text-gray-400 line-through font-semibold">৳${course.price}</span>
+                                <span class="text-[10px] font-bold text-rs-green border border-rs-green px-1.5 py-0.5 rounded ml-auto bg-emerald-50">৳${savingAmount} ছাড়</span>` : ''}
                             </div>
                             
                             <button class="w-full bg-rs-green text-white font-bold py-2.5 rounded-lg mb-4 hover:bg-emerald-700 transition shadow-md shadow-emerald-200 hover:-translate-y-0.5">কোর্সটিতে ভর্তি হোন</button>

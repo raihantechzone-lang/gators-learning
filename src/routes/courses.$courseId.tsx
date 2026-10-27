@@ -489,7 +489,7 @@ function CourseDetailPage() {
               </div>
             )}
 
-            {active && user && enrolled && <AttendanceButton userId={user.id} courseId={courseId} lessonId={active.id} />}
+            {active && user && enrolled && <AttendanceButton key={active.id} userId={user.id} courseId={courseId} lessonId={active.id} lesson={active} />}
             {active && (
               <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
                 <div className="flex flex-wrap gap-2 mb-4 border-b border-border pb-3">

@@ -85,11 +85,9 @@ function AdminGuard() {
     { name: "Enrollments", href: "/admin/enrollments", icon: UserPlus },
     { name: "Send Certificates", href: "/admin/certificates", icon: Award },
     { name: "Course Earnings", href: "/admin/earnings", icon: DollarSign },
-    { name: "Verification", href: "/admin/transactions", icon: ShieldCheck },
     { name: "Course Verification", href: "/admin/course-verification", icon: BadgeCheck },
     { name: "Notice", href: "/admin/notices", icon: Megaphone },
     { name: "Reviews & Ads", href: "/admin/reviews", icon: Star },
-    { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
   return (

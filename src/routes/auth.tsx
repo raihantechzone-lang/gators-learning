@@ -5,7 +5,7 @@ import { useAuth, signInWithGoogle } from "@/lib/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { normalizeStudentEmail } from "@/lib/public-experience.js";
+import { normalizeStudentEmail, accountLoginEmail, accountDashboard } from "@/lib/public-experience.js";
 import { saveStudentProfile } from "@/lib/student-profile";
 
 type Mode = "login" | "signup";
@@ -41,7 +41,11 @@ function AuthPage() {
 
   // Session is persisted, so a logged-in visitor goes straight to the dashboard.
   useEffect(() => {
-    if (user && !busy && !welcome) router.navigate({ to: "/dashboard", replace: true });
+    let cancelled = false;
+    if (user && !busy && !welcome) accountDashboard(supabase, user).then(to => {
+      if (!cancelled) router.navigate({ to, replace: true });
+    }).catch(err => { if (!cancelled) setError(err.message); });
+    return () => { cancelled = true; };
   }, [user, router, busy, welcome]);
 
   const submit = async (e: React.FormEvent) => {
@@ -56,12 +60,14 @@ function AuthPage() {
             password,
             options: { data: { full_name: fullName.trim(), phone: phone.trim() }, emailRedirectTo: window.location.origin },
           })
-        : await supabase.auth.signInWithPassword({ email: normalizeStudentEmail(email), password });
+        : await supabase.auth.signInWithPassword({ email: await accountLoginEmail(email), password });
     if (res.error) throw res.error;
     if (!res.data.session || !res.data.user) {
       setError("Account created. Email confirmation is still enabled for your account service; confirm your email before signing in.");
       return;
     }
+    const destination = await accountDashboard(supabase, res.data.user);
+    if (destination === '/teacher') { await router.navigate({ to: destination, replace: true }); return; }
     const profile = await saveStudentProfile(res.data.user);
     setWelcome({ name: profile.full_name, roll: String(profile.roll_number) });
     } catch (err) {
@@ -104,10 +110,11 @@ function AuthPage() {
             </>)}
             <input
               required
-              type="email"
+              type={mode === 'signup' ? 'email' : 'text'}
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email address"
+              placeholder={mode === 'signup' ? 'Email address' : 'Email or teacher name'}
               className="w-full rounded-xl border border-border bg-surface-alt px-4 py-3 text-sm outline-none focus:border-brand"
             />
             <input

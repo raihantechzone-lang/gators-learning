@@ -27,3 +27,6 @@
 - Teacher management verifies the current Auth user against their protected user_roles row; database teacher RPCs and policies use a role-based teacher_is_admin helper rather than the legacy is_admin implementation, preventing inconsistent admin checks without granting teacher access to students.
 - FAQ parsing and Bangladesh WhatsApp number normalization live in the raw-injected public-experience helper so HTML and React use identical rules.
 - Teacher video uploads use an authenticated, assigned-course checked signature function and save video_file_url through the shared lesson lifecycle; native HTML and React playback both support those recordings.
+- Shared exam PDF lists use course-keyed JSON entries in the existing settings table, not per-student exam marks, so this external-backend feature needs no new schema.
+- Normal account forms resolve teacher aliases through raw-injected public-experience helpers and verify the teacher row before opening the dashboard; legacy separate login and removed admin URLs redirect to their current destinations.
+- Attendance controls expire using the shared live predicate and re-read the lesson before submitting, so stale pages cannot mark an expired or recorded class through the UI.
