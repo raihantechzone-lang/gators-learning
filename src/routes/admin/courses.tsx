@@ -49,6 +49,7 @@ function CoursesAdmin() {
     is_published: true,
     certificate_enabled: false,
     enrollment_count: "",
+    enrollment_count: "",
     ...EMPTY_EXTRA
   });
 
@@ -181,6 +182,7 @@ function CoursesAdmin() {
         thumbnail_url: "",
         is_published: true,
         certificate_enabled: false,
+        enrollment_count: "",
         ...EMPTY_EXTRA
       });
     } catch (err: any) {
@@ -276,6 +278,7 @@ function CoursesAdmin() {
               thumbnail_url: "",
               is_published: true,
               certificate_enabled: false,
+              enrollment_count: "",
               ...EMPTY_EXTRA
             });
             setSelectedFile(null);
