@@ -1,6 +1,6 @@
 - [x] Repair repeat sign-in; real test signup → logout → same password login and welcome → dashboard pass. Rolls no longer substitute for passwords.
-- [ ] Restyle university logo/rating section, remove pngwing.com (2) (4).png and replace requested homepage copy.
-- [ ] Replace Hind Siliguri sitewide; exact SutonnyMJ embedding requires an authorized Unicode-compatible font file.
+- [x] Restyle university logo/rating section, remove pngwing.com (2) (4).png and replace requested homepage copy; all ten remaining logos load with no overflow at 375/648/1280px.
+- [ ] Exact SutonnyMJ embedding requires an authorized Unicode-compatible font file; Hind Siliguri removed sitewide, shared local lookup and readable Noto Serif Bengali fallback are active.
 - [x] Start public loads without waiting for the profile and request display-sized ad photos; loaded photo and once-per-ad display verified.
 - [x] Add review deletion and approval with saved-row checks; existing approved review now renders on Home. Admin mutations remain unverified without an external admin session.
 - [x] Fix verification constraint failure by preserving enrollment status; approval/access tests pass and approved-payment read succeeds. Authenticated Verify → WhatsApp flow remains unverified on the external backend.
