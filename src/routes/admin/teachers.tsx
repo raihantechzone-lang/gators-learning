@@ -63,7 +63,7 @@ function TeachersAdmin() {
         <div className="space-y-2"><Label htmlFor="teacher-title">Title</Label><Input id="teacher-title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="teacher-photo">Profile photo</Label>
         {form.photo_url && <div className="flex items-center gap-3"><img src={form.photo_url} alt="Teacher profile preview" className="h-20 w-20 rounded-full object-cover border border-border" /><Button size="icon" variant="ghost" title="Remove photo" aria-label="Remove photo" disabled={saving} onClick={() => setForm(f => ({ ...f, photo_url: '' }))}><Trash2 size={16} /></Button></div>}
-        <Label className="inline-flex gap-2 items-center cursor-pointer text-brand"><Upload size={16} />Upload photo<input type="file" accept="image/*" className="sr-only" disabled={saving} onChange={async e => {
+        <Label className="inline-flex gap-2 items-center cursor-pointer text-brand"><Upload size={16} />Upload photo<input id="teacher-photo" type="file" accept="image/*" className="sr-only" disabled={saving} onChange={async e => {
           const file = e.target.files?.[0]; e.target.value = ''; if (!file) return; setSaving(true);
           try { await requireTeacherAdmin(); const url = await uploadToImageKit(file, '/teachers'); setForm(f => ({ ...f, photo_url: url })); } catch (err: any) { toast.error(err.message); } finally { setSaving(false); }
         }} /></Label></div>
