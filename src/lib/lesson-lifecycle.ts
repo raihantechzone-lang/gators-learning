@@ -1,6 +1,7 @@
 export interface LessonForm {
   title: string;
   youtube_url: string;
+  video_file_url?: string;
   thumbnail_url: string;
   live_url: string;
   pdf_url: string;
@@ -11,11 +12,13 @@ export interface LessonForm {
 
 export function lessonUpdate(form: LessonForm, previous?: { live_url?: string | null; live_expires_at?: string | null }, now = Date.now()) {
   const recording = form.youtube_url.trim();
-  const live = recording ? "" : form.live_url.trim();
+  const videoFile = form.video_file_url?.trim();
+  const live = recording || videoFile ? "" : form.live_url.trim();
   return {
     title: form.title.trim(),
     // External DB requires youtube_url NOT NULL; empty string means "no recording yet".
     youtube_url: recording,
+    ...(form.video_file_url !== undefined ? { video_file_url: videoFile || null } : {}),
     thumbnail_url: form.thumbnail_url.trim() || null,
     pdf_url: form.pdf_url.trim() || null,
     exam_link: form.exam_link.trim() || null,

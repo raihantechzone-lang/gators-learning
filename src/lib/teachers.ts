@@ -10,10 +10,6 @@ export const teacherMeta = (title: string, description: string) => ({ meta: [
   { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' },
 ] });
 
-export function assignedCourseIds(rows: { course_id: string; teacher_id: string }[], teacherId: string) {
-  return [...new Set(rows.filter(row => row.teacher_id === teacherId).map(row => row.course_id))];
-}
-
 export async function loadTeachers(): Promise<Teacher[]> {
   const { data, error } = await teacherDb.from('teachers').select('id,user_id,display_name,photo_url,title,bio').order('display_name');
   if (error) throw new Error('শিক্ষক ব্যবস্থা চালু করতে Teacher setup SQL চালান।');

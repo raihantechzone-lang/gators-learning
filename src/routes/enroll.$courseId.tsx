@@ -3,7 +3,7 @@ import enrollHtml from "../html/course-enrollment.html?raw";
 import integrationHtml from "../html/homepage-integration.html?raw";
 import studentRollSource from "../lib/student-roll.js?raw";
 import publicExperienceSource from "../lib/public-experience.js?raw";
-import bkashLogo from "../assets/bkash-logo.svg.asset.json";
+import bkashLogo from "../assets/bkash-logo-correct.svg.asset.json";
 
 const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", studentRollSource.replace("export function", "function"))
   .replace("/* PUBLIC_EXPERIENCE_HELPER */", publicExperienceSource.replaceAll("export function", "function"));

@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { uploadToImageKit } from "@/lib/imagekit";
 import { Button } from "@/components/ui/button";
 import { lessonUpdate, type LessonForm } from "@/lib/lesson-lifecycle";
+import { useServerFn } from '@tanstack/react-start';
+import { getTeacherUploadAuth } from '@/lib/teacher-upload.functions';
 
 export const Route = createFileRoute("/admin/content")({
   head: () => ({ meta: [
@@ -25,6 +27,15 @@ export function ContentAdmin({ allowedCourses, initialCourseId = '' }: { allowed
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [videoUploading, setVideoUploading] = useState(false);
+  const signTeacherUpload = useServerFn(getTeacherUploadAuth);
+  const uploadMedia = async (file: File, folder: string) => {
+    if (allowedCourses) {
+      const auth = await signTeacherUpload({ data: { courseId: selectedCourseId } });
+      return uploadToImageKit(file, folder, auth);
+    }
+    return uploadToImageKit(file, folder);
+  };
 
   const { data: courses } = useQuery({
     queryKey: ["admin-courses-list", allowedCourses?.map(c => c.id).join(',') ?? 'admin'],
@@ -154,6 +165,16 @@ export function ContentAdmin({ allowedCourses, initialCourseId = '' }: { allowed
                     }}
                   />
                 </div>
+                {allowedCourses && <div className="space-y-2">
+                  <label className="flex gap-2 items-center cursor-pointer text-sm text-brand"><Upload size={16} />{videoUploading ? 'Uploading video…' : 'Upload video file'}<input type="file" className="sr-only" accept="video/mp4,video/webm" disabled={videoUploading || !selectedCourseId} onChange={async e => {
+                    const file = e.target.files?.[0]; if (!file) return;
+                    if (!['video/mp4', 'video/webm'].includes(file.type)) { toast.error('Select an MP4 or WebM video.'); return; }
+                    setVideoUploading(true);
+                    try { const url = await uploadMedia(file, '/lessons/' + selectedCourseId); setForm(current => ({ ...current, video_file_url: url, youtube_url: '' })); toast.success('Video uploaded; save the lesson to publish it.'); }
+                    catch (err: any) { toast.error(err.message); } finally { setVideoUploading(false); }
+                  }} /></label>
+                  {form.video_file_url && <><video src={form.video_file_url} controls className="w-full aspect-video" /><Button variant="outline" size="sm" onClick={() => setForm(current => ({ ...current, video_file_url: '' }))}>Remove video</Button></>}
+                </div>}
                 {previewUrl && getYoutubeId(previewUrl) && (
                   <div className="aspect-video rounded-xl overflow-hidden bg-black border border-slate-200">
                     <iframe 
@@ -175,7 +196,7 @@ export function ContentAdmin({ allowedCourses, initialCourseId = '' }: { allowed
                       if (!file) return;
                       try {
                         setIsUploading(true);
-                        const url = await uploadToImageKit(file, "/lessons");
+                        const url = await uploadMedia(file, "/lessons");
                         setForm(current => ({...current, thumbnail_url: url}));
                         toast.success("Thumbnail uploaded");
                       } catch (err: any) {
@@ -240,7 +261,7 @@ export function ContentAdmin({ allowedCourses, initialCourseId = '' }: { allowed
                 </div>
                 <Button
                   onClick={() => addMutation.mutate(form)}
-                  disabled={!form.title.trim() || addMutation.isPending || isUploading}
+                  disabled={!form.title.trim() || addMutation.isPending || isUploading || videoUploading}
                   className="w-full h-auto py-3.5 font-bold"
                 >
                   {addMutation.isPending ? "Saving..." : editingId ? "Save Changes" : "Add Content"}
@@ -289,7 +310,7 @@ export function ContentAdmin({ allowedCourses, initialCourseId = '' }: { allowed
                            <Button variant="ghost" size="icon" title="Edit lesson" aria-label={`Edit ${content.title}`}
                              onClick={() => {
                                setEditingId(content.id);
-                               setForm({ title: content.title, youtube_url: content.youtube_url || "", thumbnail_url: content.thumbnail_url || "", pdf_url: content.pdf_url || "", live_url: content.live_url || "", exam_link: content.exam_link || "", exam_enabled: Boolean(content.exam_enabled), is_free: Boolean(content.is_free) });
+                               setForm({ title: content.title, youtube_url: content.youtube_url || "", ...(content.video_file_url != null ? { video_file_url: content.video_file_url } : {}), thumbnail_url: content.thumbnail_url || "", pdf_url: content.pdf_url || "", live_url: content.live_url || "", exam_link: content.exam_link || "", exam_enabled: Boolean(content.exam_enabled), is_free: Boolean(content.is_free) });
                                setPreviewUrl("");
                                window.scrollTo({ top: 0, behavior: "smooth" });
                              }}>

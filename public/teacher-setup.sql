@@ -52,6 +52,7 @@ REVOKE ALL ON FUNCTION public.set_course_teachers(uuid, uuid[]) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.set_course_teachers(uuid, uuid[]) TO authenticated;
 
 -- Secure assigned-course content at the database boundary, not just in the page.
+ALTER TABLE public.course_contents ADD COLUMN IF NOT EXISTS video_file_url text;
 -- Replace legacy permissive policies, retaining admin/free/verified-student access.
 DO $$ DECLARE p record; BEGIN
   FOR p IN SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = 'course_contents' LOOP
