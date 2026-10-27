@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Search } from "lucide-react";
 import { useState } from "react";
 import { paymentVerificationUpdate } from "@/lib/enrollment-payment";
+import { whatsappPhone } from "@/lib/public-experience.js";
 
 export const Route = createFileRoute("/admin/transactions")({
   head: () => ({ meta: [
@@ -63,9 +64,11 @@ function TransactionsAdmin() {
         (status === 'verified'
           ? `Hello ${name}, your payment for ${courseTitle} has been verified successfully. You can now access your course.`
           : `Hello ${name}, we couldn't verify your transaction (TrxID: ${trx}) for ${courseTitle}. Please contact support.`);
-      const phone = String(req.profiles?.phone || "").replace(/\D/g, "");
+      const phone = whatsappPhone(req.profiles?.phone);
       if (phone) {
         setWhatsAppPopup({ name, phone, message: text });
+      } else {
+        toast.warning('Payment saved, but the student’s WhatsApp number is incomplete.');
       }
     },
     onSuccess: () => {
