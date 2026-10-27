@@ -355,6 +355,7 @@
     }
     
     // Update breadcrumbs
+    try { window.renderCourseExtras?.(course); } catch (e) { console.error('course extras', e); }
     const breadcrumbCourse = document.querySelector('nav span.text-surface-900.truncate');
     if (breadcrumbCourse) breadcrumbCourse.innerText = course.title;
 
@@ -474,6 +475,7 @@
     if (contentContainer && contents) {
        const count = document.getElementById('course-content-count');
        if (count) count.textContent = contents.length + ' lessons';
+       try { window.renderCourseChips?.(contents); } catch (e) { console.error('course chips', e); }
        const list = contentContainer.querySelector('.flex.flex-col');
        if (list) {
           list.innerHTML = "";

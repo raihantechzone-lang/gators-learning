@@ -301,6 +301,11 @@
         const show = (id) => document.getElementById(id)?.classList.remove('hidden');
         const $ = (id) => document.getElementById(id);
         $('cta-title').textContent = course.title || '';
+        const full = Number(course.price), sale = Number(course.discount_price);
+        if (sale && full && sale < full) {
+            const op = $('course-original-price'); op.textContent = '৳' + full; op.hidden = false;
+            const d = $('course-discount'); d.textContent = Math.round((1 - sale / full) * 100) + '% ছাড়'; d.hidden = false;
+        }
         if (course.subtitle) { $('course-subtitle').textContent = course.subtitle; show('course-subtitle'); }
         if (course.instructor_name) {
             const img = course.instructor_photo ? `<img src="${esc(course.instructor_photo)}" alt="" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user"></i>`;
