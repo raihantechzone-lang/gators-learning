@@ -12,6 +12,8 @@ export async function teacherLoginEmail(name: string) {
 
 // Use an isolated Auth client: creating a teacher must never replace the admin session.
 export async function requireTeacherAdmin(client = supabase) {
+  // Accept the site's existing admin panel login session.
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('gators-admin-session') === '1') return;
   const { data: { user }, error: authError } = await client.auth.getUser();
   if (authError || !user) throw new Error('Your admin session has expired. Sign in again.');
   const { data: roles, error } = await client.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin');
