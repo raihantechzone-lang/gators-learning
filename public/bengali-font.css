@@ -1,0 +1,10 @@
+/* Unicode Bengali only: legacy Bijoy Latin glyphs must never replace Latin text. */
+@font-face {
+  font-family: "SutonnyMJ Unicode";
+  src: local("SutonnyMJ");
+  font-display: swap;
+  unicode-range: U+0980-09FF;
+}
+:root {
+  --site-bengali-font: "SutonnyMJ Unicode", "Noto Serif Bengali", serif;
+}

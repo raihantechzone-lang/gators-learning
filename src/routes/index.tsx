@@ -18,6 +18,8 @@ export const Route = createFileRoute("/")({
     { property: "og:description", content: "Explore Gators Learning courses, video lessons and online classes." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
+    { property: "og:image", content: "https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png" },
+    { name: "twitter:image", content: "https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png" },
   ] }),
   server: {
     handlers: {

@@ -30,3 +30,4 @@
 - Shared exam PDF lists use course-keyed JSON entries in the existing settings table, not per-student exam marks, so this external-backend feature needs no new schema.
 - Normal account forms resolve teacher aliases through raw-injected public-experience helpers and verify the teacher row before opening the dashboard; legacy separate login and removed admin URLs redirect to their current destinations.
 - Attendance controls expire using the shared live predicate and re-read the lesson before submitting, so stale pages cannot mark an expired or recorded class through the UI.
+- Share Bengali font-face declarations through public/bengali-font.css across HTML documents and React; restrict legacy local font lookup to Bengali Unicode glyphs and keep a readable Unicode fallback so Latin text is never replaced by Bijoy glyphs.

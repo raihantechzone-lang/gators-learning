@@ -12,9 +12,10 @@
     <meta property="og:image" content="https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png">
     <meta name="twitter:image" content="https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/bengali-font.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -22,9 +23,9 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        heading: ['Poppins', 'sans-serif'],
-                        bengali: ['Hind Siliguri', 'sans-serif'],
+                        sans: ['Inter', 'SutonnyMJ Unicode', 'Noto Serif Bengali', 'sans-serif'],
+                        heading: ['Poppins', 'SutonnyMJ Unicode', 'Noto Serif Bengali', 'sans-serif'],
+                        bengali: ['SutonnyMJ Unicode', 'Noto Serif Bengali', 'serif'],
                     },
                     colors: {
                         rs: {
@@ -100,8 +101,8 @@
         @media (max-width: 480px) { .destinations-inner { padding: 28px 16px; } .destinations-heading { flex-direction: column; gap: 12px; } .university-emblems { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } .university-emblem:last-child { grid-column: 2; } }
         @media (prefers-reduced-motion: reduce) { .university-emblem { transition: none; } .university-emblem:hover { transform: none; } }
 
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; scroll-behavior: smooth; }
-        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Poppins', sans-serif; }
+        body { font-family: 'Inter', 'SutonnyMJ Unicode', 'Noto Serif Bengali', sans-serif; background-color: #f8fafc; overflow-x: hidden; scroll-behavior: smooth; }
+        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Poppins', 'SutonnyMJ Unicode', 'Noto Serif Bengali', sans-serif; }
         .hero-bg-shape {
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
