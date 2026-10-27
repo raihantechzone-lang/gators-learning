@@ -1,8 +1,17 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeStudentEmail, adDisplayImage, whatsappPhone, courseFaqs, coursePrices, isHomepageReview, accountLoginEmail, accountDashboard } from "./public-experience.js";
+import { normalizeStudentEmail, adDisplayImage, whatsappPhone, courseFaqs, coursePrices, isHomepageReview, accountLoginEmail, accountDashboard, isLessonLive } from "./public-experience.js";
 
 describe('Requested course and account rules', () => {
+  it('permits attendance only during the live window, never for recorded or expired classes', () => {
+    const now = Date.parse('2026-10-27T17:45:00Z');
+    const lesson = { live_url: 'https://meet.example.com/class', live_expires_at: '2026-10-27T18:00:00Z' };
+    assert.equal(isLessonLive(lesson, now), true);
+    assert.equal(isLessonLive(lesson, Date.parse('2026-10-27T18:00:00Z')), false);
+    assert.equal(isLessonLive({ ...lesson, youtube_url: 'https://youtube.com/watch?v=123' }, now), false);
+    assert.equal(isLessonLive({ ...lesson, video_file_url: 'https://example.com/recording.mp4' }, now), false);
+    assert.equal(isLessonLive({ ...lesson, live_url: null }, now), false);
+  });
   it('uses 5000 as payable and 7000 as the original', () => assert.deepEqual(coursePrices({ price: 7000, discount_price: 5000 }), { original: 7000, payable: 5000, discounted: true }));
   it('does not discount when the discount price is empty or zero', () => assert.equal(coursePrices({ price: 7000, discount_price: 0 }).payable, 7000));
   it('keeps only homepage reviews, excluding lesson comments', () => {
