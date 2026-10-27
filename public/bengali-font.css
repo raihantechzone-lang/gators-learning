@@ -31,4 +31,4 @@
 :root { --site-bengali-font: "Hind Siliguri", sans-serif; }
 /* Safe line boxes for Bengali matras and digits, even inside truncated text. */
 .font-bengali { font-family: var(--site-bengali-font); line-height: 1.6; letter-spacing: 0; }
-.bengali-numeral { line-height: 1.65; padding-inline: .12em; overflow: visible; font-weight: 700; }
+.font-bengali.bengali-numeral { line-height: 1.65; padding-inline: .12em; overflow: visible; font-weight: 700; }
