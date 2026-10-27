@@ -38,7 +38,7 @@ function TeachersAdmin() {
   };
   const edit = (teacher: Teacher) => { setEditing(teacher.id); setForm({ user_id: teacher.user_id, display_name: teacher.display_name, password: '', photo_url: teacher.photo_url || '', title: teacher.title || '', bio: teacher.bio || '' }); };
   return <div className="space-y-6">
-    <div className="flex flex-wrap justify-between gap-3"><h1 className="text-2xl font-bold text-foreground">Teachers</h1><Button asChild variant="outline"><a href="/teacher-setup.sql" download>Teacher setup SQL</a></Button></div>
+    <div className="flex flex-wrap justify-between gap-3"><h1 className="text-2xl font-bold text-foreground">Teachers</h1><Button asChild variant="outline"><a href="/teacher-login-setup.sql" download>Teacher login setup SQL</a></Button></div>
     {teachers.error && <p role="alert" className="text-destructive">{teachers.error.message}</p>}
     <section className="space-y-4 border-b border-border pb-6">
       <h2 className="text-lg font-semibold">{editing ? 'Edit teacher' : 'Create teacher'}</h2>
