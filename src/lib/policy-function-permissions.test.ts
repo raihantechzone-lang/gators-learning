@@ -21,7 +21,7 @@ test("policy checks allow authenticated execution without granting anonymous acc
       const userId = crypto.randomUUID();
       await tx`SELECT set_config('request.jwt.claim.sub', ${userId}, true)`;
       await tx`SELECT set_config('request.jwt.claims', ${JSON.stringify({ sub: userId, role: "authenticated" })}, true)`;
-      const [checks] = await tx`SELECT public.is_admin() AS admin, public.has_role(auth.uid(), 'admin'::public.app_role) AS role_admin`;
+      const [checks] = await tx`SELECT public.is_admin() AS admin, public.has_role(${userId}::uuid, 'admin'::public.app_role) AS role_admin`;
       assert.deepEqual(checks, { admin: false, role_admin: false });
     });
   } finally {
