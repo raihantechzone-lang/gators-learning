@@ -20,15 +20,16 @@ export const Route = createFileRoute("/admin/content")({
   component: ContentAdmin,
 });
 
-function ContentAdmin() {
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+export function ContentAdmin({ allowedCourses, initialCourseId = '' }: { allowedCourses?: { id: string; title: string }[]; initialCourseId?: string } = {}) {
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(initialCourseId);
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>("");
 
   const { data: courses } = useQuery({
-    queryKey: ["admin-courses-list"],
+    queryKey: ["admin-courses-list", allowedCourses?.map(c => c.id).join(',') ?? 'admin'],
     queryFn: async () => {
+      if (allowedCourses) return allowedCourses;
       const { data, error } = await supabase.from("courses").select("id, title").order("title");
       if (error) throw error;
       return data;
@@ -82,6 +83,7 @@ function ContentAdmin() {
   const addMutation = useMutation({
     mutationFn: async (payload: LessonForm) => {
       if (!selectedCourseId) throw new Error("No course selected");
+      if (allowedCourses && !allowedCourses.some(c => c.id === selectedCourseId)) throw new Error('Course is not assigned to you.');
       if (!payload.title.trim()) throw new Error("Lesson title is required");
       const previous = contents?.find(content => content.id === editingId);
       const values = lessonUpdate(payload, previous);

@@ -88,6 +88,7 @@ export function SiteHeader() {
                   >
                     My Dashboard
                   </Link>
+                  <Link to="/teacher" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm hover:bg-muted hover:text-brand">Teacher Dashboard</Link>
                   <button
                     onClick={async () => {
                       setProfileOpen(false);
@@ -152,6 +153,7 @@ export function SiteHeader() {
               >
                 My Dashboard
               </Link>
+              <Link to="/teacher" onClick={() => setMenuOpen(false)} className="text-center text-brand font-semibold py-2">Teacher Dashboard</Link>
               <button
                 onClick={async () => {
                   setMenuOpen(false);

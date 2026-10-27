@@ -22,3 +22,5 @@
 - Course-page and dashboard progress use the shared owner-scoped progress-sync helper with serialized cloud writes and a timestamped browser cache; cloud loads happen before capturing resume position so fresh devices resume correctly.
 - Lesson lifecycle writes use the shared lessonUpdate helper; React and full-document pages share isLessonLive from the raw-injected public-experience helper to keep recording/expiry visibility consistent.
 - Enrollment page marketing sections (subtitle, highlights, details, instructor, benefits, FAQs) come from optional text columns on courses, edited in admin Courses; empty fields hide their section so no demo copy appears.
+- Teacher profiles are admin-managed in teachers and many-to-many course_teachers; assignment changes use an admin-authorized atomic SQL RPC, and content editing reuses the curriculum builder with database-enforced assigned-course RLS. External setup SQL is downloadable because Cloud migrations cannot reach this backend.
+- FAQ parsing and Bangladesh WhatsApp number normalization live in the raw-injected public-experience helper so HTML and React use identical rules.

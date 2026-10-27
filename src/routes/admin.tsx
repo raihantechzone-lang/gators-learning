@@ -75,6 +75,7 @@ function AdminGuard() {
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Categories", href: "/admin/categories", icon: Folders },
     { name: "Courses", href: "/admin/courses", icon: BookOpen },
+    { name: "Teachers", href: "/admin/teachers", icon: Users },
     { name: "Course Content", href: "/admin/content", icon: FileText },
     { name: "Exam Mark Sheet", href: "/admin/results", icon: Medal },
     { name: "Active Students", href: "/admin/students", icon: Users },
