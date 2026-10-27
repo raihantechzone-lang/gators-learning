@@ -20,3 +20,8 @@
 - [x] Add admin-issued teacher name/password accounts, teacher login and corrected setup SQL; five tests pass and incorrect-login UI verified.
 - [ ] Verify teacher account creation and successful name/password login: updated login SQL must be run on the external backend; authenticated admin testing is unavailable.
 - [ ] Activate and verify teacher creation → assignment → actual teacher upload: waits on user running Teacher setup SQL and unavailable external authenticated admin/teacher testing sessions.
+- [x] Align teacher client authorization with the verified admin role; admin/student/expired-session tests pass.
+- [ ] Apply teacher role-based RPC/policy repair to the external database: attached SQL requires the user to run it; Cloud cannot reach this backend.
+- [x] Replace teacher photo URL field with uploaded-photo preview and add verified-row removal with feedback.
+- [ ] Verify actual teacher creation/photo upload/removal: unavailable authenticated external admin session.
+- [x] Remove Teacher login setup SQL text/link from admin Teachers.

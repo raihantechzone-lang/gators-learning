@@ -1,6 +1,13 @@
 -- Updated setup: teachers use admin-issued names/passwords through managed Auth.
 -- Run on the connected external backend. Do not put passwords into SQL.
 BEGIN;
+-- Teacher admin checks use the verified caller's protected role, not legacy admin logic.
+CREATE OR REPLACE FUNCTION public.teacher_is_admin()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+AS $$ SELECT auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role = 'admin'::public.app_role) $$;
+REVOKE ALL ON FUNCTION public.teacher_is_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.teacher_is_admin() TO authenticated;
+
 CREATE TABLE IF NOT EXISTS public.teachers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL UNIQUE,
@@ -19,13 +26,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS teachers_login_name_unique ON public.teachers(
 DROP POLICY IF EXISTS teachers_public_read ON public.teachers;
 CREATE POLICY teachers_public_read ON public.teachers FOR SELECT TO anon, authenticated USING (true);
 DROP POLICY IF EXISTS teachers_admin_manage ON public.teachers;
-CREATE POLICY teachers_admin_manage ON public.teachers FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY teachers_admin_manage ON public.teachers FOR ALL TO authenticated USING (public.teacher_is_admin()) WITH CHECK (public.teacher_is_admin());
 
 -- Only admins can bind accounts. This reads managed Auth identities but NEVER writes them.
 CREATE OR REPLACE FUNCTION public.teacher_login_exists(login_name_input text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  IF public.is_admin() IS DISTINCT FROM true THEN RAISE EXCEPTION 'Admin access required'; END IF;
+  IF public.teacher_is_admin() IS DISTINCT FROM true THEN RAISE EXCEPTION 'Admin access required'; END IF;
   RETURN EXISTS (SELECT 1 FROM public.teachers WHERE login_name = login_name_input);
 END $$;
 REVOKE ALL ON FUNCTION public.teacher_login_exists(text) FROM PUBLIC;
@@ -37,7 +44,7 @@ CREATE OR REPLACE FUNCTION public.register_teacher_account(
 ) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 DECLARE normalized_name text; expected_email text; result_id uuid;
 BEGIN
-  IF public.is_admin() IS DISTINCT FROM true THEN RAISE EXCEPTION 'Admin access required'; END IF;
+  IF public.teacher_is_admin() IS DISTINCT FROM true THEN RAISE EXCEPTION 'Admin access required'; END IF;
   normalized_name := lower(regexp_replace(trim(normalize(teacher_name, NFC)), '\s+', ' ', 'g'));
   IF length(normalized_name) < 2 OR length(normalized_name) > 80 OR login_name_input <> normalized_name THEN
     RAISE EXCEPTION 'Invalid teacher name';

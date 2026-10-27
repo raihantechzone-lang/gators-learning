@@ -12,6 +12,6 @@ export const teacherMeta = (title: string, description: string) => ({ meta: [
 
 export async function loadTeachers(): Promise<Teacher[]> {
   const { data, error } = await teacherDb.from('teachers').select('id,user_id,display_name,photo_url,title,bio').order('display_name');
-  if (error) throw new Error('শিক্ষক ব্যবস্থা চালু করতে Teacher setup SQL চালান।');
+  if (error) throw new Error('শিক্ষকদের তালিকা লোড করা যাচ্ছে না। সংযুক্ত ডাটাবেজের শিক্ষক অনুমতি পরীক্ষা করুন।');
   return data || [];
 }
