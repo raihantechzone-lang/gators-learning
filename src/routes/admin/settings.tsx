@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Settings, Save, Globe, Lock, Shield, Palette } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { teacherMeta } from '@/lib/teachers';
 
 export const Route = createFileRoute("/admin/settings")({
+  head: () => teacherMeta('Site Settings Admin', 'Manage Gators Learning website settings.'),
   component: SettingsAdmin,
 });
 

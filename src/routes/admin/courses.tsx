@@ -470,7 +470,7 @@ function CoursesAdmin() {
               <button 
                 type="button" 
                 onClick={handleCourseSubmit} 
-                disabled={isSubmitting} 
+                disabled={isSubmitting || teachers.isPending || assignments.isPending} 
                 className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg shadow-slate-200 hover:bg-black transition mt-4 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               > 
                 {isSubmitting && <Loader2 className="animate-spin" size={20}/>} 
@@ -534,6 +534,7 @@ function CoursesAdmin() {
                 <div className="flex items-center gap-2 pt-4 border-t border-slate-50">
                     <div className="flex-1 flex flex-col gap-2">
                       <button 
+                        disabled={teachers.isPending || assignments.isPending}
                         onClick={() => {
                           setEditingCourse(course);
                           setTeacherIds(assignments.data?.filter(a => a.course_id === course.id).map(a => a.teacher_id) || []);

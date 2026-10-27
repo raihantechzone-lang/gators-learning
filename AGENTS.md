@@ -24,3 +24,4 @@
 - Enrollment page marketing sections (subtitle, highlights, details, instructor, benefits, FAQs) come from optional text columns on courses, edited in admin Courses; empty fields hide their section so no demo copy appears.
 - Teacher profiles are admin-managed in teachers and many-to-many course_teachers; assignment changes use an admin-authorized atomic SQL RPC, and content editing reuses the curriculum builder with database-enforced assigned-course RLS. External setup SQL is downloadable because Cloud migrations cannot reach this backend.
 - FAQ parsing and Bangladesh WhatsApp number normalization live in the raw-injected public-experience helper so HTML and React use identical rules.
+- Teacher video uploads use an authenticated, assigned-course checked signature function and save video_file_url through the shared lesson lifecycle; native HTML and React playback both support those recordings.

@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Folders, Edit2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { teacherMeta } from '@/lib/teachers';
 
 export const Route = createFileRoute("/admin/categories")({
+  head: () => teacherMeta('Course Categories Admin', 'Organize Gators Learning course categories.'),
   component: CategoriesAdmin,
 });
 

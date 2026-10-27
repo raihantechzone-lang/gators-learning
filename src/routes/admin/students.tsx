@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, Phone, Mail, User, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { teacherMeta } from '@/lib/teachers';
 
 export const Route = createFileRoute("/admin/students")({
+  head: () => teacherMeta('Active Students Admin', 'View registered Gators Learning students and courses.'),
   component: StudentsAdmin,
 });
 

@@ -4,8 +4,10 @@ import { Menu, X } from "lucide-react";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { LayoutDashboard, BookOpen, Users, Settings, LogOut, Star, FileText, Award, CalendarCheck, UserPlus, Medal, DollarSign, ShieldCheck, Folders } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { teacherMeta } from '@/lib/teachers';
 
 export const Route = createFileRoute("/admin")({
+  head: () => teacherMeta('Admin Control Panel', 'Manage the Gators Learning teaching platform.'),
   component: AdminGuard,
 });
 
