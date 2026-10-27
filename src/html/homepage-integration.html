@@ -102,7 +102,7 @@
     // Database calls must run after the auth callback releases its session lock.
     setTimeout(async () => {
     
-    if (isFirstTime && currentUser) {
+    if (isFirstTime && currentUser && !String(currentUser.email || '').endsWith('@teachers.gators.invalid')) {
       const user = currentUser;
       const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
       const values = { id: user.id, full_name: profile?.full_name || user.user_metadata?.full_name || "Student", phone: profile?.phone || user.user_metadata?.phone || null, email: user.email, roll_number: studentRollNumber(user.id, profile?.roll_number) };

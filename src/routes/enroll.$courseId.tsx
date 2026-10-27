@@ -6,7 +6,7 @@ import publicExperienceSource from "../lib/public-experience.js?raw";
 import bkashLogo from "../assets/bkash-logo.png.asset.json";
 
 const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", studentRollSource.replace("export function", "function"))
-  .replace("/* PUBLIC_EXPERIENCE_HELPER */", publicExperienceSource.replaceAll("export function", "function"));
+  .replace("/* PUBLIC_EXPERIENCE_HELPER */", publicExperienceSource.replaceAll("export async function", "async function").replaceAll("export function", "function"));
 
 export const Route = createFileRoute("/enroll/$courseId")({
   head: () => ({ meta: [

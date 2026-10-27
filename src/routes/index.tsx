@@ -7,7 +7,7 @@ import studentRollSource from "../lib/student-roll.js?raw";
 import publicExperienceSource from "../lib/public-experience.js?raw";
 
 const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", studentRollSource.replace("export function", "function"))
-  .replace("/* PUBLIC_EXPERIENCE_HELPER */", publicExperienceSource.replaceAll("export function", "function"));
+  .replace("/* PUBLIC_EXPERIENCE_HELPER */", publicExperienceSource.replaceAll("export async function", "async function").replaceAll("export function", "function"));
 const page = homepageHtml.replace("</body>", `${integration}\n</body>`);
 
 export const Route = createFileRoute("/")({

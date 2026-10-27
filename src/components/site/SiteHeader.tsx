@@ -8,6 +8,7 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const dashboard = user?.email?.endsWith('@teachers.gators.invalid') ? '/teacher' : '/dashboard';
 
   return (
     <>
@@ -58,7 +59,7 @@ export function SiteHeader() {
             </div>
           ) : (
             <div className="hidden lg:flex items-center space-x-3 relative">
-              <Link to="/dashboard" className="text-sm font-bold text-brand mr-4 hover:underline">
+              <Link to={dashboard} className="text-sm font-bold text-brand mr-4 hover:underline">
                 Dashboard
               </Link>
               <button
@@ -82,13 +83,12 @@ export function SiteHeader() {
                     )}
                   </div>
                   <Link
-                    to="/dashboard"
+                    to={dashboard}
                     onClick={() => setProfileOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-muted hover:text-brand"
                   >
                     My Dashboard
                   </Link>
-                  <Link to="/teacher" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm hover:bg-muted hover:text-brand">Teacher Dashboard</Link>
                   <button
                     onClick={async () => {
                       setProfileOpen(false);
@@ -147,13 +147,12 @@ export function SiteHeader() {
           ) : (
             <div className="flex flex-col gap-3 pt-2">
               <Link
-                to="/dashboard"
+                to={dashboard}
                 onClick={() => setMenuOpen(false)}
                 className="w-full py-3.5 text-center rounded-xl bg-brand-soft text-brand font-bold"
               >
                 My Dashboard
               </Link>
-              <Link to="/teacher" onClick={() => setMenuOpen(false)} className="text-center text-brand font-semibold py-2">Teacher Dashboard</Link>
               <button
                 onClick={async () => {
                   setMenuOpen(false);
