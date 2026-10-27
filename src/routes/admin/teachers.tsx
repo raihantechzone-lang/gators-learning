@@ -8,49 +8,43 @@ import { Plus, Trash2, Upload, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { loadTeachers, teacherDb, teacherMeta, type Teacher } from '@/lib/teachers';
 import { uploadToImageKit } from '@/lib/imagekit';
+import { createTeacherAccount, teacherNameSchema, teacherPasswordSchema } from '@/lib/teacher-login';
 
 export const Route = createFileRoute('/admin/teachers')({ head: () => teacherMeta('Teachers Admin', 'Manage teacher profiles and course teaching assignments.'), component: TeachersAdmin });
-const empty = { user_id: '', display_name: '', title: '', bio: '', photo_url: '' };
+const empty = { user_id: '', display_name: '', password: '', title: '', bio: '', photo_url: '' };
 function TeachersAdmin() {
   const cache = useQueryClient();
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const teachers = useQuery({ queryKey: ['teachers'], queryFn: loadTeachers });
-  const accounts = useQuery({ queryKey: ['teacher-accounts'], queryFn: async () => {
-    const { data, error } = await teacherDb.from('profiles').select('id,full_name,email').order('full_name');
-    if (error) throw error;
-    return data as { id: string; full_name: string | null; email: string | null }[];
-  } });
   const assignments = useQuery({ queryKey: ['teacher-assignments'], queryFn: async () => {
     const { data, error } = await teacherDb.from('course_teachers').select('teacher_id,course_id,courses(title)');
     if (error) throw error;
     return data as { teacher_id: string; course_id: string; courses: { title: string } | null }[];
   } });
   const save = async () => {
-    if (!form.user_id || !form.display_name.trim()) return;
+    if (!teacherNameSchema.safeParse(form.display_name).success) return toast.error('Enter a teacher name (2–80 characters).');
+    if (!editing && !teacherPasswordSchema.safeParse(form.password).success) return toast.error('Password must be 8–128 characters.');
     setSaving(true);
     try {
-      const values = { ...form, display_name: form.display_name.trim(), photo_url: form.photo_url || null };
-      const result = editing ? await teacherDb.from('teachers').update(values).eq('id', editing).select('id').single()
-        : await teacherDb.from('teachers').insert(values).select('id').single();
-      if (result.error) throw result.error;
+      if (editing) {
+        const { error } = await teacherDb.from('teachers').update({ display_name: form.display_name.trim(), title: form.title, bio: form.bio, photo_url: form.photo_url || null }).eq('id', editing).select('id').single();
+        if (error) throw error;
+      } else await createTeacherAccount(form);
       await cache.invalidateQueries({ queryKey: ['teachers'] });
       setForm(empty); setEditing(null); toast.success('Teacher saved');
     } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }
   };
-  const edit = (teacher: Teacher) => { setEditing(teacher.id); setForm({ user_id: teacher.user_id, display_name: teacher.display_name, photo_url: teacher.photo_url || '', title: teacher.title || '', bio: teacher.bio || '' }); };
+  const edit = (teacher: Teacher) => { setEditing(teacher.id); setForm({ user_id: teacher.user_id, display_name: teacher.display_name, password: '', photo_url: teacher.photo_url || '', title: teacher.title || '', bio: teacher.bio || '' }); };
   return <div className="space-y-6">
-    <div className="flex flex-wrap justify-between gap-3"><h1 className="text-2xl font-bold text-foreground">Teachers</h1><Button asChild variant="outline"><a href="/teacher-setup.sql" download>Teacher setup SQL</a></Button></div>
+    <div className="flex flex-wrap justify-between gap-3"><h1 className="text-2xl font-bold text-foreground">Teachers</h1><Button asChild variant="outline"><a href="/teacher-login-setup.sql" download>Teacher login setup SQL</a></Button></div>
     {teachers.error && <p role="alert" className="text-destructive">{teachers.error.message}</p>}
     <section className="space-y-4 border-b border-border pb-6">
       <h2 className="text-lg font-semibold">{editing ? 'Edit teacher' : 'Create teacher'}</h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2"><Label htmlFor="teacher-account">Account</Label><select id="teacher-account" className="w-full h-10 border border-input rounded-md bg-background px-3" value={form.user_id} onChange={e => {
-          const account = accounts.data?.find(a => a.id === e.target.value);
-          setForm({ ...form, user_id: e.target.value, display_name: form.display_name || account?.full_name || '' });
-        }}><option value="">Select registered account</option>{accounts.data?.map(a => <option key={a.id} value={a.id}>{a.full_name || a.email || a.id}</option>)}</select>{accounts.error && <p className="text-destructive">Accounts could not be loaded.</p>}</div>
-        <div className="space-y-2"><Label htmlFor="teacher-name">Name</Label><Input id="teacher-name" value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} /></div>
+        <div className="space-y-2"><Label htmlFor="teacher-name">Name / login name</Label><Input id="teacher-name" disabled={!!editing} maxLength={80} value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} /></div>
+        {!editing && <div className="space-y-2"><Label htmlFor="teacher-password">Password</Label><Input id="teacher-password" type="password" autoComplete="new-password" minLength={8} maxLength={128} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} /></div>}
         <div className="space-y-2"><Label htmlFor="teacher-title">Title</Label><Input id="teacher-title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="teacher-photo">Profile photo</Label><Input id="teacher-photo" value={form.photo_url} onChange={e => setForm({ ...form, photo_url: e.target.value })} placeholder="Photo URL" />
         <Label className="inline-flex gap-2 items-center cursor-pointer text-brand"><Upload size={16} />Upload photo<input type="file" accept="image/*" className="sr-only" disabled={saving} onChange={async e => {
@@ -59,7 +53,7 @@ function TeachersAdmin() {
         }} /></Label></div>
       </div>
       <div className="space-y-2"><Label htmlFor="teacher-bio">Bio</Label><textarea id="teacher-bio" className="w-full p-3 border border-input rounded-md bg-background" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} /></div>
-      <div className="flex gap-2"><Button disabled={saving || !!teachers.error || !form.user_id || !form.display_name.trim()} onClick={save}><Plus />{saving ? 'Saving…' : 'Save teacher'}</Button>{editing && <Button variant="outline" onClick={() => { setEditing(null); setForm(empty); }}>Cancel</Button>}</div>
+      <div className="flex gap-2"><Button disabled={saving || !!teachers.error || !form.display_name.trim() || (!editing && !form.password)} onClick={save}><Plus />{saving ? 'Saving…' : editing ? 'Save teacher' : 'Create teacher account'}</Button>{editing && <Button variant="outline" onClick={() => { setEditing(null); setForm(empty); }}>Cancel</Button>}</div>
     </section>
     <div className="grid gap-4 sm:grid-cols-2">{teachers.data?.map(t => <article key={t.id} className="border border-border rounded-md p-4 flex gap-4 items-start bg-background">
       {t.photo_url && <img src={t.photo_url} alt={t.display_name} className="h-14 w-14 rounded-full object-cover" />}

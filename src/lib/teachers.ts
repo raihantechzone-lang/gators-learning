@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // The external backend's generated types do not describe optional teacher tables.
 export const teacherDb = supabase as any;
-export interface Teacher { id: string; user_id: string; display_name: string; photo_url: string | null; title: string | null; bio: string | null }
+export interface Teacher { id: string; user_id: string; display_name: string; login_name?: string | null; photo_url: string | null; title: string | null; bio: string | null }
 export interface AssignedCourse { id: string; title: string; thumbnail_url?: string | null; is_published?: boolean; price?: number; discount_price?: number | null }
 export const teacherMeta = (title: string, description: string) => ({ meta: [
   { title: `${title} | Gators Learning` }, { name: 'description', content: description },
