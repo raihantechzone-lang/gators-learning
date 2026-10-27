@@ -357,6 +357,12 @@
     // Update breadcrumbs
     window.courseFaqs = courseFaqs;
     try { window.renderCourseExtras?.(course); } catch (e) { console.error('course extras', e); }
+    // Teacher profiles are optional until the external Teacher setup SQL is applied.
+    if (window.renderAssignedTeachers) {
+      supabase.from('course_teachers').select('teachers(id,display_name,photo_url,title)').eq('course_id', id).then(({ data, error }) => {
+        if (!error) window.renderAssignedTeachers(data?.flatMap(row => row.teachers ? [row.teachers] : []) || []);
+      });
+    }
     const breadcrumbCourse = document.querySelector('nav span.text-surface-900.truncate');
     if (breadcrumbCourse) breadcrumbCourse.innerText = course.title;
 
@@ -534,7 +540,7 @@
              if (!isLocked) {
                 window.__playable = window.__playable || [];
                 myIndex = window.__playable.length;
-                window.__playable.push({ vId: playableId, title: c.title, thumb: c.thumbnail_url, lessonId: c.id, courseId: id });
+                window.__playable.push({ vId: playableId, videoFile: c.video_file_url || null, title: c.title, thumb: c.thumbnail_url, lessonId: c.id, courseId: id });
              }
 
              item.onclick = () => {
@@ -858,6 +864,15 @@
   window.goToDashboard = function () {
     window.location.href = currentUser ? "/dashboard" : "/auth?mode=login";
   };
+  if (document.getElementById('profile-menu') && !document.getElementById('teacher-dashboard-link')) {
+    const link = document.createElement('a'); link.id = 'teacher-dashboard-link'; link.href = '/teacher'; link.textContent = 'Teacher Dashboard';
+    link.className = 'flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-rs-green hover:bg-emerald-50';
+    document.getElementById('profile-menu').appendChild(link);
+  }
+  if (document.getElementById('mobile-profile-section')) {
+    const link = document.createElement('a'); link.href = '/teacher'; link.textContent = 'Teacher Dashboard'; link.className = 'text-center text-rs-green font-bold py-2';
+    document.getElementById('mobile-profile-section').appendChild(link);
+  }
 
   window.logoutUser = async function () {
     await supabase.auth.signOut();

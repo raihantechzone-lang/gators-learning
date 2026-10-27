@@ -346,6 +346,16 @@
         const free = contents.filter(c => c.is_free).length;
         el.innerHTML = chip('fa-circle-play', contents.length + 'টি লেসন') + (free ? chip('fa-unlock', free + 'টি ফ্রি লেসন') : '') + (contents.some(c => c.pdf_url) ? chip('fa-file-pdf', 'PDF নোট') : '');
     };
+    window.renderAssignedTeachers = function (teachers) {
+        if (!teachers.length) return;
+        const esc = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const profile = (t, small) => `<a href="/teachers/${encodeURIComponent(t.id)}" class="flex items-center gap-3 min-w-0">${t.photo_url ? `<img src="${esc(t.photo_url)}" alt="${esc(t.display_name)}" class="${small ? 'w-9 h-9' : 'w-16 h-16'} rounded-full object-cover shrink-0">` : '<i class="fa-solid fa-user text-brand-600"></i>'}<div class="min-w-0"><div class="font-bold text-surface-900">${esc(t.display_name)}</div><span class="text-xs text-brand-600 font-semibold">Teacher</span>${!small && t.title ? `<p class="text-sm text-slate-500">${esc(t.title)}</p>` : ''}</div></a>`;
+        const mini = document.getElementById('course-instructor-mini');
+        mini.innerHTML = teachers.map(t => profile(t, true)).join(''); mini.classList.remove('hidden'); mini.classList.add('flex', 'flex-wrap');
+        const full = document.getElementById('course-instructor');
+        full.innerHTML = teachers.map(t => profile(t, false)).join(''); full.classList.add('flex-wrap');
+        document.getElementById('sec-instructor').classList.remove('hidden');
+    };
     </script>
 
     <div id="paymentModal" class="modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 p-4">
@@ -678,6 +688,7 @@
             const mount = document.getElementById('yt-mount');
             if (!mount) return;
             const hasRecording = /^[a-zA-Z0-9_-]{11}$/.test(videoId || '');
+            const fileUrl = window.__playable?.[index]?.videoFile;
             const src = thumb || window.__courseThumb || (hasRecording ? 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg' : '');
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -692,6 +703,11 @@
             play.innerHTML = '<span class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/95 text-brand-600 flex items-center justify-center shadow-xl group-hover/thumb:scale-110 transition"><i class="fa-solid fa-play text-2xl ml-1"></i></span>';
             btn.append(img, play);
             const playInline = () => {
+                if (fileUrl) {
+                    const video = document.createElement('video');
+                    video.src = fileUrl; video.controls = true; video.autoplay = true; video.playsInline = true; video.className = 'absolute inset-0 w-full h-full';
+                    mount.replaceChildren(video); window.startLessonTracking?.(video, window.__playable?.[index]); return;
+                }
                 if (!hasRecording) {
                     const message = document.createElement('p');
                     message.setAttribute('role', 'status');
@@ -777,6 +793,14 @@
                 }
             }
             const resume = getRecords().find(r => r.lesson_id === lesson.lessonId);
+            if (iframe.tagName === 'VIDEO') {
+                const seek = () => { if (resume?.last_position_seconds && !resume.completed) iframe.currentTime = resume.last_position_seconds; };
+                if (iframe.readyState >= 1) seek(); else iframe.addEventListener('loadedmetadata', seek, { once: true });
+                let ticks = 0;
+                trackingTimer = setInterval(() => { savedPosition = iframe.currentTime; savedDuration = iframe.duration || 0; ended = iframe.ended; if (++ticks % 3 === 0) savePlayback(); }, 1000);
+                iframe.addEventListener('pause', savePlayback); iframe.addEventListener('ended', () => { ended = true; savePlayback(); });
+                return;
+            }
             if (resume?.last_position_seconds && !resume.completed) iframe.src += '&start=' + Math.floor(resume.last_position_seconds);
             if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
                 const script = document.createElement('script'); script.src = 'https://www.youtube.com/iframe_api'; script.async = true; document.head.appendChild(script);
