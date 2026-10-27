@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import clientSource from '@/integrations/supabase/client.ts?raw';
 
 export const teacherNameSchema = z.string().trim().min(2).max(80).transform(value => value.normalize('NFC').toLowerCase().replace(/\s+/g, ' '));
 export const teacherPasswordSchema = z.string().min(8).max(128);
@@ -17,8 +18,11 @@ export async function createTeacherAccount(form: { display_name: string; passwor
   const loginName = teacherNameSchema.parse(form.display_name);
   const email = await teacherLoginEmail(loginName);
   const password = teacherPasswordSchema.parse(form.password);
-  const key = supabase.supabaseKey;
-  const isolated = createClient(supabase.supabaseUrl, key, {
+  // Reuse the external client's public configuration without accessing protected properties.
+  const url = clientSource.match(/const SUPABASE_URL = ['"]([^'"]+)['"]/)?.[1];
+  const key = clientSource.match(/const SUPABASE_PUBLISHABLE_KEY = ['"]([^'"]+)['"]/)?.[1];
+  if (!url || !key) throw new Error('Teacher account service is not configured.');
+  const isolated = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     global: { fetch: (input, init) => {
       const headers = new Headers(init?.headers);
