@@ -7,6 +7,7 @@ import { ContentAdmin } from './admin/content';
 import { SiteHeader } from '@/components/site/SiteHeader';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Upload } from 'lucide-react';
+import { assignedCourseIds } from '@/lib/teacher-assignment.js';
 
 export const Route = createFileRoute('/teacher')({ head: () => teacherMeta('Teacher Dashboard', 'Manage lessons for your assigned Gators Learning courses.'), component: TeacherDashboard });
 function TeacherDashboard() {
@@ -17,9 +18,10 @@ function TeacherDashboard() {
     const profile = await teacherDb.from('teachers').select('id,user_id,display_name,photo_url,title,bio').eq('user_id', user.id).maybeSingle();
     if (profile.error) throw new Error('শিক্ষক ব্যবস্থা এখনো চালু করা হয়নি।');
     if (!profile.data) return { teacher: null, courses: [] };
-    const assignments = await teacherDb.from('course_teachers').select('courses(id,title,thumbnail_url,is_published)').eq('teacher_id', profile.data.id);
+    const assignments = await teacherDb.from('course_teachers').select('course_id,teacher_id,courses(id,title,thumbnail_url,is_published)').eq('teacher_id', profile.data.id);
     if (assignments.error) throw assignments.error;
-    return { teacher: profile.data as Teacher, courses: (assignments.data || []).flatMap((row: { courses: AssignedCourse | null }) => row.courses ? [row.courses] : []) as AssignedCourse[] };
+    const ids = assignedCourseIds(assignments.data || [], profile.data.id);
+    return { teacher: profile.data as Teacher, courses: (assignments.data || []).flatMap((row: { course_id: string; courses: AssignedCourse | null }) => ids.includes(row.course_id) && row.courses ? [row.courses] : []) as AssignedCourse[] };
   } });
   return <div className="min-h-screen bg-background"><SiteHeader /><main className="max-w-7xl mx-auto px-4 sm:px-6 pt-32 pb-16 space-y-6">
     <h1 className="text-2xl font-bold text-foreground">Teacher Dashboard</h1>

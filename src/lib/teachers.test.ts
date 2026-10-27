@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-// Use the browser-safe assignment helper without instantiating a backend client in tests.
+// Test the same assignment filter used by the teacher dashboard.
 import { assignedCourseIds } from './teacher-assignment.js';
 describe('Teacher assignment', () => {
   it('shows only the courses assigned to that teacher', () => {
