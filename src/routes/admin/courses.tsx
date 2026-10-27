@@ -11,6 +11,19 @@ export const Route = createFileRoute("/admin/courses")({
   component: CoursesAdmin,
 });
 
+const EXTRA_FIELDS = [
+  { key: "subtitle", label: "Subtitle (ছোট বিবরণ)", hint: "এক লাইনে কোর্সের সারসংক্ষেপ", multi: false },
+  { key: "highlights", label: "এই কোর্সে যা পাবেন", hint: "প্রতি লাইনে একটি পয়েন্ট", multi: true },
+  { key: "long_description", label: "কোর্সটি নিয়ে বিস্তারিত", hint: "বিস্তারিত বিবরণ", multi: true },
+  { key: "instructor_name", label: "শিক্ষকের নাম", hint: "যেমন: Sabbir Ahmed", multi: false },
+  { key: "instructor_title", label: "শিক্ষকের পদবি", hint: "যেমন: Digital Marketing Expert", multi: false },
+  { key: "instructor_photo", label: "শিক্ষকের ছবির লিংক", hint: "https://...", multi: false },
+  { key: "benefits", label: "ভর্তি হলে যা যা পাচ্ছেন", hint: "প্রতি লাইনে: শিরোনাম | ছোট বর্ণনা", multi: true },
+  { key: "faqs", label: "সচরাচর জিজ্ঞাসিত প্রশ্ন", hint: "প্রতি লাইনে: প্রশ্ন | উত্তর", multi: true },
+] as const;
+type ExtraKey = (typeof EXTRA_FIELDS)[number]["key"];
+const EMPTY_EXTRA = Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, ""])) as Record<ExtraKey, string>;
+
 function CoursesAdmin() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
