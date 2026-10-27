@@ -7,6 +7,9 @@ import { BadgeCheck, Search } from "lucide-react";
 import { paymentVerificationUpdate } from "@/lib/enrollment-payment";
 import { whatsappPhone, paymentConfirmationMessage } from "@/lib/public-experience.js";
 import { teacherMeta } from "@/lib/teachers";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 export const Route = createFileRoute("/admin/course-verification")({
   head: () => teacherMeta("Course Verification", "Match a bKash transaction ID and approve the course enrollment."),
@@ -17,6 +20,7 @@ function CourseVerification() {
   const [trx, setTrx] = useState("");
   const [matches, setMatches] = useState<any[] | null>(null);
   const [searching, setSearching] = useState(false);
+  const [confirmation, setConfirmation] = useState<{ phone: string; message: string } | null>(null);
 
   const search = async () => {
     const id = trx.trim();
@@ -41,11 +45,7 @@ function CourseVerification() {
     onSuccess: (row) => {
       toast.success("Approved — course unlocked");
       setMatches(m => m?.map(r => (r.id === row.id ? { ...r, payment_status: "verified" } : r)) || null);
-      const phone = whatsappPhone(row.profiles?.phone);
-      if (phone) {
-        const msg = paymentConfirmationMessage(row.profiles?.full_name || "Student", row.courses?.title || "the course");
-        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
-      }
+      setConfirmation({ phone: String(row.profiles?.phone || ''), message: paymentConfirmationMessage(row.profiles?.full_name || "Student", row.courses?.title || "the course") });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -87,6 +87,18 @@ function CourseVerification() {
           )}
         </div>
       ))}
+      <Dialog open={!!confirmation} onOpenChange={open => { if (!open) setConfirmation(null); }}>
+        <DialogContent>
+          <DialogTitle>Enrollment confirmation</DialogTitle>
+          <Input aria-label="WhatsApp number" type="tel" placeholder="01… or +880 1…" value={confirmation?.phone || ''} onChange={e => setConfirmation(c => c ? { ...c, phone: e.target.value } : null)} />
+          <p className="whitespace-pre-wrap text-sm">{confirmation?.message}</p>
+          <Button onClick={() => {
+            const phone = whatsappPhone(confirmation?.phone);
+            if (!phone) return toast.error('Enter a complete mobile number (01… or +880 1…).');
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(confirmation?.message || '')}`, '_blank', 'noopener,noreferrer');
+          }}>Send WhatsApp</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

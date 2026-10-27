@@ -1,15 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { attendanceSummary, markPercent, marksByCourse, performanceAdvice, type AttendanceRow, type ClassLite, type ExamMark } from "@/lib/academic";
+import { attendanceSummary, performanceAdvice, type AttendanceRow, type ClassLite } from "@/lib/academic";
 import { resultSheetKey, readResultSheets, type ResultSheet } from '@/lib/result-sheets';
 import { Button } from '@/components/ui/button';
 import { FileText, ExternalLink } from 'lucide-react';
 
 const chartConfig = {
   attendance: { label: "উপস্থিতি %", color: "var(--brand)" },
-  marks: { label: "নম্বর %", color: "var(--ink)" },
 } satisfies ChartConfig;
 
 export function AcademicPanel({ mode, userId, courses, lessons }: {
@@ -18,7 +17,6 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
   courses: { id: string; title: string }[]; // approved courses only
   lessons: ClassLite[];
 }) {
-  const [marks, setMarks] = useState<ExamMark[]>([]);
   const [rows, setRows] = useState<AttendanceRow[]>([]);
   const [sheets, setSheets] = useState<Record<string, ResultSheet[]>>({});
   const [loading, setLoading] = useState(true);
@@ -38,13 +36,9 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
         setLoading(false);
         return;
       }
-      const [m, a] = await Promise.all([
-        Promise.resolve({ data: [], error: null }),
-        supabase.from("class_attendance").select("profile_id, course_id, lesson_id, attended_on").eq("profile_id", userId).in("course_id", ids),
-      ]);
+      const a = await supabase.from("class_attendance").select("profile_id, course_id, lesson_id, attended_on").eq("profile_id", userId).in("course_id", ids);
       if (cancelled) return;
-      setError(m.error?.message || a.error?.message || "");
-      setMarks((m.data ?? []) as ExamMark[]);
+      setError(a.error?.message || "");
       setRows((a.data ?? []) as AttendanceRow[]);
     };
     load();
@@ -54,19 +48,14 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, key, mode]);
 
-  const grouped = useMemo(() => marksByCourse(marks, ids), [marks, key]);
   const perCourse = courses.map((c) => {
     const att = attendanceSummary(lessons.filter((l) => l.course_id === c.id), rows.filter((r) => r.course_id === c.id));
-    const exams = [...(grouped.get(c.id)?.values() ?? [])];
-    const markAvg = exams.length ? Math.round(exams.reduce((s, m) => s + markPercent(m), 0) / exams.length) : null;
-    return { course: c, att, exams, markAvg };
+    return { course: c, att };
   });
   const withClasses = perCourse.filter((p) => p.att.total > 0);
   const attPct = withClasses.length ? Math.round(withClasses.reduce((s, p) => s + p.att.percent, 0) / withClasses.length) : null;
-  const marked = perCourse.filter((p) => p.markAvg != null);
-  const markPct = marked.length ? Math.round(marked.reduce((s, p) => s + (p.markAvg ?? 0), 0) / marked.length) : null;
-  const advice = performanceAdvice(attPct, markPct);
-  const chartData = perCourse.map((p) => ({ name: p.course.title.slice(0, 14), attendance: p.att.percent, marks: p.markAvg ?? 0 }));
+  const advice = performanceAdvice(attPct, null);
+  const chartData = perCourse.map((p) => ({ name: p.course.title.slice(0, 14), attendance: p.att.percent }));
 
   if (!courses.length) return <p className="text-ink-muted">অনুমোদিত কোনো কোর্স নেই। এনরোল করা কোর্সের তথ্য এখানে দেখাবে।</p>;
   if (mode === 'results') return <div className="space-y-6">
@@ -91,7 +80,6 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
         </div>
         <div className="grid grid-cols-2 gap-3 text-center">
           <div className="p-3 rounded-xl bg-muted"><p className="text-2xl font-black text-ink">{attPct ?? "-"}{attPct != null && "%"}</p><p className="text-xs text-ink-muted">গড় উপস্থিতি</p></div>
-          <div className="p-3 rounded-xl bg-muted"><p className="text-2xl font-black text-ink">{markPct ?? "-"}{markPct != null && "%"}</p><p className="text-xs text-ink-muted">গড় নম্বর</p></div>
         </div>
         <ChartContainer config={chartConfig} className="h-56 w-full">
           <BarChart data={chartData}>
@@ -100,7 +88,6 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
             <YAxis domain={[0, 100]} width={30} fontSize={11} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Bar dataKey="attendance" fill="var(--color-attendance)" radius={4} />
-            <Bar dataKey="marks" fill="var(--color-marks)" radius={4} />
           </BarChart>
         </ChartContainer>
         <div>
@@ -109,7 +96,7 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
         </div>
       </div>
 
-      {perCourse.map(({ course, att, exams }) => (
+      {perCourse.map(({ course, att }) => (
         <div key={course.id} className="bg-background p-5 rounded-2xl border border-border shadow-sm">
           <h4 className="font-bold text-ink mb-3">{course.title}</h4>
           {(
