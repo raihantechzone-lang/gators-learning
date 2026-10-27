@@ -8,6 +8,13 @@
       "when": 1792890690595,
       "tag": "0000_app_ads_add_expires_at",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793114002662,
+      "tag": "0001_restore_authenticated_policy_function_execution",
+      "breakpoints": true
     }
   ]
 }
