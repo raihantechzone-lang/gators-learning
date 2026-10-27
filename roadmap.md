@@ -17,5 +17,6 @@
 - [x] Normalize WhatsApp confirmation numbers; local/international/Bengali-format tests pass. Actual payment approval requires external admin session.
 - [x] Implement admin teacher management, multi-teacher assignment, assigned-course upload and public teacher-course pages.
 - [x] Supply downloadable external-backend Teacher setup SQL in admin Teachers.
-- [ ] Add admin-issued teacher name/password accounts, teacher login and corrected setup SQL.
+- [x] Add admin-issued teacher name/password accounts, teacher login and corrected setup SQL; five tests pass and incorrect-login UI verified.
+- [ ] Verify teacher account creation and successful name/password login: updated login SQL must be run on the external backend; authenticated admin testing is unavailable.
 - [ ] Activate and verify teacher creation → assignment → actual teacher upload: waits on user running Teacher setup SQL and unavailable external authenticated admin/teacher testing sessions.
