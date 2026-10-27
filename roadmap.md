@@ -13,3 +13,8 @@
 - [x] Show thumbnail/coming-soon before recording and remove recorded lesson live links/badges across student views.
 - [x] Test lesson lifecycle: 24 tests pass; public course thumbnail and HTML no-recording play state checked; build OK.
 - [ ] Verify admin edit/save → student dashboard live removal using actual accounts: blocked by unavailable authenticated external admin/student testing sessions.
+- [x] Fix enrollment FAQ expansion, bKash logo, remove includes block, and replace orange with homepage green; verified on desktop and two mobile widths.
+- [x] Normalize WhatsApp confirmation numbers; local/international/Bengali-format tests pass. Actual payment approval requires external admin session.
+- [x] Implement admin teacher management, multi-teacher assignment, assigned-course upload and public teacher-course pages.
+- [x] Supply downloadable external-backend Teacher setup SQL in admin Teachers.
+- [ ] Activate and verify teacher creation → assignment → actual teacher upload: waits on user running Teacher setup SQL and unavailable external authenticated admin/teacher testing sessions.

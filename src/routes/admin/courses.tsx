@@ -6,8 +6,11 @@ import { Plus, Trash2, Edit2, Search, Filter, BookOpen, Upload, Loader2, X } fro
 import { useState } from "react";
 import { toast } from "sonner";
 import { uploadToImageKit } from "@/lib/imagekit";
+import { loadTeachers, teacherDb, teacherMeta } from '@/lib/teachers';
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/admin/courses")({
+  head: () => teacherMeta('Courses Admin', 'Manage course details, enrollment pages and assigned teachers.'),
   component: CoursesAdmin,
 });
 
@@ -32,6 +35,13 @@ function CoursesAdmin() {
   const [editingCourse, setEditingCourse] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [teacherIds, setTeacherIds] = useState<string[]>([]);
+  const teachers = useQuery({ queryKey: ['teachers'], queryFn: loadTeachers });
+  const assignments = useQuery({ queryKey: ['teacher-assignments'], queryFn: async () => {
+    const { data, error } = await teacherDb.from('course_teachers').select('course_id,teacher_id');
+    if (error) throw error;
+    return data as { course_id: string; teacher_id: string }[];
+  } });
   const [formData, setFormData] = useState({
     title: "",
     details: "",
@@ -146,6 +156,13 @@ function CoursesAdmin() {
       }
       
       // 6. Finalize on SUCCESS ONLY
+      if (!assignments.error && teachers.data) {
+        const savedCourseId = result[0]?.id;
+        if (!savedCourseId) throw new Error('Course ID is missing.');
+        const { error } = await teacherDb.rpc('set_course_teachers', { target_course: savedCourseId, teacher_ids: teacherIds });
+        if (error) throw new Error(`Course saved, but teacher assignment failed: ${error.message}`);
+        await queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
+      }
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["admin-courses"] }),
         queryClient.invalidateQueries({ queryKey: ["courses"] })
@@ -253,6 +270,7 @@ function CoursesAdmin() {
         <button 
           onClick={() => {
             setEditingCourse(null);
+            setTeacherIds([]);
             setFormData({
               title: "",
               details: "",
@@ -275,7 +293,7 @@ function CoursesAdmin() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90dvh] animate-in zoom-in-95 duration-200">
             <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
               <h3 className="text-xl font-black text-slate-900">
                 {editingCourse ? "Edit Course" : "Create New Course"}
@@ -418,6 +436,14 @@ function CoursesAdmin() {
               </div>
 
               <div className="space-y-4 pt-2 border-t border-slate-100">
+                <fieldset className="space-y-2">
+                  <legend className="text-sm font-bold">Teachers</legend>
+                  {teachers.error || assignments.error ? <p className="text-sm text-destructive">Teacher setup SQL চালানোর পরে শিক্ষক নির্বাচন করা যাবে।</p> : teachers.isPending ? <p>Loading…</p> : teachers.data?.length ? teachers.data.map(t => <label key={t.id} className="flex items-center gap-3 text-sm">
+                    <input type="checkbox" checked={teacherIds.includes(t.id)} onChange={e => setTeacherIds(ids => e.target.checked ? [...ids, t.id] : ids.filter(id => id !== t.id))} />
+                    {t.photo_url && <img src={t.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />} {t.display_name}
+                  </label>) : <p className="text-sm text-muted-foreground">No teachers created yet.</p>}
+                  <Button asChild variant="link" size="sm"><a href="/admin/teachers">Manage teachers</a></Button>
+                </fieldset>
                 <p className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1 pt-3">Enrollment page sections (খালি রাখলে দেখাবে না)</p>
                 {EXTRA_FIELDS.map(f => (
                   <div key={f.key} className="space-y-1">
@@ -444,7 +470,7 @@ function CoursesAdmin() {
               <button 
                 type="button" 
                 onClick={handleCourseSubmit} 
-                disabled={isSubmitting} 
+                disabled={isSubmitting || teachers.isPending || assignments.isPending} 
                 className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg shadow-slate-200 hover:bg-black transition mt-4 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               > 
                 {isSubmitting && <Loader2 className="animate-spin" size={20}/>} 
@@ -508,8 +534,10 @@ function CoursesAdmin() {
                 <div className="flex items-center gap-2 pt-4 border-t border-slate-50">
                     <div className="flex-1 flex flex-col gap-2">
                       <button 
+                        disabled={teachers.isPending || assignments.isPending}
                         onClick={() => {
                           setEditingCourse(course);
+                          setTeacherIds(assignments.data?.filter(a => a.course_id === course.id).map(a => a.teacher_id) || []);
                           setFormData({
                             title: course.title,
                             details: course.details || "",

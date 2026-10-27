@@ -22,6 +22,12 @@ describe("Live-first lesson lifecycle", () => {
     assert.equal(row.live_url, null);
     assert.equal(row.live_expires_at, null);
   });
+  it('removes the live class when a video file is uploaded', () => {
+    const row = lessonUpdate({ ...form, video_file_url: 'https://example.org/class.mp4' }, undefined, now);
+    assert.equal(row.live_url, null);
+    assert.equal(row.video_file_url, 'https://example.org/class.mp4');
+    assert.equal(isLessonLive(row, now), false);
+  });
   it("hides live badge for existing recorded rows even with a future live expiry", () => {
     assert.equal(isLessonLive({ ...form, youtube_url: "https://youtu.be/abcdefghijk", live_expires_at: new Date(now + 86400000).toISOString() }, now), false);
   });

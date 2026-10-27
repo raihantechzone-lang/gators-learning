@@ -1,0 +1,1 @@
+export function assignedCourseIds(rows: { course_id: string; teacher_id: string }[], teacherId: string): string[];

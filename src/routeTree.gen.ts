@@ -19,6 +19,7 @@ import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as PurchasesRouteImport } from './routes/purchases'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as TeacherRouteImport } from './routes/teacher'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAttendanceRouteImport } from './routes/admin/attendance'
@@ -32,6 +33,7 @@ import { Route as AdminResultsRouteImport } from './routes/admin/results'
 import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminStudentsRouteImport } from './routes/admin/students'
+import { Route as AdminTeachersRouteImport } from './routes/admin/teachers'
 import { Route as AdminTransactionsRouteImport } from './routes/admin/transactions'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
@@ -44,6 +46,7 @@ import { Route as InstructorCoursesRouteImport } from './routes/instructor.cours
 import { Route as InstructorEarningsRouteImport } from './routes/instructor.earnings'
 import { Route as InstructorStudentsRouteImport } from './routes/instructor.students'
 import { Route as InstructorsInstructorIdRouteImport } from './routes/instructors.$instructorId'
+import { Route as TeachersTeacherIdRouteImport } from './routes/teachers.$teacherId'
 import { Route as InstructorCoursesCourseIdRouteImport } from './routes/instructor.courses.$courseId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -94,6 +97,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ReviewsRoute = ReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeacherRoute = TeacherRouteImport.update({
+  id: '/teacher',
+  path: '/teacher',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WishlistRoute = WishlistRouteImport.update({
@@ -161,6 +169,11 @@ const AdminStudentsRoute = AdminStudentsRouteImport.update({
   path: '/students',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTeachersRoute = AdminTeachersRouteImport.update({
+  id: '/teachers',
+  path: '/teachers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTransactionsRoute = AdminTransactionsRouteImport.update({
   id: '/transactions',
   path: '/transactions',
@@ -221,6 +234,11 @@ const InstructorsInstructorIdRoute = InstructorsInstructorIdRouteImport.update({
   path: '/instructors/$instructorId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeachersTeacherIdRoute = TeachersTeacherIdRouteImport.update({
+  id: '/teachers/$teacherId',
+  path: '/teachers/$teacherId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InstructorCoursesCourseIdRoute =
   InstructorCoursesCourseIdRouteImport.update({
     id: '/$courseId',
@@ -239,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/teacher': typeof TeacherRoute
   '/wishlist': typeof WishlistRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -251,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
+  '/admin/teachers': typeof AdminTeachersRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/details/$courseId': typeof DetailsCourseIdRoute
@@ -262,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/instructor/earnings': typeof InstructorEarningsRoute
   '/instructor/students': typeof InstructorStudentsRoute
   '/instructors/$instructorId': typeof InstructorsInstructorIdRoute
+  '/teachers/$teacherId': typeof TeachersTeacherIdRoute
   '/admin/': typeof AdminIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
@@ -276,6 +297,7 @@ export interface FileRoutesByTo {
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/teacher': typeof TeacherRoute
   '/wishlist': typeof WishlistRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -288,6 +310,7 @@ export interface FileRoutesByTo {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
+  '/admin/teachers': typeof AdminTeachersRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/details/$courseId': typeof DetailsCourseIdRoute
@@ -299,6 +322,7 @@ export interface FileRoutesByTo {
   '/instructor/earnings': typeof InstructorEarningsRoute
   '/instructor/students': typeof InstructorStudentsRoute
   '/instructors/$instructorId': typeof InstructorsInstructorIdRoute
+  '/teachers/$teacherId': typeof TeachersTeacherIdRoute
   '/admin': typeof AdminIndexRoute
   '/courses': typeof CoursesIndexRoute
   '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
@@ -315,6 +339,7 @@ export interface FileRoutesById {
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/teacher': typeof TeacherRoute
   '/wishlist': typeof WishlistRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -327,6 +352,7 @@ export interface FileRoutesById {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
+  '/admin/teachers': typeof AdminTeachersRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/details/$courseId': typeof DetailsCourseIdRoute
@@ -338,6 +364,7 @@ export interface FileRoutesById {
   '/instructor/earnings': typeof InstructorEarningsRoute
   '/instructor/students': typeof InstructorStudentsRoute
   '/instructors/$instructorId': typeof InstructorsInstructorIdRoute
+  '/teachers/$teacherId': typeof TeachersTeacherIdRoute
   '/admin/': typeof AdminIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
@@ -355,6 +382,7 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reset-password'
     | '/reviews'
+    | '/teacher'
     | '/wishlist'
     | '/admin/attendance'
     | '/admin/categories'
@@ -367,6 +395,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/students'
+    | '/admin/teachers'
     | '/admin/transactions'
     | '/courses/$courseId'
     | '/details/$courseId'
@@ -378,6 +407,7 @@ export interface FileRouteTypes {
     | '/instructor/earnings'
     | '/instructor/students'
     | '/instructors/$instructorId'
+    | '/teachers/$teacherId'
     | '/admin/'
     | '/courses/'
     | '/instructor/courses/$courseId'
@@ -392,6 +422,7 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reset-password'
     | '/reviews'
+    | '/teacher'
     | '/wishlist'
     | '/admin/attendance'
     | '/admin/categories'
@@ -404,6 +435,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/students'
+    | '/admin/teachers'
     | '/admin/transactions'
     | '/courses/$courseId'
     | '/details/$courseId'
@@ -415,6 +447,7 @@ export interface FileRouteTypes {
     | '/instructor/earnings'
     | '/instructor/students'
     | '/instructors/$instructorId'
+    | '/teachers/$teacherId'
     | '/admin'
     | '/courses'
     | '/instructor/courses/$courseId'
@@ -430,6 +463,7 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reset-password'
     | '/reviews'
+    | '/teacher'
     | '/wishlist'
     | '/admin/attendance'
     | '/admin/categories'
@@ -442,6 +476,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/students'
+    | '/admin/teachers'
     | '/admin/transactions'
     | '/courses/$courseId'
     | '/details/$courseId'
@@ -453,6 +488,7 @@ export interface FileRouteTypes {
     | '/instructor/earnings'
     | '/instructor/students'
     | '/instructors/$instructorId'
+    | '/teachers/$teacherId'
     | '/admin/'
     | '/courses/'
     | '/instructor/courses/$courseId'
@@ -469,11 +505,13 @@ export interface RootRouteChildren {
   PurchasesRoute: typeof PurchasesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
+  TeacherRoute: typeof TeacherRoute
   WishlistRoute: typeof WishlistRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   DetailsCourseIdRoute: typeof DetailsCourseIdRoute
   EnrollCourseIdRoute: typeof EnrollCourseIdRoute
   InstructorsInstructorIdRoute: typeof InstructorsInstructorIdRoute
+  TeachersTeacherIdRoute: typeof TeachersTeacherIdRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
 }
 
@@ -547,6 +585,13 @@ declare module '@tanstack/react-router' {
       path: '/reviews'
       fullPath: '/reviews'
       preLoaderRoute: typeof ReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teacher': {
+      id: '/teacher'
+      path: '/teacher'
+      fullPath: '/teacher'
+      preLoaderRoute: typeof TeacherRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wishlist': {
@@ -640,6 +685,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStudentsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/teachers': {
+      id: '/admin/teachers'
+      path: '/teachers'
+      fullPath: '/admin/teachers'
+      preLoaderRoute: typeof AdminTeachersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/transactions': {
       id: '/admin/transactions'
       path: '/transactions'
@@ -724,6 +776,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstructorsInstructorIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teachers/$teacherId': {
+      id: '/teachers/$teacherId'
+      path: '/teachers/$teacherId'
+      fullPath: '/teachers/$teacherId'
+      preLoaderRoute: typeof TeachersTeacherIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/instructor/courses/$courseId': {
       id: '/instructor/courses/$courseId'
       path: '/$courseId'
@@ -746,6 +805,7 @@ interface AdminRouteChildren {
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminStudentsRoute: typeof AdminStudentsRoute
+  AdminTeachersRoute: typeof AdminTeachersRoute
   AdminTransactionsRoute: typeof AdminTransactionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -762,6 +822,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminStudentsRoute: AdminStudentsRoute,
+  AdminTeachersRoute: AdminTeachersRoute,
   AdminTransactionsRoute: AdminTransactionsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -812,11 +873,13 @@ const rootRouteChildren: RootRouteChildren = {
   PurchasesRoute: PurchasesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
+  TeacherRoute: TeacherRoute,
   WishlistRoute: WishlistRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   DetailsCourseIdRoute: DetailsCourseIdRoute,
   EnrollCourseIdRoute: EnrollCourseIdRoute,
   InstructorsInstructorIdRoute: InstructorsInstructorIdRoute,
+  TeachersTeacherIdRoute: TeachersTeacherIdRoute,
   CoursesIndexRoute: CoursesIndexRoute,
 }
 export const routeTree = rootRouteImport

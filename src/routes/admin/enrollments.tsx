@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, UserPlus, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { teacherMeta } from '@/lib/teachers';
 
 export const Route = createFileRoute("/admin/enrollments")({
+  head: () => teacherMeta('Enrollments Admin', 'Review Gators Learning enrollment by course.'),
   component: EnrollmentsAdmin,
 });
 

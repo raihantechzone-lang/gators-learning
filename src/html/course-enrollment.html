@@ -26,13 +26,13 @@
                     colors: {
                         rs: { green: '#0f9d58', dark: '#1e293b', light: '#64748b' },
                         brand: {
-                            50: '#fff7ed',
-                            100: '#ffedd5',
-                            200: '#fed7aa',
-                            500: '#f97316',
-                            600: '#ea580c',
-                            700: '#c2410c',
-                            900: '#7c2d12',
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            500: '#0f9d58',
+                            600: '#0b8449',
+                            700: '#086d3c',
+                            900: '#064e3b',
                         },
                         surface: {
                             50: '#f8fafc',
@@ -99,7 +99,8 @@
         .toast.show { transform: translateX(0); }
 
         .sec-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 1.25rem; position: relative; padding-top: .75rem; }
-        .sec-title::before { content: ''; position: absolute; top: 0; left: 0; width: 2rem; height: 3px; border-radius: 3px; background: #f97316; }
+        :root { --enrollment-accent: #0f9d58; }
+        .sec-title::before { content: ''; position: absolute; top: 0; left: 0; width: 2rem; height: 3px; border-radius: 3px; background: var(--enrollment-accent); }
         details summary::-webkit-details-marker { display: none; }
     </style>
 </head>
@@ -220,7 +221,7 @@
                             <span class="bg-brand-50 text-brand-600 text-xs font-bold px-2.5 py-1 rounded-md mb-1.5" id="course-discount" hidden></span>
                         </div>
                         <p class="text-sm text-slate-500 mb-5 font-medium">One-time payment</p>
-                        <button id="enroll-main-btn" disabled class="w-full bg-brand-500 text-white font-semibold text-lg py-3.5 rounded-2xl hover:bg-brand-600 transition-all active:scale-95 shadow-md shadow-orange-500/20 mb-3 flex justify-center items-center gap-2">
+                        <button id="enroll-main-btn" disabled class="w-full bg-brand-500 text-white font-semibold text-lg py-3.5 rounded-2xl hover:bg-brand-600 transition-all active:scale-95 shadow-md shadow-brand-500/20 mb-3 flex justify-center items-center gap-2">
                             এনরোল করুন <i class="fa-solid fa-arrow-right text-sm"></i>
                         </button>
                         <a href="https://wa.me/8801789407200" target="_blank" rel="noopener" class="w-full border border-emerald-300 text-emerald-700 font-semibold py-3 rounded-2xl hover:bg-emerald-50 transition flex justify-center items-center gap-2 mb-5">
@@ -228,11 +229,7 @@
                         </a>
                         <div class="flex items-center justify-center gap-3 text-xs text-slate-400 mb-5">
                             <span>পেমেন্ট:</span>
-                            <span class="font-bold text-pink-600">bKash</span>
-                        </div>
-                        <div class="border-t border-slate-100 pt-4">
-                            <h4 class="text-sm font-bold text-surface-900 mb-3">এই কোর্সে রয়েছে</h4>
-                            <div id="course-includes" class="space-y-3"></div>
+                            <img src="__BKASH_LOGO__" alt="bKash" class="h-9 w-24 object-contain">
                         </div>
                     </div>
                 </div>
@@ -336,9 +333,9 @@
                 return `<div class="p-4 rounded-2xl border border-slate-200 bg-white"><div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center mb-3"><i class="fa-solid ${icons[i % icons.length]}"></i></div><div class="font-semibold text-surface-900 text-sm">${esc(t)}</div>${d ? `<div class="text-xs text-slate-500 mt-1">${esc(d)}</div>` : ''}</div>`; }).join('');
             show('sec-benefits');
         }
-        const fq = lines(course.faqs);
+        const fq = window.courseFaqs ? window.courseFaqs(course.faqs) : [];
         if (fq.length) {
-            $('course-faqs').innerHTML = fq.map(f => { const [q, a] = f.split('|').map(s => s.trim());
+            $('course-faqs').innerHTML = fq.map(f => { const q = f.question, a = f.answer;
                 return `<details class="group bg-white"><summary class="flex justify-between items-center gap-3 cursor-pointer list-none p-4 font-semibold text-surface-900"><span><span class="text-brand-600 mr-2">প্র.</span>${esc(q)}</span><i class="fa-solid fa-plus text-xs text-slate-400 group-open:rotate-45 transition"></i></summary>${a ? `<div class="px-4 pb-4 text-sm text-slate-600">${esc(a)}</div>` : ''}</details>`; }).join('');
             show('sec-faqs');
         }
@@ -348,6 +345,16 @@
         const chip = (i, t) => `<span class="inline-flex items-center gap-2 text-sm text-slate-600 border border-slate-200 rounded-full px-3 py-1.5 bg-white"><i class="fa-solid ${i} text-brand-500"></i>${t}</span>`;
         const free = contents.filter(c => c.is_free).length;
         el.innerHTML = chip('fa-circle-play', contents.length + 'টি লেসন') + (free ? chip('fa-unlock', free + 'টি ফ্রি লেসন') : '') + (contents.some(c => c.pdf_url) ? chip('fa-file-pdf', 'PDF নোট') : '');
+    };
+    window.renderAssignedTeachers = function (teachers) {
+        if (!teachers.length) return;
+        const esc = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const profile = (t, small) => `<a href="/teachers/${encodeURIComponent(t.id)}" class="flex items-center gap-3 min-w-0">${t.photo_url ? `<img src="${esc(t.photo_url)}" alt="${esc(t.display_name)}" class="${small ? 'w-9 h-9' : 'w-16 h-16'} rounded-full object-cover shrink-0">` : '<i class="fa-solid fa-user text-brand-600"></i>'}<div class="min-w-0"><div class="font-bold text-surface-900">${esc(t.display_name)}</div><span class="text-xs text-brand-600 font-semibold">Teacher</span>${!small && t.title ? `<p class="text-sm text-slate-500">${esc(t.title)}</p>` : ''}</div></a>`;
+        const mini = document.getElementById('course-instructor-mini');
+        mini.innerHTML = teachers.map(t => profile(t, true)).join(''); mini.classList.remove('hidden'); mini.classList.add('flex', 'flex-wrap');
+        const full = document.getElementById('course-instructor');
+        full.innerHTML = teachers.map(t => profile(t, false)).join(''); full.classList.add('flex-wrap');
+        document.getElementById('sec-instructor').classList.remove('hidden');
     };
     </script>
 
@@ -374,8 +381,7 @@
                     <div class="absolute top-0 left-0 w-1 h-full bg-pink-500"></div>
                     
                     <div class="flex items-center gap-3 mb-3">
-                        <img src="https://download.logo.wine/logo/BKash/BKash-Icon-Logo.wine.png" class="h-6 object-contain drop-shadow-sm" alt="bKash">
-                        <span class="text-sm font-bold text-pink-700">bKash Payment</span>
+                        <img src="__BKASH_LOGO__" class="h-10 w-28 object-contain" alt="bKash">
                     </div>
                     
                     <p id="payment-instructions" class="text-[13px] text-slate-600 mb-4 font-bengali leading-relaxed">পেমেন্ট তথ্য লোড হচ্ছে...</p>
@@ -682,6 +688,7 @@
             const mount = document.getElementById('yt-mount');
             if (!mount) return;
             const hasRecording = /^[a-zA-Z0-9_-]{11}$/.test(videoId || '');
+            const fileUrl = window.__playable?.[index]?.videoFile;
             const src = thumb || window.__courseThumb || (hasRecording ? 'https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg' : '');
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -696,6 +703,11 @@
             play.innerHTML = '<span class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/95 text-brand-600 flex items-center justify-center shadow-xl group-hover/thumb:scale-110 transition"><i class="fa-solid fa-play text-2xl ml-1"></i></span>';
             btn.append(img, play);
             const playInline = () => {
+                if (fileUrl) {
+                    const video = document.createElement('video');
+                    video.src = fileUrl; video.controls = true; video.autoplay = true; video.playsInline = true; video.className = 'absolute inset-0 w-full h-full';
+                    mount.replaceChildren(video); window.startLessonTracking?.(video, window.__playable?.[index]); return;
+                }
                 if (!hasRecording) {
                     const message = document.createElement('p');
                     message.setAttribute('role', 'status');
@@ -781,6 +793,14 @@
                 }
             }
             const resume = getRecords().find(r => r.lesson_id === lesson.lessonId);
+            if (iframe.tagName === 'VIDEO') {
+                const seek = () => { if (resume?.last_position_seconds && !resume.completed) iframe.currentTime = resume.last_position_seconds; };
+                if (iframe.readyState >= 1) seek(); else iframe.addEventListener('loadedmetadata', seek, { once: true });
+                let ticks = 0;
+                trackingTimer = setInterval(() => { savedPosition = iframe.currentTime; savedDuration = iframe.duration || 0; ended = iframe.ended; if (++ticks % 3 === 0) savePlayback(); }, 1000);
+                iframe.addEventListener('pause', savePlayback); iframe.addEventListener('ended', () => { ended = true; savePlayback(); });
+                return;
+            }
             if (resume?.last_position_seconds && !resume.completed) iframe.src += '&start=' + Math.floor(resume.last_position_seconds);
             if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
                 const script = document.createElement('script'); script.src = 'https://www.youtube.com/iframe_api'; script.async = true; document.head.appendChild(script);
