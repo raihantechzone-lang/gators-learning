@@ -25,11 +25,12 @@
 - [x] Replace teacher photo URL field with uploaded-photo preview and add verified-row removal with feedback.
 - [ ] Verify actual teacher creation/photo upload/removal: unavailable authenticated external admin session.
 - [x] Remove Teacher login setup SQL text/link from admin Teachers.- [ ] WhatsApp after verify: never show "country code missing"; editable number in popup.
-- [ ] Manage Courses list empty (broken category join) → fix so edit/delete work.
-- [ ] Remove instructor name/title/photo fields from course form (assigned teacher shows automatically).
-- [ ] Save highlights/benefits/FAQs as reusable templates.
-- [ ] Rename "পুরো সিলেবাস" → "কোর্স কনটেন্ট".
-- [ ] Admin Course Verification page: search TrxID, green badge on match, approve.
-- [ ] Free course option in course form.
-- [ ] Per-course enrollment count (editable base + live enrollments) on enrollment page.
-- [ ] Homepage নোটিশ ticker (bold red, right→left) managed from admin.
+- [x] Manage Courses list empty (broken category join) → fix so edit/delete work.
+- [x] Remove instructor name/title/photo fields from course form (assigned teacher shows automatically).
+- [x] Save highlights/benefits/FAQs as reusable templates.
+- [x] Rename "পুরো সিলেবাস" → "কোর্স কনটেন্ট".
+- [x] Admin Course Verification page: search TrxID, green badge on match, approve.
+- [x] Free course option in course form.
+- [x] Per-course enrollment count (editable base + live enrollments) on enrollment page.
+- [x] Homepage নোটিশ ticker (bold red, right→left) managed from admin.
+- [ ] Activate notices, templates and editable enrollment count: waits on user running notice-enrollment-templates.sql on the external database.
