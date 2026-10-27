@@ -7,6 +7,9 @@ export function normalizeStudentEmail(value) {
 export function whatsappPhone(value) {
   let digits = String(value ?? "").replace(/[০-৯]/g, c => String('০১২৩৪৫৬৭৮৯'.indexOf(c))).replace(/\D/g, '');
   if (digits.startsWith('00880')) digits = digits.slice(2);
+  if (/^1\d{9}$/.test(digits)) digits = '0' + digits;
+  if (/^8801\d{9}$/.test(digits)) return digits;
+  if (/^88?01\d{9}$/.test(digits)) digits = digits.replace(/^88?/, '');
   if (/^01\d{9}$/.test(digits)) digits = '88' + digits;
   if (/^8801\d{9}$/.test(digits)) return digits;
   return '';
