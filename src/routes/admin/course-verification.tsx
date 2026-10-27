@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BadgeCheck, Search } from "lucide-react";
 import { paymentVerificationUpdate } from "@/lib/enrollment-payment";
-import { whatsappPhone } from "@/lib/public-experience.js";
+import { whatsappPhone, paymentConfirmationMessage } from "@/lib/public-experience.js";
 import { teacherMeta } from "@/lib/teachers";
 
 export const Route = createFileRoute("/admin/course-verification")({
@@ -43,7 +43,7 @@ function CourseVerification() {
       setMatches(m => m?.map(r => (r.id === row.id ? { ...r, payment_status: "verified" } : r)) || null);
       const phone = whatsappPhone(row.profiles?.phone);
       if (phone) {
-        const msg = `Hello ${row.profiles?.full_name || "Student"}, your payment for ${row.courses?.title || "the course"} has been verified. You can now access your course.`;
+        const msg = paymentConfirmationMessage(row.profiles?.full_name || "Student", row.courses?.title || "the course");
         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
       }
     },

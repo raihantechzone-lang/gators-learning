@@ -193,8 +193,8 @@
       name: c.category || "Course",
       title: c.title,
       category: (c.category || "versity").toLowerCase(),
-      price: c.discount_price ?? c.price ?? 0,
-      discountPrice: c.price ?? 0, // Invert if price is original
+      price: coursePrices(c).original,
+      discountPrice: coursePrices(c).payable,
       thumbnail: c.thumbnail_url || "https://ik.imagekit.io/n7rgjyaxh/default-course.jpg",
       videosCount: counts[c.id] || 0,
       videos: new Array(counts[c.id] || 0),
@@ -845,7 +845,7 @@
 
       }
 
-      const email = normalizeStudentEmail(fd.get("email"));
+      const email = await accountLoginEmail(fd.get("email"));
       const password = String(fd.get("password"));
 
       const { data: ld, error } = await supabase.auth.signInWithPassword({
@@ -854,8 +854,10 @@
       });
       if (error) return finish(error.message, "Login failed");
       if (!ld?.session) return finish("Could not start a session.", "Login failed");
+      const destination = await accountDashboard(supabase, ld.user);
       form.reset();
       window.closeModal("authModal");
+      if (destination === '/teacher') { window.location.href = destination; finish(); return; }
       await window.showStudentWelcome(ld.user);
       finish();
     } catch (err) {
@@ -887,18 +889,9 @@
     }
   };
 
-  window.goToDashboard = function () {
-    window.location.href = currentUser ? "/dashboard" : "/auth?mode=login";
+  window.goToDashboard = async function () {
+    window.location.href = currentUser ? await accountDashboard(supabase, currentUser) : "/auth?mode=login";
   };
-  if (document.getElementById('profile-menu') && !document.getElementById('teacher-dashboard-link')) {
-    const link = document.createElement('a'); link.id = 'teacher-dashboard-link'; link.href = '/teacher'; link.textContent = 'Teacher Dashboard';
-    link.className = 'flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-rs-green hover:bg-emerald-50';
-    document.getElementById('profile-menu').appendChild(link);
-  }
-  if (document.getElementById('mobile-profile-section')) {
-    const link = document.createElement('a'); link.href = '/teacher'; link.textContent = 'Teacher Dashboard'; link.className = 'text-center text-rs-green font-bold py-2';
-    document.getElementById('mobile-profile-section').appendChild(link);
-  }
 
   window.logoutUser = async function () {
     await supabase.auth.signOut();

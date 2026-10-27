@@ -6,7 +6,7 @@ import { uploadToImageKit } from "@/lib/imagekit";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { adDisplayImage } from "@/lib/public-experience.js";
+import { adDisplayImage, isHomepageReview } from "@/lib/public-experience.js";
 
 export const Route = createFileRoute("/admin/reviews")({
   head: () => ({ meta: [
@@ -29,9 +29,10 @@ function ReviewsAndAdsAdmin() {
       const { data, error } = await supabase
         .from("reviews")
         .select("*, profiles(full_name)")
+        .is("course_id", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data?.filter(isHomepageReview);
     },
   });
 
@@ -49,7 +50,7 @@ function ReviewsAndAdsAdmin() {
 
   const approveReviewMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await supabase.from("reviews").update({ is_approved: true }).eq("id", id).select("id").maybeSingle();
+      const { data, error } = await supabase.from("reviews").update({ is_approved: true }).eq("id", id).is("course_id", null).select("id").maybeSingle();
       if (error) throw error;
       if (!data) throw new Error("Review was not approved. Check your account's permissions.");
     },
@@ -62,7 +63,7 @@ function ReviewsAndAdsAdmin() {
 
   const deleteReviewMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await supabase.from("reviews").delete().eq("id", id).select("id").maybeSingle();
+      const { data, error } = await supabase.from("reviews").delete().eq("id", id).is("course_id", null).select("id").maybeSingle();
       if (error) throw error;
       if (!data) throw new Error("Review was not deleted. Check your account's permissions.");
     },
