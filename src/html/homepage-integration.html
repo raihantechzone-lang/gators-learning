@@ -540,7 +540,7 @@
                         <i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-play'} text-sm"></i>
                     </div>
                     <div>
-                        <h4 class="font-bengali ${isLocked ? 'font-medium text-slate-700' : 'font-semibold text-surface-900'} text-base">${c.title}</h4>
+                        <h4 class="font-bengali ${isLocked ? 'font-medium text-slate-700' : 'font-semibold text-surface-900'} text-base">${String(c.title ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}</h4>
                         <p class="text-xs text-slate-400 font-medium mt-1">${isLocked ? 'Locked' : 'Free Preview'}</p>
                     </div>
                 </div>
