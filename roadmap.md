@@ -34,3 +34,9 @@
 - [x] Per-course enrollment count (editable base + live enrollments) on enrollment page.
 - [x] Homepage নোটিশ ticker (bold red, right→left) managed from admin.
 - [ ] Activate notices, templates and editable enrollment count: waits on user running notice-enrollment-templates.sql on the external database.
+- [ ] Remove Site Settings and Transaction Verification.
+- [ ] Replace individual exam marks with shared PDF results.
+- [ ] Use normal name/password login for teachers without separate entry.
+- [ ] Enlarge bKash logo; show sale price first; remove upper Course Details.
+- [ ] Restrict Student Reviews to homepage and attendance to active live classes.
+- [ ] Use requested WhatsApp enrollment confirmation message and verify changes.
