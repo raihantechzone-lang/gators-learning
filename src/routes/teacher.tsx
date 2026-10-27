@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '@/lib/auth';
 import { teacherDb, teacherMeta, type Teacher, type AssignedCourse } from '@/lib/teachers';
 import { ContentAdmin } from './admin/content';
@@ -8,9 +10,12 @@ import { SiteHeader } from '@/components/site/SiteHeader';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Upload } from 'lucide-react';
 import { assignedCourseIds } from '@/lib/teacher-assignment.js';
+import { supabase } from '@/integrations/supabase/client';
 
 export const Route = createFileRoute('/teacher')({ head: () => teacherMeta('Teacher Dashboard', 'Manage lessons for your assigned Gators Learning courses.'), component: TeacherDashboard });
 function TeacherDashboard() {
+  const cache = useQueryClient();
+  const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [editing, setEditing] = useState<string | null>(null);
   const query = useQuery({ queryKey: ['teacher-dashboard', user?.id], enabled: !!user, queryFn: async () => {
@@ -25,7 +30,8 @@ function TeacherDashboard() {
   } });
   return <div className="min-h-screen bg-background"><SiteHeader /><main className="max-w-7xl mx-auto px-4 sm:px-6 pt-32 pb-16 space-y-6">
     <h1 className="text-2xl font-bold text-foreground">Teacher Dashboard</h1>
-    {loading || (user && query.isPending) ? <p className="text-muted-foreground">Loading…</p> : !user ? <Button asChild><Link to="/auth" search={{ mode: 'login' }}>Sign in</Link></Button> : query.error ? <p role="alert" className="text-destructive">{query.error.message}</p> : !query.data?.teacher ? <p className="text-muted-foreground">No teacher profile is assigned to this account.</p> : <>
+    {loading || (user && query.isPending) ? <p className="text-muted-foreground">Loading…</p> : !user ? <Button asChild><Link to="/teacher-login">Teacher Login</Link></Button> : query.error ? <p role="alert" className="text-destructive">{query.error.message}</p> : !query.data?.teacher ? <><p className="text-muted-foreground">No teacher profile is assigned to this account.</p><Button asChild variant="outline"><Link to="/teacher-login">Teacher Login</Link></Button></> : <>
+      <Button variant="outline" onClick={async () => { await cache.cancelQueries(); cache.clear(); await supabase.auth.signOut(); await navigate({ to: '/teacher-login', replace: true }); }}>Sign out</Button>
       <div className="flex gap-3 items-center">{query.data.teacher.photo_url && <img src={query.data.teacher.photo_url} alt="" className="w-14 h-14 rounded-full object-cover" />}<div><h2 className="font-bold">{query.data.teacher.display_name}</h2><p className="text-sm text-brand">Teacher · {query.data.courses.length} courses</p></div></div>
       {editing ? <><Button variant="outline" onClick={() => setEditing(null)}><BookOpen />My courses</Button><ContentAdmin key={editing} allowedCourses={query.data.courses} initialCourseId={editing} /></> : <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{query.data.courses.map(course => <article key={course.id} className="border border-border rounded-md overflow-hidden">
         {course.thumbnail_url && <img src={course.thumbnail_url} alt={course.title} className="w-full aspect-video object-cover" />}<div className="p-4 space-y-3"><h3 className="font-bold">{course.title}</h3><p className="text-sm text-muted-foreground">{course.is_published ? 'Published' : 'Draft'}</p><Button onClick={() => setEditing(course.id)}><Upload />Course content</Button></div>
