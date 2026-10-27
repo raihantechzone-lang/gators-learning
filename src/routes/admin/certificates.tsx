@@ -25,7 +25,7 @@ function CertificatesAdmin() {
           courses (title),
           profiles (full_name, roll_number)
         `)
-        .order("created_at", { ascending: false });
+        .order("enrolled_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -46,9 +46,9 @@ function CertificatesAdmin() {
     onError: (err: any) => toast.error(err.message),
   });
 
-  const filtered = enrollments?.filter(e => 
+  const filtered = enrollments?.filter(e =>
     e.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.profiles?.roll_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    String(e.profiles?.roll_number ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
     e.courses?.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

@@ -55,7 +55,7 @@ function EnrollmentsAdmin() {
   const filtered = enrollments?.filter(e =>
     (courseFilter === "all" || e.course_id === courseFilter) &&
     (e.profiles?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    e.profiles?.roll_number?.toLowerCase().includes(search.toLowerCase()) ||
+    String(e.profiles?.roll_number ?? "").toLowerCase().includes(search.toLowerCase()) ||
     e.courses?.title?.toLowerCase().includes(search.toLowerCase()))
   );
 
