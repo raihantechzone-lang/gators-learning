@@ -3,6 +3,9 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { attendanceSummary, markPercent, marksByCourse, performanceAdvice, type AttendanceRow, type ClassLite, type ExamMark } from "@/lib/academic";
+import { resultSheetKey, readResultSheets, type ResultSheet } from '@/lib/result-sheets';
+import { Button } from '@/components/ui/button';
+import { FileText, ExternalLink } from 'lucide-react';
 
 const chartConfig = {
   attendance: { label: "উপস্থিতি %", color: "var(--brand)" },
@@ -17,6 +20,8 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
 }) {
   const [marks, setMarks] = useState<ExamMark[]>([]);
   const [rows, setRows] = useState<AttendanceRow[]>([]);
+  const [sheets, setSheets] = useState<Record<string, ResultSheet[]>>({});
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const ids = courses.map((c) => c.id);
   const key = ids.join(",");
@@ -25,8 +30,16 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
     if (!ids.length) return;
     let cancelled = false;
     const load = async () => {
+      if (mode === 'results') {
+        const { data, error: sheetError } = await supabase.from('settings').select('setting_key,setting_value').in('setting_key', ids.map(resultSheetKey));
+        if (cancelled) return;
+        setError(sheetError?.message || '');
+        setSheets(Object.fromEntries(courses.map(c => [c.id, readResultSheets(data?.find(row => row.setting_key === resultSheetKey(c.id))?.setting_value)])));
+        setLoading(false);
+        return;
+      }
       const [m, a] = await Promise.all([
-        supabase.from("exam_marks").select("*").eq("profile_id", userId).in("course_id", ids),
+        Promise.resolve({ data: [], error: null }),
         supabase.from("class_attendance").select("profile_id, course_id, lesson_id, attended_on").eq("profile_id", userId).in("course_id", ids),
       ]);
       if (cancelled) return;
@@ -39,7 +52,7 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
     window.addEventListener("focus", load);
     return () => { cancelled = true; clearInterval(t); window.removeEventListener("focus", load); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, key]);
+  }, [userId, key, mode]);
 
   const grouped = useMemo(() => marksByCourse(marks, ids), [marks, key]);
   const perCourse = courses.map((c) => {
@@ -56,6 +69,16 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
   const chartData = perCourse.map((p) => ({ name: p.course.title.slice(0, 14), attendance: p.att.percent, marks: p.markAvg ?? 0 }));
 
   if (!courses.length) return <p className="text-ink-muted">অনুমোদিত কোনো কোর্স নেই। এনরোল করা কোর্সের তথ্য এখানে দেখাবে।</p>;
+  if (mode === 'results') return <div className="space-y-6">
+    {error && <p role="alert" className="text-destructive">ফলাফল লোড করা যায়নি: {error}</p>}
+    {loading ? <p>Loading…</p> : courses.map(course => <section key={course.id} className="space-y-3 border-b border-border pb-5">
+      <h3 className="font-bold text-ink">{course.title}</h3>
+      {!sheets[course.id]?.length ? <p className="text-sm text-ink-muted">এই কোর্সে এখনো কোনো ফলাফল প্রকাশ হয়নি।</p> : sheets[course.id].map(sheet => <div key={sheet.id} className="flex flex-wrap items-center gap-3">
+        <FileText className="text-brand shrink-0" /><span className="flex-1 min-w-0 break-words font-medium">{sheet.title}</span>
+        <Button asChild variant="outline" size="sm"><a href={sheet.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} />ফলাফলের PDF</a></Button>
+      </div>)}
+    </section>)}
+  </div>;
 
   return (
     <div className="space-y-6">
@@ -89,14 +112,7 @@ export function AcademicPanel({ mode, userId, courses, lessons }: {
       {perCourse.map(({ course, att, exams }) => (
         <div key={course.id} className="bg-background p-5 rounded-2xl border border-border shadow-sm">
           <h4 className="font-bold text-ink mb-3">{course.title}</h4>
-          {mode === "results" ? (
-            exams.length ? (
-              <table className="w-full text-sm">
-                <thead><tr className="text-left text-ink-muted text-xs"><th className="py-1">পরীক্ষা</th><th>নম্বর</th><th>%</th></tr></thead>
-                <tbody>{exams.map((m) => <tr key={m.exam_name} className="border-t border-border"><td className="py-2 font-bold text-ink">{m.exam_name}</td><td>{m.score}/{m.max_score}</td><td className="font-bold text-brand">{markPercent(m)}%</td></tr>)}</tbody>
-              </table>
-            ) : <p className="text-sm text-ink-muted">এই কোর্সে এখনো কোনো ফলাফল প্রকাশ হয়নি।</p>
-          ) : (
+          {(
             <>
               <p className="text-sm text-ink-muted mb-3">উপস্থিত {att.present}/{att.total} · মিস {att.missed} · লাইভ ক্লাস মিস {att.missedLive} · {att.percent}%</p>
               {att.list.length ? (
