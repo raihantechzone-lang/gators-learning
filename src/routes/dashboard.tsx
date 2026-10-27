@@ -216,7 +216,7 @@ function DashboardPage() {
 
               <div className="text-center sm:text-left">
                  <div className="flex items-center gap-2 justify-center sm:justify-start">
-                    <h2 className="text-2xl font-['Hind_Siliguri',sans-serif] font-bold text-gray-900">{profile?.full_name || "Student Name"}</h2>
+                    <h2 className="text-2xl font-bengali font-bold text-gray-900">{profile?.full_name || "Student Name"}</h2>
                     <button onClick={editName} className="text-slate-400 hover:text-[#0f9d58] transition-colors">
                        <PenSquare size={18} />
                     </button>
@@ -255,7 +255,7 @@ function DashboardPage() {
                  <Link to="/courses/$courseId" params={{ courseId: resumeCourse.course_id }} className="bg-slate-900 rounded-[2rem] p-6 sm:p-8 flex items-center justify-between group cursor-pointer border border-slate-800 hover:border-slate-700 transition-all shadow-xl shadow-slate-200/50">
                     <div className="flex-1 min-w-0 pr-4">
                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Continue Watching</span>
-                       <h4 className="font-['Hind_Siliguri',sans-serif] font-bold text-white text-lg sm:text-xl truncate">{resumeCourse.courses?.title}</h4>
+                       <h4 className="font-bengali font-bold text-white text-lg sm:text-xl truncate">{resumeCourse.courses?.title}</h4>
                        <div className="mt-4 flex items-center gap-4">
                           <Progress className="flex-1 max-w-[200px]" value={getProgress(resumeCourse.course_id)} />
                           <span className="text-xs font-bold text-muted-foreground">{getProgress(resumeCourse.course_id)}% Done</span>
@@ -269,7 +269,7 @@ function DashboardPage() {
                {dataError && <p role="alert" className="text-destructive">{dataError}</p>}
                {/* Course Grid */}
                <div>
-                  <h3 className="text-xl sm:text-2xl font-['Hind_Siliguri',sans-serif] font-bold text-gray-900 mb-6 flex items-center gap-3">
+                  <h3 className="text-xl sm:text-2xl font-bengali font-bold text-gray-900 mb-6 flex items-center gap-3">
                     <span className="w-1.5 h-8 bg-[#0f9d58] rounded-full"></span> এনরোলকৃত কোর্সসমূহ
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -280,7 +280,7 @@ function DashboardPage() {
                               <div className="absolute top-3 right-3 bg-[#0f9d58] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">Enrolled</div>
                            </div>
                            <div className="p-5">
-                              <h4 className="font-['Hind_Siliguri',sans-serif] font-bold text-slate-800 line-clamp-2 min-h-[3rem]">{e.courses?.title}</h4>
+                              <h4 className="font-bengali font-bold text-slate-800 line-clamp-2 min-h-[3rem]">{e.courses?.title}</h4>
                               <div className="mt-3"><Progress value={getProgress(e.course_id)} /><p className="text-xs text-ink-muted mt-1">{getProgress(e.course_id)}% সম্পন্ন</p></div>
                               <div className="mt-4 flex items-center justify-between">
                                  <Link 
@@ -355,7 +355,7 @@ function DashboardPage() {
            {activeTab === 'notes' && (
              <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                   <h3 className="text-xl sm:text-2xl font-['Hind_Siliguri',sans-serif] font-bold text-gray-900 flex items-center gap-3">
+                   <h3 className="text-xl sm:text-2xl font-bengali font-bold text-gray-900 flex items-center gap-3">
                      <span className="w-1.5 h-8 bg-purple-500 rounded-full"></span> আমার ক্লাস নোটস
                    </h3>
                 </div>
@@ -378,7 +378,7 @@ function DashboardPage() {
                   <div className="bg-white p-2 rounded-xl w-fit mb-6">
                      <img src="https://ik.imagekit.io/n7rgjyaxh/Untitled%20design_20260630_142739_0000.png" alt="" className="h-8" />
                   </div>
-                  <p className="font-['Hind_Siliguri',sans-serif] text-sm leading-relaxed">আপনার শেখার যাত্রাকে সহজ ও আনন্দদায়ক করতে আমরা সবসময় আপনার পাশে আছি।</p>
+                  <p className="font-bengali text-sm leading-relaxed">আপনার শেখার যাত্রাকে সহজ ও আনন্দদায়ক করতে আমরা সবসময় আপনার পাশে আছি।</p>
                </div>
                <div>
                   <h4 className="text-white font-bold mb-6">Support</h4>
@@ -428,7 +428,7 @@ function TabButton({ active, onClick, icon: Icon, label, color }: { active: bool
        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all duration-300 shadow-sm group-hover:scale-110 ${active ? colors[color].split(' ')[0].replace('100', '500') + ' text-white' : colors[color] + ' group-hover:' + colors[color].split(' ')[0].replace('100', '500') + ' group-hover:text-white'}`}>
           <Icon size={24} />
        </div>
-       <span className={`text-[10px] sm:text-xs font-bold font-['Hind_Siliguri',sans-serif] text-center transition-colors ${active ? 'text-slate-900' : 'text-slate-500'}`}>{label}</span>
+       <span className={`text-[10px] sm:text-xs font-bold font-bengali text-center transition-colors ${active ? 'text-slate-900' : 'text-slate-500'}`}>{label}</span>
     </div>
   );
 }

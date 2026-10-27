@@ -7,7 +7,7 @@ export function SiteFooter() {
         <div>
           <h3 className="text-background text-xl font-bold mb-3">Gators Learning</h3>
           <p className="text-sm leading-relaxed font-bengali">
-            বিশ্ববিদ্যালয় ভর্তি ও IELTS প্রস্তুতি সহজ করুন। দক্ষ মেন্টর, লাইভ ক্লাস ও রেকর্ডেড ভিডিও একসাথে।
+            শেখা হোক সহজ, সফলতা হোক নিশ্চিত দক্ষ মেন্টর, লাইভ ক্লাস ও রেকর্ডেড ভিডিও একসাথে।
           </p>
         </div>
         <div>

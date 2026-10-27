@@ -124,7 +124,7 @@
     if (!data) return;
     for (const row of data) {
       if (!row.setting_value) continue;
-      const el = document.getElementById(row.setting_key === "hero_title" ? "dynamic-site-title" : row.setting_key === "hero_subtitle" ? "dynamic-site-subtitle" : "");
+      const el = document.getElementById(row.setting_key === "hero_title" ? "dynamic-site-title" : "");
       if (el) el.textContent = row.setting_value;
     }
   }
