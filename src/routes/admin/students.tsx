@@ -33,9 +33,9 @@ function StudentsAdmin() {
     },
   });
 
-  const filtered = students?.filter(s => 
+  const filtered = students?.filter(s =>
     s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.roll_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    String(s.roll_number ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.mobile?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
