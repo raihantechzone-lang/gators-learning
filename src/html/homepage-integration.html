@@ -129,6 +129,32 @@
     }
   }
 
+  /* ---------- database: homepage notices ---------- */
+  async function loadNotices() {
+    const { data, error } = await supabase.from("notices").select("text").eq("is_active", true).order("created_at", { ascending: false });
+    const board = document.getElementById("notice-board");
+    const track = document.getElementById("notice-track");
+    if (!board || !track) return;
+    if (error || !data || !data.length) { board.classList.add("hidden"); return; }
+    track.textContent = "";
+    data.forEach((n, i) => {
+      const item = document.createElement("span");
+      item.className = "inline-flex items-center gap-3 px-8";
+      item.innerHTML = '<i class="fa-solid fa-bullhorn"></i>';
+      item.append(document.createTextNode(n.text));
+      track.appendChild(item);
+    });
+    const chars = data.reduce((t, n) => t + n.text.length, 0);
+    track.style.setProperty("--notice-duration", Math.max(15, Math.round(chars / 4)) + "s");
+    board.classList.remove("hidden");
+  }
+  loadNotices();
+  setInterval(loadNotices, 60000);
+  window.addEventListener("focus", loadNotices);
+  try {
+    supabase.channel("notices-" + Math.random().toString(36).slice(2)).on("postgres_changes", { event: "*", schema: "public", table: "notices" }, loadNotices).subscribe();
+  } catch (e) {}
+
   /* ---------- database: courses ---------- */
   let allCourses = [];
   let currentFilter = 'all';

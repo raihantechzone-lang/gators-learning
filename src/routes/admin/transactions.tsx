@@ -64,12 +64,8 @@ function TransactionsAdmin() {
         (status === 'verified'
           ? `Hello ${name}, your payment for ${courseTitle} has been verified successfully. You can now access your course.`
           : `Hello ${name}, we couldn't verify your transaction (TrxID: ${trx}) for ${courseTitle}. Please contact support.`);
-      const phone = whatsappPhone(req.profiles?.phone);
-      if (phone) {
-        setWhatsAppPopup({ name, phone, message: text });
-      } else {
-        toast.warning('Payment saved, but the student’s WhatsApp number is incomplete.');
-      }
+      const raw = req.profiles?.phone || req.profiles?.whatsapp || req.profiles?.mobile || "";
+      setWhatsAppPopup({ name, phone: String(raw), message: text });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending-enrollments"] });
@@ -173,8 +169,15 @@ function TransactionsAdmin() {
             </div>
             <p className="text-sm text-slate-600">
               Send to <span className="font-bold text-slate-900">{whatsAppPopup.name}</span>
-              <span className="block font-mono text-emerald-600 font-bold mt-1">+{whatsAppPopup.phone}</span>
             </p>
+            <input
+              aria-label="WhatsApp number"
+              placeholder="01XXXXXXXXX"
+              className="mt-2 w-full rounded-xl border border-slate-200 p-3 font-mono text-sm"
+              value={whatsAppPopup.phone}
+              onChange={(e) => setWhatsAppPopup({ ...whatsAppPopup, phone: e.target.value })}
+            />
+            {!whatsappPhone(whatsAppPopup.phone) && <p className="mt-1 text-xs text-rose-500">Enter the student's number like 01XXXXXXXXX</p>}
             <textarea
               className="mt-4 w-full h-32 rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               value={whatsAppPopup.message}
@@ -182,11 +185,12 @@ function TransactionsAdmin() {
             />
             <button
               type="button"
+              disabled={!whatsappPhone(whatsAppPopup.phone)}
               onClick={() => {
-                window.open(`https://wa.me/${whatsAppPopup.phone}?text=${encodeURIComponent(whatsAppPopup.message)}`, '_blank');
+                window.open(`https://wa.me/${whatsappPhone(whatsAppPopup.phone)}?text=${encodeURIComponent(whatsAppPopup.message)}`, '_blank');
                 setWhatsAppPopup(null);
               }}
-              className="mt-4 w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition"
+              className="mt-4 w-full py-3 rounded-xl disabled:opacity-50 bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition"
             >
               Send via WhatsApp
             </button>

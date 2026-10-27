@@ -27,9 +27,11 @@ import { Route as AdminAttendanceRouteImport } from './routes/admin/attendance'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminCertificatesRouteImport } from './routes/admin/certificates'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
+import { Route as AdminCourseVerificationRouteImport } from './routes/admin/course-verification'
 import { Route as AdminCoursesRouteImport } from './routes/admin/courses'
 import { Route as AdminEarningsRouteImport } from './routes/admin/earnings'
 import { Route as AdminEnrollmentsRouteImport } from './routes/admin/enrollments'
+import { Route as AdminNoticesRouteImport } from './routes/admin/notices'
 import { Route as AdminResultsRouteImport } from './routes/admin/results'
 import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -140,6 +142,11 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/content',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCourseVerificationRoute = AdminCourseVerificationRouteImport.update({
+  id: '/course-verification',
+  path: '/course-verification',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCoursesRoute = AdminCoursesRouteImport.update({
   id: '/courses',
   path: '/courses',
@@ -153,6 +160,11 @@ const AdminEarningsRoute = AdminEarningsRouteImport.update({
 const AdminEnrollmentsRoute = AdminEnrollmentsRouteImport.update({
   id: '/enrollments',
   path: '/enrollments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNoticesRoute = AdminNoticesRouteImport.update({
+  id: '/notices',
+  path: '/notices',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminResultsRoute = AdminResultsRouteImport.update({
@@ -270,9 +282,11 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/course-verification': typeof AdminCourseVerificationRoute
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/earnings': typeof AdminEarningsRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
+  '/admin/notices': typeof AdminNoticesRoute
   '/admin/results': typeof AdminResultsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -311,9 +325,11 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/course-verification': typeof AdminCourseVerificationRoute
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/earnings': typeof AdminEarningsRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
+  '/admin/notices': typeof AdminNoticesRoute
   '/admin/results': typeof AdminResultsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -354,9 +370,11 @@ export interface FileRoutesById {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/course-verification': typeof AdminCourseVerificationRoute
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/earnings': typeof AdminEarningsRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
+  '/admin/notices': typeof AdminNoticesRoute
   '/admin/results': typeof AdminResultsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -398,9 +416,11 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/certificates'
     | '/admin/content'
+    | '/admin/course-verification'
     | '/admin/courses'
     | '/admin/earnings'
     | '/admin/enrollments'
+    | '/admin/notices'
     | '/admin/results'
     | '/admin/reviews'
     | '/admin/settings'
@@ -439,9 +459,11 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/certificates'
     | '/admin/content'
+    | '/admin/course-verification'
     | '/admin/courses'
     | '/admin/earnings'
     | '/admin/enrollments'
+    | '/admin/notices'
     | '/admin/results'
     | '/admin/reviews'
     | '/admin/settings'
@@ -481,9 +503,11 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/certificates'
     | '/admin/content'
+    | '/admin/course-verification'
     | '/admin/courses'
     | '/admin/earnings'
     | '/admin/enrollments'
+    | '/admin/notices'
     | '/admin/results'
     | '/admin/reviews'
     | '/admin/settings'
@@ -656,6 +680,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/course-verification': {
+      id: '/admin/course-verification'
+      path: '/course-verification'
+      fullPath: '/admin/course-verification'
+      preLoaderRoute: typeof AdminCourseVerificationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/courses': {
       id: '/admin/courses'
       path: '/courses'
@@ -675,6 +706,13 @@ declare module '@tanstack/react-router' {
       path: '/enrollments'
       fullPath: '/admin/enrollments'
       preLoaderRoute: typeof AdminEnrollmentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/notices': {
+      id: '/admin/notices'
+      path: '/notices'
+      fullPath: '/admin/notices'
+      preLoaderRoute: typeof AdminNoticesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/results': {
@@ -818,9 +856,11 @@ interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCertificatesRoute: typeof AdminCertificatesRoute
   AdminContentRoute: typeof AdminContentRoute
+  AdminCourseVerificationRoute: typeof AdminCourseVerificationRoute
   AdminCoursesRoute: typeof AdminCoursesRoute
   AdminEarningsRoute: typeof AdminEarningsRoute
   AdminEnrollmentsRoute: typeof AdminEnrollmentsRoute
+  AdminNoticesRoute: typeof AdminNoticesRoute
   AdminResultsRoute: typeof AdminResultsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -835,9 +875,11 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCertificatesRoute: AdminCertificatesRoute,
   AdminContentRoute: AdminContentRoute,
+  AdminCourseVerificationRoute: AdminCourseVerificationRoute,
   AdminCoursesRoute: AdminCoursesRoute,
   AdminEarningsRoute: AdminEarningsRoute,
   AdminEnrollmentsRoute: AdminEnrollmentsRoute,
+  AdminNoticesRoute: AdminNoticesRoute,
   AdminResultsRoute: AdminResultsRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSettingsRoute: AdminSettingsRoute,

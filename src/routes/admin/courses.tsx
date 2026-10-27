@@ -18,9 +18,6 @@ const EXTRA_FIELDS = [
   { key: "subtitle", label: "Subtitle (ছোট বিবরণ)", hint: "এক লাইনে কোর্সের সারসংক্ষেপ", multi: false },
   { key: "highlights", label: "এই কোর্সে যা পাবেন", hint: "প্রতি লাইনে একটি পয়েন্ট", multi: true },
   { key: "long_description", label: "কোর্সটি নিয়ে বিস্তারিত", hint: "বিস্তারিত বিবরণ", multi: true },
-  { key: "instructor_name", label: "শিক্ষকের নাম", hint: "যেমন: Sabbir Ahmed", multi: false },
-  { key: "instructor_title", label: "শিক্ষকের পদবি", hint: "যেমন: Digital Marketing Expert", multi: false },
-  { key: "instructor_photo", label: "শিক্ষকের ছবির লিংক", hint: "https://...", multi: false },
   { key: "benefits", label: "ভর্তি হলে যা যা পাচ্ছেন", hint: "প্রতি লাইনে: শিরোনাম | ছোট বর্ণনা", multi: true },
   { key: "faqs", label: "সচরাচর জিজ্ঞাসিত প্রশ্ন", hint: "প্রতি লাইনে: প্রশ্ন | উত্তর", multi: true },
 ] as const;
@@ -51,6 +48,7 @@ function CoursesAdmin() {
     thumbnail_url: "",
     is_published: true,
     certificate_enabled: false,
+    enrollment_count: "",
     ...EMPTY_EXTRA
   });
 
@@ -120,6 +118,7 @@ function CoursesAdmin() {
         thumbnail_url: currentThumbnailUrl || null,
         is_published: !!formData.is_published,
         certificate_enabled: !!formData.certificate_enabled,
+        ...(formData.enrollment_count !== "" ? { enrollment_count: Math.max(0, parseInt(formData.enrollment_count) || 0) } : {}),
         ...Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, formData[f.key]?.trim() || null])),
       };
 
@@ -182,6 +181,7 @@ function CoursesAdmin() {
         thumbnail_url: "",
         is_published: true,
         certificate_enabled: false,
+        enrollment_count: "",
         ...EMPTY_EXTRA
       });
     } catch (err: any) {
@@ -210,10 +210,7 @@ function CoursesAdmin() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("courses")
-        .select(`
-          *,
-          categories:category (name)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -280,6 +277,7 @@ function CoursesAdmin() {
               thumbnail_url: "",
               is_published: true,
               certificate_enabled: false,
+              enrollment_count: "",
               ...EMPTY_EXTRA
             });
             setSelectedFile(null);
@@ -376,6 +374,29 @@ function CoursesAdmin() {
                 </div>
               </div>
 
+              <div className="flex items-center gap-3 py-2">
+                <input
+                  type="checkbox"
+                  id="free_course"
+                  className="w-5 h-5 rounded border-slate-200 text-brand focus:ring-brand"
+                  checked={parseFloat(formData.price) === 0}
+                  onChange={e => setFormData({ ...formData, price: e.target.checked ? "0" : "", discount_price: e.target.checked ? "0" : formData.discount_price })}
+                />
+                <label htmlFor="free_course" className="text-sm font-bold text-slate-700">Free course (no payment needed)</label>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1">Enrollment count (starting number)</label>
+                <input
+                  type="number" min={0}
+                  placeholder="0"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
+                  value={formData.enrollment_count}
+                  onChange={e => setFormData({ ...formData, enrollment_count: e.target.value })}
+                />
+                <p className="text-[10px] text-slate-400 ml-1">Page shows this number + every new enrollment automatically.</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1">Original Price</label>
@@ -447,7 +468,10 @@ function CoursesAdmin() {
                 <p className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1 pt-3">Enrollment page sections (খালি রাখলে দেখাবে না)</p>
                 {EXTRA_FIELDS.map(f => (
                   <div key={f.key} className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 ml-1">{f.label}</label>
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-xs font-bold text-slate-500 ml-1">{f.label}</label>
+                      {f.multi && f.key !== "long_description" && <TemplatePicker kind={f.key} value={formData[f.key]} onPick={v => setFormData({ ...formData, [f.key]: v })} />}
+                    </div>
                     {f.multi ? (
                       <textarea
                         className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium min-h-[80px]"
@@ -522,7 +546,8 @@ function CoursesAdmin() {
                 <div className="flex items-center justify-between mb-4">
                    <div className="flex flex-col">
                      <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Price</span>
-                     <span className="font-black text-slate-900 text-lg">৳{course.price}</span>
+                     <span className="font-black text-slate-900 text-lg">{Number(course.price) === 0 ? "Free" : `৳${course.price}`}</span>
+                     <span className="text-xs text-slate-500">{(course as any).enrollment_count ?? 0}+ enrolled (base)</span>
                    </div>
                    {course.discount_price && (
                      <div className="flex flex-col text-right">
@@ -547,6 +572,7 @@ function CoursesAdmin() {
                             thumbnail_url: course.thumbnail_url || "",
                             is_published: course.is_published,
                             certificate_enabled: !!(course as any).certificate_enabled,
+                            enrollment_count: (course as any).enrollment_count != null ? String((course as any).enrollment_count) : "",
                             ...Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, (course as any)[f.key] || ""])) as typeof EMPTY_EXTRA
                           });
                           setSelectedFile(null);
@@ -554,7 +580,7 @@ function CoursesAdmin() {
                         }}
                         className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition ${course.is_published ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-600'}`}
                       >
-                        <Edit2 size={16} /> {course.is_published ? 'Published' : 'Draft'}
+                        <Edit2 size={16} /> Edit · {course.is_published ? 'Published' : 'Draft'}
                       </button>
                       <label className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-indigo-50 text-indigo-600 cursor-pointer hover:bg-indigo-100 transition">
                         {uploadingId === course.id ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
@@ -594,6 +620,58 @@ function CoursesAdmin() {
           ))
         )}
       </div>
+    </div>
+  );
+}
+
+type ContentTemplate = { id: string; kind: string; name: string; body: string };
+
+function TemplatePicker({ kind, value, onPick }: { kind: string; value: string; onPick: (v: string) => void }) {
+  const queryClient = useQueryClient();
+  const templates = useQuery({
+    queryKey: ["content-templates"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("content_templates").select("id, kind, name, body").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as ContentTemplate[];
+    },
+  });
+  const list = templates.data?.filter(t => t.kind === kind) || [];
+  const save = async () => {
+    if (!value.trim()) return toast.error("Write something first, then save it as a template.");
+    const name = window.prompt("Template name:");
+    if (!name?.trim()) return;
+    const { error } = await (supabase as any).from("content_templates").insert({ kind, name: name.trim(), body: value });
+    if (error) return toast.error(`Template not saved: ${error.message}`);
+    toast.success("Template saved");
+    queryClient.invalidateQueries({ queryKey: ["content-templates"] });
+  };
+  const remove = async (id: string) => {
+    if (!window.confirm("Delete this template?")) return;
+    const { error } = await (supabase as any).from("content_templates").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    queryClient.invalidateQueries({ queryKey: ["content-templates"] });
+  };
+  return (
+    <div className="flex items-center gap-1">
+      {list.length > 0 && (
+        <select
+          aria-label="Use template"
+          className="text-xs rounded-lg bg-slate-100 px-2 py-1"
+          value=""
+          onChange={e => { const t = list.find(x => x.id === e.target.value); if (t) onPick(t.body); }}
+        >
+          <option value="">Use template…</option>
+          {list.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+      )}
+      {list.length > 0 && (
+        <select aria-label="Delete template" className="text-xs rounded-lg bg-rose-50 text-rose-600 px-2 py-1" value="" onChange={e => e.target.value && remove(e.target.value)}>
+          <option value="">Delete…</option>
+          {list.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+      )}
+      <button type="button" onClick={save} className="text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 px-2 py-1">Save as template</button>
     </div>
   );
 }

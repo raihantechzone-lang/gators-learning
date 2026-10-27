@@ -199,6 +199,7 @@
                     <div class="flex items-center gap-1.5 text-slate-500 text-sm font-medium">
                         <i class="fa-solid fa-star text-amber-400"></i> <span id="course-rating">লোড হচ্ছে...</span>
                     </div>
+                    <div id="course-enrolled" class="hidden items-center gap-1.5 text-brand-600 text-sm font-semibold"><i class="fa-solid fa-user-graduate"></i> <span></span></div>
                 </div>
                 <h1 class="text-3xl sm:text-4xl font-bold text-surface-900 font-bengali leading-tight" id="course-title">লোড হচ্ছে...</h1>
                 <div id="course-subtitle" class="text-slate-500 leading-relaxed text-lg hidden"></div>
@@ -243,7 +244,7 @@
                 </section>
 
                 <section>
-                    <h3 class="sec-title">পুরো সিলেবাস</h3>
+                    <h3 class="sec-title">কোর্স কনটেন্ট</h3>
                     <div class="bg-white border border-slate-200/60 rounded-3xl overflow-hidden shadow-sm">
                         <div class="bg-slate-50 px-6 py-4 border-b border-slate-200/60 flex justify-between items-center">
                             <span class="text-sm font-medium text-slate-500" id="course-content-count">লোড হচ্ছে...</span>
@@ -292,7 +293,21 @@
     </main>
 
     <script>
+    window.renderCourseEnrollCount = async function (course) {
+        const box = document.getElementById('course-enrolled');
+        if (!box || !window.supabase) return;
+        const paint = async () => {
+            const { count } = await window.supabase.from('enrollments').select('id', { count: 'exact', head: true }).eq('course_id', course.id);
+            const total = (Number(course.enrollment_count) || 0) + (count || 0);
+            box.querySelector('span').textContent = `${total.toLocaleString('bn-BD')} জন ভর্তি হয়েছেন`;
+            box.classList.remove('hidden'); box.classList.add('flex');
+        };
+        await paint();
+        try { window.supabase.channel('enroll-count-' + Math.random().toString(36).slice(2)).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'enrollments', filter: 'course_id=eq.' + course.id }, paint).subscribe(); } catch (e) {}
+        setInterval(paint, 30000);
+    };
     window.renderCourseExtras = function (course) {
+        window.renderCourseEnrollCount(course);
         const lines = (v) => String(v || '').split('\n').map(s => s.trim()).filter(Boolean);
         const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         const show = (id) => document.getElementById(id)?.classList.remove('hidden');
