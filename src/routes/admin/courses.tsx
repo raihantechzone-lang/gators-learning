@@ -11,6 +11,19 @@ export const Route = createFileRoute("/admin/courses")({
   component: CoursesAdmin,
 });
 
+const EXTRA_FIELDS = [
+  { key: "subtitle", label: "Subtitle (ছোট বিবরণ)", hint: "এক লাইনে কোর্সের সারসংক্ষেপ", multi: false },
+  { key: "highlights", label: "এই কোর্সে যা পাবেন", hint: "প্রতি লাইনে একটি পয়েন্ট", multi: true },
+  { key: "long_description", label: "কোর্সটি নিয়ে বিস্তারিত", hint: "বিস্তারিত বিবরণ", multi: true },
+  { key: "instructor_name", label: "শিক্ষকের নাম", hint: "যেমন: Sabbir Ahmed", multi: false },
+  { key: "instructor_title", label: "শিক্ষকের পদবি", hint: "যেমন: Digital Marketing Expert", multi: false },
+  { key: "instructor_photo", label: "শিক্ষকের ছবির লিংক", hint: "https://...", multi: false },
+  { key: "benefits", label: "ভর্তি হলে যা যা পাচ্ছেন", hint: "প্রতি লাইনে: শিরোনাম | ছোট বর্ণনা", multi: true },
+  { key: "faqs", label: "সচরাচর জিজ্ঞাসিত প্রশ্ন", hint: "প্রতি লাইনে: প্রশ্ন | উত্তর", multi: true },
+] as const;
+type ExtraKey = (typeof EXTRA_FIELDS)[number]["key"];
+const EMPTY_EXTRA = Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, ""])) as Record<ExtraKey, string>;
+
 function CoursesAdmin() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
@@ -27,7 +40,8 @@ function CoursesAdmin() {
     category: "",
     thumbnail_url: "",
     is_published: true,
-    certificate_enabled: false
+    certificate_enabled: false,
+    ...EMPTY_EXTRA
   });
 
   const handleCourseSubmit = async () => {
@@ -96,6 +110,7 @@ function CoursesAdmin() {
         thumbnail_url: currentThumbnailUrl || null,
         is_published: !!formData.is_published,
         certificate_enabled: !!formData.certificate_enabled,
+        ...Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, formData[f.key]?.trim() || null])),
       };
 
       console.log("[CourseSubmit] Payload:", JSON.stringify(payload, null, 2));
@@ -149,7 +164,8 @@ function CoursesAdmin() {
         category: categories && categories.length > 0 ? categories[0].name : "",
         thumbnail_url: "",
         is_published: true,
-        certificate_enabled: false
+        certificate_enabled: false,
+        ...EMPTY_EXTRA
       });
     } catch (err: any) {
       console.error("[CourseSubmit] Catch block triggered:", err);
@@ -245,7 +261,8 @@ function CoursesAdmin() {
               category: categories && categories.length > 0 ? categories[0].name : "",
               thumbnail_url: "",
               is_published: true,
-              certificate_enabled: false
+              certificate_enabled: false,
+              ...EMPTY_EXTRA
             });
             setSelectedFile(null);
             setIsModalOpen(true);
@@ -400,6 +417,30 @@ function CoursesAdmin() {
                 <label htmlFor="certificate_enabled" className="text-sm font-bold text-slate-700">Certificate available (unlocks at 100% completion)</label>
               </div>
 
+              <div className="space-y-4 pt-2 border-t border-slate-100">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1 pt-3">Enrollment page sections (খালি রাখলে দেখাবে না)</p>
+                {EXTRA_FIELDS.map(f => (
+                  <div key={f.key} className="space-y-1">
+                    <label className="text-xs font-bold text-slate-500 ml-1">{f.label}</label>
+                    {f.multi ? (
+                      <textarea
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium min-h-[80px]"
+                        placeholder={f.hint}
+                        value={formData[f.key]}
+                        onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                      />
+                    ) : (
+                      <input
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
+                        placeholder={f.hint}
+                        value={formData[f.key]}
+                        onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+
               <button 
                 type="button" 
                 onClick={handleCourseSubmit} 
@@ -477,7 +518,8 @@ function CoursesAdmin() {
                             category: course.category || "",
                             thumbnail_url: course.thumbnail_url || "",
                             is_published: course.is_published,
-                            certificate_enabled: !!(course as any).certificate_enabled
+                            certificate_enabled: !!(course as any).certificate_enabled,
+                            ...Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, (course as any)[f.key] || ""])) as typeof EMPTY_EXTRA
                           });
                           setSelectedFile(null);
                           setIsModalOpen(true);
