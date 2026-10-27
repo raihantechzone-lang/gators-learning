@@ -20,3 +20,6 @@
 - [x] Add admin-issued teacher name/password accounts, teacher login and corrected setup SQL; five tests pass and incorrect-login UI verified.
 - [ ] Verify teacher account creation and successful name/password login: updated login SQL must be run on the external backend; authenticated admin testing is unavailable.
 - [ ] Activate and verify teacher creation → assignment → actual teacher upload: waits on user running Teacher setup SQL and unavailable external authenticated admin/teacher testing sessions.
+- [ ] Repair teacher creation admin authorization without weakening access checks.
+- [ ] Replace teacher photo URL field with uploaded-photo preview and verify teacher removal.
+- [ ] Remove Teacher login setup SQL text/link from admin Teachers.
