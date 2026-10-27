@@ -49,7 +49,6 @@ function CoursesAdmin() {
     is_published: true,
     certificate_enabled: false,
     enrollment_count: "",
-    enrollment_count: "",
     ...EMPTY_EXTRA
   });
 

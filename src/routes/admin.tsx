@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate, Link } from "@tanstack/react-rout
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { AdminLogin } from "@/components/admin/AdminLogin";
-import { LayoutDashboard, BookOpen, Users, Settings, LogOut, Star, FileText, Award, CalendarCheck, UserPlus, Medal, DollarSign, ShieldCheck, Folders } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, Settings, LogOut, Star, FileText, Award, CalendarCheck, UserPlus, Medal, DollarSign, ShieldCheck, Folders, BadgeCheck, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { teacherMeta } from '@/lib/teachers';
 
@@ -86,6 +86,8 @@ function AdminGuard() {
     { name: "Send Certificates", href: "/admin/certificates", icon: Award },
     { name: "Course Earnings", href: "/admin/earnings", icon: DollarSign },
     { name: "Verification", href: "/admin/transactions", icon: ShieldCheck },
+    { name: "Course Verification", href: "/admin/course-verification", icon: BadgeCheck },
+    { name: "Notice", href: "/admin/notices", icon: Megaphone },
     { name: "Reviews & Ads", href: "/admin/reviews", icon: Star },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
