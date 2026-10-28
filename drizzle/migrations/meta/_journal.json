@@ -15,6 +15,13 @@
       "when": 1793114002662,
       "tag": "0001_restore_authenticated_policy_function_execution",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793171389049,
+      "tag": "0002_enforce_role_owner_and_paid_lesson_security",
+      "breakpoints": true
     }
   ]
 }
