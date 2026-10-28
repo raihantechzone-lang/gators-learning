@@ -36,15 +36,8 @@ export default function RefundsAdmin({ notify }: { notify: Notify }) {
   }, []);
 
   const approve = async (r: RefundRow) => {
-    const { error } = await supabase
-      .from("refund_requests")
-      .update({ status: "approved", admin_note: notes[r.id] ?? r.admin_note, processed_at: new Date().toISOString() })
-      .eq("id", r.id);
+    const { error } = await supabase.rpc('approve_course_refund', { request_id: r.id, note: notes[r.id] ?? r.admin_note ?? '' });
     if (error) return notify(error.message);
-    if (r.invoice_id) await supabase.from("invoices").update({ status: "refunded" }).eq("id", r.invoice_id);
-    if (r.course_id) {
-      await supabase.from("enrollments").update({ status: "refunded" }).eq("profile_id", r.user_id).eq("course_id", r.course_id);
-    }
     notify("Refund approved");
     load();
   };
