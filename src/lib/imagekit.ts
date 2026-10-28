@@ -4,7 +4,7 @@ export const IMAGEKIT_PUBLIC_KEY = "public_wiJcFvuyvL/iVi43yyBZFMijf1g=";
 
 /** Uploads a file to ImageKit and returns its public URL. */
 export async function uploadToImageKit(file: File, folder = "/ads", signedAuth?: { token: string; expire: number; signature: string }): Promise<string> {
-  const auth = signedAuth ?? await getImageKitAuth();
+  const auth = signedAuth ?? await getImageKitAuth({data:{folder}});
 
   const fd = new FormData();
   fd.append("file", file);

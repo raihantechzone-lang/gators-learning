@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Lock, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-import { verifyAdminAccess } from '@/lib/admin-access';
+import { getPanelRole } from '@/lib/panel-permissions';
 import { Button } from '@/components/ui/button';
 
 export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
@@ -34,9 +34,9 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
         return;
       }
 
-      if (!await verifyAdminAccess()) {
+      if (!await getPanelRole(supabase)) {
         setError(true);
-        setErrorMessage("এই অ্যাকাউন্টে অ্যাডমিনের অনুমতি নেই।");
+        setErrorMessage("এই অ্যাকাউন্টে অ্যাডমিন বা মডারেটরের অনুমতি নেই।");
         await supabase.auth.signOut();
       } else {
         onSuccess();
