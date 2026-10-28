@@ -2,6 +2,22 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { getRequest, setResponseHeader } from '@tanstack/react-start/server';
+
+const securityHeaders = createMiddleware().server(async ({ next }) => {
+  const request = getRequest();
+  const path = new URL(request.url).pathname;
+  if (/^\/(?:\.env|\.git|src\/|supabase\/|drizzle\/)/.test(path) && import.meta.env.PROD) {
+    return new Response('Not found', { status: 404 });
+  }
+  setResponseHeader('X-Content-Type-Options', 'nosniff');
+  setResponseHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  setResponseHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  setResponseHeader('Content-Security-Policy', "object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; frame-ancestors 'self' https://*.lovable.app https://*.lovableproject.com https://lovable.dev https://*.lovable.dev");
+  if (new URL(request.url).protocol === 'https:') setResponseHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  if (/^\/(admin|dashboard|teacher)(\/|$)/.test(path)) setResponseHeader('Cache-Control', 'private, no-store');
+  return next();
+});
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -27,6 +43,6 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [errorMiddleware, securityHeaders, csrfMiddleware],
 }));
 // Triggering redeploy at Tue Aug 18 17:31:26 UTC 2026

@@ -1,3 +1,5 @@
+import { enrollmentHasAccess } from './public-experience.js';
+
 export interface LessonProgressRecord {
   lesson_id: string;
   course_id: string;
@@ -20,8 +22,7 @@ export function courseProgress(lessonIds: string[], records: LessonProgressRecor
 }
 
 export function hasCourseAccess(enrollment: { status?: string; payment_status?: string | null }) {
-  if (enrollment.payment_status === "verified") return true;
-  return enrollment.status === "active" && enrollment.payment_status == null;
+  return enrollmentHasAccess(enrollment);
 }
 
 export function readLocalProgress(userId: string): LessonProgressRecord[] {

@@ -4,6 +4,13 @@ import { mergeProgress, reconcileProgress, courseProgress, hasCourseAccess, prog
 import { paymentVerificationUpdate } from "./enrollment-payment";
 
 describe("Student dashboard rules", () => {
+  it('revokes refunded access even if payment was verified', () => {
+    assert.equal(hasCourseAccess({ status: 'refunded', payment_status: 'verified' }), false);
+    assert.equal(hasCourseAccess({ status: 'active', payment_status: 'refunded' }), false);
+  });
+  it('revokes canceled access even if payment was verified', () => {
+    assert.equal(hasCourseAccess({ status: 'cancelled', payment_status: 'verified' }), false);
+  });
   it("counts unwatched lessons as zero in real course progress", () => {
     assert.equal(courseProgress(["a", "b"], [{ lesson_id: "a", course_id: "c", progress_percent: 60, last_position_seconds: 60, duration_seconds: 100, completed: false }]), 30);
   });

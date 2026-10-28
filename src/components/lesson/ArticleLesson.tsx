@@ -5,6 +5,7 @@ export function ArticleLesson({ html }: { html: string | null | undefined }) {
 
   useEffect(() => {
     let alive = true;
+    setClean(null);
     if (!html) return;
     import("dompurify").then(({ default: DOMPurify }) => {
       if (!alive) return;
@@ -12,6 +13,7 @@ export function ArticleLesson({ html }: { html: string | null | undefined }) {
         DOMPurify.sanitize(html, {
           FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form", "input"],
           FORBID_ATTR: ["style"],
+          ALLOWED_URI_REGEXP: /^https:\/\//i,
         }),
       );
     });

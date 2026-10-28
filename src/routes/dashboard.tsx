@@ -7,7 +7,7 @@ import {
   ChevronRight, Lock, CheckCircle2, Download, Award, User, LogOut, Camera, Video, PenSquare, Play
 } from "lucide-react";
 import type { Course, Enrollment, CourseContent } from "@/lib/data";
-import { isLessonLive } from "@/lib/public-experience.js";
+import { isLessonLive, loadVisibleLessons, safeWebUrl } from "@/lib/public-experience.js";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { courseProgress, hasCourseAccess, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
@@ -60,7 +60,7 @@ function DashboardPage() {
       const [enc, courses, contents, saved] = await Promise.all([
         supabase.from("enrollments").select("*, courses(*)").eq("profile_id", user.id),
         supabase.from("courses").select("*").eq("is_published", true),
-        supabase.from("course_contents").select("*"),
+        loadVisibleLessons(supabase),
         loadStudentProgress(user.id).catch(() => readLocalProgress(user.id)),
       ]);
       setDataError(enc.error?.message || courses.error?.message || contents.error?.message || "");
@@ -335,7 +335,7 @@ function DashboardPage() {
                      <span className="text-destructive text-xs font-bold">LIVE</span>
                      <h4 className="text-ink font-bold">{lesson.title}</h4>
                      <p className="text-sm text-ink-muted">{catalog.find(c => c.id === lesson.course_id)?.title}</p>
-                     <Button asChild variant="destructive"><a href={lesson.live_url || undefined} target="_blank" rel="noopener noreferrer"><Video size={16} /> লাইভ ক্লাসে যোগ দিন</a></Button>
+                     <Button asChild variant="destructive"><a href={safeWebUrl(lesson.live_url) || undefined} target="_blank" rel="noopener noreferrer"><Video size={16} /> লাইভ ক্লাসে যোগ দিন</a></Button>
                    </div>
                  </div>)}
                </div>
@@ -347,7 +347,7 @@ function DashboardPage() {
              <AcademicPanel
                mode={activeTab}
                userId={user.id}
-               courses={[...new Map(approved.filter(e => e.courses).map(e => [e.course_id, { id: e.course_id, title: e.courses!.title }])).values()]}
+               courses={[...new Map(approved.flatMap(e => e.courses ? [[e.course_id, { id: e.course_id, title: e.courses.title }] as const] : [])).values()]}
                lessons={lessons as any}
              />
            )}

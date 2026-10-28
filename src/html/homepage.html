@@ -1211,8 +1211,8 @@
             // Set dynamic title and subtitle from database settings or default
             const titleEl = document.getElementById('dynamic-site-title');
             const subtitleEl = document.getElementById('dynamic-site-subtitle');
-            if (titleEl) titleEl.innerHTML = db.siteSettings.title;
-            if (subtitleEl) subtitleEl.innerHTML = db.siteSettings.subtitle;
+            if (titleEl) titleEl.textContent = db.siteSettings.title;
+            if (subtitleEl) subtitleEl.textContent = db.siteSettings.subtitle;
             
             // Initial render - these will be replaced by real-time data from integration script
             renderDynamicCourses();
@@ -1256,14 +1256,14 @@
                 const cardHTML = `
                     <div class="course-card-wrapper ${__e(course.category)} bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
                         <div class="relative w-full h-44 cursor-pointer overflow-hidden group">
-                            <img src="${thumbImage}" loading="lazy" alt="Cover" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
+                            <img src="${__e(window.safeWebUrl?.(thumbImage) || '')}" loading="lazy" alt="Cover" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             
                             ${savingAmount > 0 ? `<div class="absolute top-0 right-0 bg-yellow-400 text-black text-[11px] font-extrabold px-3 py-1 rounded-bl-lg z-10 shadow-sm">${discountPercentage}% ছাড়</div>` : ''}
                             
                             <div class="absolute top-2 left-2 bg-pink-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full z-10 uppercase tracking-widest shadow-sm">${__e(course.category)} Bundle</div>
                             <div class="absolute bottom-3 left-0 w-full text-center z-10">
-                                <span class="bg-black/70 backdrop-blur text-yellow-400 border border-yellow-500/50 text-[11px] font-bold px-4 py-1 rounded-full shadow-lg inline-block truncate max-w-[90%]">${course.name}</span>
+                                <span class="bg-black/70 backdrop-blur text-yellow-400 border border-yellow-500/50 text-[11px] font-bold px-4 py-1 rounded-full shadow-lg inline-block truncate max-w-[90%]">${__e(course.name)}</span>
                             </div>
                         </div>
                         
@@ -1273,8 +1273,8 @@
                             </h3>
                             
                             <div class="flex items-center gap-2 mb-4">
-                                <span class="text-2xl font-black text-rs-green">৳${course.discountPrice}</span>
-                                ${savingAmount > 0 ? `<span class="text-sm text-gray-400 line-through font-semibold">৳${course.price}</span>
+                                <span class="text-2xl font-black text-rs-green">৳${__e(course.discountPrice)}</span>
+                                ${savingAmount > 0 ? `<span class="text-sm text-gray-400 line-through font-semibold">৳${__e(course.price)}</span>
                                 <span class="text-[10px] font-bold text-rs-green border border-rs-green px-1.5 py-0.5 rounded ml-auto bg-emerald-50">৳${savingAmount} ছাড়</span>` : ''}
                             </div>
                             

@@ -1,0 +1,3 @@
+DROP POLICY IF EXISTS enrolled_lessons ON public.course_contents;
+CREATE POLICY enrolled_lessons ON public.course_contents FOR SELECT TO authenticated USING (EXISTS(SELECT 1 FROM public.enrollments e WHERE e.profile_id=auth.uid() AND e.course_id=course_contents.course_id AND lower(coalesce(e.status,'')) NOT IN ('refunded','cancelled','canceled','revoked','expired') AND e.status='active'));
+COMMENT ON POLICY enrolled_lessons ON public.course_contents IS 'Managed Cloud only; active enrollments with revoked states excluded. Connected external application requires separately supplied security SQL.';

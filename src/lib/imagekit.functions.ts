@@ -1,15 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
+import { requireUploadAccess } from './upload-access';
 
 /**
  * ImageKit browser uploads must be signed server-side.
  * Returns { token, expire, signature } for the upload API.
  */
-export const getImageKitAuth = createServerFn({ method: "GET" }).handler(async () => {
+export const getImageKitAuth = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  await requireUploadAccess(context.supabase);
   const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
   if (!privateKey) throw new Error("IMAGEKIT_PRIVATE_KEY is not configured");
 
   const token = crypto.randomUUID();
-  const expire = Math.floor(Date.now() / 1000) + 60 * 10;
+  const expire = Math.floor(Date.now() / 1000) + 60;
 
   const key = await crypto.subtle.importKey(
     "raw",

@@ -15,6 +15,7 @@ import { isLiveLinkActive, youtubeId, type Course, type CourseContent } from "@/
 import { hasCourseAccess, lessonReviewTag, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
 import { loadStudentProgress, saveStudentProgress } from "@/lib/progress-sync";
 import { toast } from "sonner";
+import { loadVisibleLessons, safeWebUrl } from '@/lib/public-experience.js';
 
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
@@ -103,7 +104,7 @@ function CourseDetailPage() {
     const load = async () => {
       const [{ data: c }, { data: list }, { data: secs }] = await Promise.all([
         supabase.from("courses").select("*").eq("id", courseId).maybeSingle(),
-        supabase.from("course_contents").select("*").eq("course_id", courseId).order("position", { ascending: true }).order("created_at", { ascending: true }),
+        loadVisibleLessons(supabase, courseId),
         supabase.from("course_sections").select("*").eq("course_id", courseId).order("position", { ascending: true }),
       ]);
       if (cancelled) return;
@@ -135,7 +136,7 @@ function CourseDetailPage() {
       window.removeEventListener("focus", load);
       supabase.removeChannel(channel);
     };
-  }, [courseId]);
+  }, [courseId, user?.id]);
 
   useEffect(() => {
     if (!user) {
@@ -158,11 +159,15 @@ function CourseDetailPage() {
       setCertificateUrl(list.find((en) => en.certificate_url)?.certificate_url ?? null);
     };
     load();
+    const refreshTimer = window.setInterval(load, 15000);
+    window.addEventListener('focus', load);
     const channel = supabase
       .channel(`enroll-${courseId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "enrollments" }, () => load())
       .subscribe();
     return () => {
+      clearInterval(refreshTimer);
+      window.removeEventListener('focus', load);
       supabase.removeChannel(channel);
     };
   }, [user, courseId]);
@@ -252,15 +257,17 @@ function CourseDetailPage() {
     const load = async () => {
       const { data } = await supabase
         .from("reviews")
-        .select("id, profile_id, rating, comment, is_approved, created_at, profiles(full_name)")
+        .select("id, profile_id, rating, comment, is_approved, created_at")
         .eq("course_id", courseId)
         .like("comment", `${lessonReviewTag(activeLessonId ?? "")}%`)
         .order("created_at", { ascending: false });
       if (cancelled) return;
+      const names = await supabase.rpc('public_reviewer_names');
+      const byId = new Map((names.data || []).map((p: any) => [p.id, p.full_name]));
       const formatted = (data || []).map((r: any) => ({
         ...r,
         comment: String(r.comment ?? "").slice(lessonReviewTag(activeLessonId ?? "").length),
-        student_name: r.profiles?.full_name || "Student",
+        student_name: byId.get(r.profile_id) || "Student",
         student_photo: null
       }));
       setReviews(formatted as Review[]);
@@ -452,7 +459,7 @@ function CourseDetailPage() {
                 <div className="flex flex-wrap gap-3">
                   {isLiveLinkActive(active) && (
                     <a
-                      href={active.live_url || undefined}
+                      href={safeWebUrl(active.live_url) || undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 rounded-xl bg-destructive text-background text-sm font-bold"
@@ -462,7 +469,7 @@ function CourseDetailPage() {
                   )}
                   {active.pdf_url && (
                     <a
-                      href={active.pdf_url}
+                      href={safeWebUrl(active.pdf_url) || undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 rounded-xl border-2 border-border text-sm font-bold"
@@ -472,7 +479,7 @@ function CourseDetailPage() {
                   )}
                   {active.exam_link && (
                     <a
-                      href={active.exam_link}
+                      href={safeWebUrl(active.exam_link) || undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 rounded-xl bg-brand text-brand-foreground text-sm font-bold"
@@ -662,7 +669,7 @@ function CourseDetailPage() {
               description: course.details ?? undefined,
               provider: { "@type": "Organization", name: "Gators Learning" },
               image: course.thumbnail_url ?? undefined,
-            }),
+            }).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029'),
           }}
         />
       )}
