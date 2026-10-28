@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { uploadToImageKit } from "@/lib/imagekit";
 import { loadTeachers, teacherDb, teacherMeta } from '@/lib/teachers';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog';
+import { normalizeAdminNumber, parseAdminNumber } from '@/lib/admin-input';
 
 export const Route = createFileRoute("/admin/courses")({
   head: () => teacherMeta('Courses Admin', 'Manage course details, enrollment pages and assigned teachers.'),
@@ -53,6 +56,7 @@ function CoursesAdmin() {
   });
 
   const handleCourseSubmit = async () => {
+    let loadingToast: string | number | undefined;
     try {
       console.log("[CourseSubmit] Form values:", formData);
       console.log("[CourseSubmit] Selected file:", selectedFile);
@@ -64,7 +68,7 @@ function CoursesAdmin() {
         return;
       }
 
-      const loadingToast = toast.loading(editingCourse ? "Updating course..." : "Creating course...");
+      loadingToast = toast.loading(editingCourse ? "Updating course..." : "Creating course...");
       setIsSubmitting(true);
 
       console.log("[CourseSubmit] Starting submission flow...");
@@ -81,8 +85,8 @@ function CoursesAdmin() {
       }
       
       // Validate prices as numbers
-      const price = parseFloat(formData.price);
-      const discountPrice = formData.discount_price ? parseFloat(formData.discount_price) : null;
+      const price = parseAdminNumber(formData.price, "Original Price");
+      const discountPrice = formData.discount_price ? parseAdminNumber(formData.discount_price, "Discount Price") : null;
       
       if (isNaN(price)) {
         throw new Error("Original Price must be a valid number");
@@ -118,7 +122,7 @@ function CoursesAdmin() {
         thumbnail_url: currentThumbnailUrl || null,
         is_published: !!formData.is_published,
         certificate_enabled: !!formData.certificate_enabled,
-        ...(formData.enrollment_count !== "" ? { enrollment_count: Math.max(0, parseInt(formData.enrollment_count) || 0) } : {}),
+        ...(formData.enrollment_count !== "" ? { enrollment_count: parseAdminNumber(formData.enrollment_count, "Enrollment count", true) } : {}),
         ...Object.fromEntries(EXTRA_FIELDS.map(f => [f.key, formData[f.key]?.trim() || null])),
       };
 
@@ -159,7 +163,7 @@ function CoursesAdmin() {
         const savedCourseId = result[0]?.id;
         if (!savedCourseId) throw new Error('Course ID is missing.');
         const { error } = await teacherDb.rpc('set_course_teachers', { target_course: savedCourseId, teacher_ids: teacherIds });
-        if (error) throw new Error(`Course saved, but teacher assignment failed: ${error.message}`);
+        if (error) toast.warning(`Course saved; teacher assignment was not saved: ${error.message}`);
         await queryClient.invalidateQueries({ queryKey: ['teacher-assignments'] });
       }
       await Promise.all([
@@ -186,7 +190,7 @@ function CoursesAdmin() {
       });
     } catch (err: any) {
       console.error("[CourseSubmit] Catch block triggered:", err);
-      toast.error(err.message || "An unexpected error occurred", { duration: 6000 });
+      toast.error(err.message || "An unexpected error occurred", { id: loadingToast, duration: 6000 });
     } finally {
       setIsSubmitting(false);
       console.log("[CourseSubmit] Submission process finished.");
@@ -289,16 +293,12 @@ function CoursesAdmin() {
         </button>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90dvh] animate-in zoom-in-95 duration-200">
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent aria-describedby={undefined} className="max-h-[90dvh] overflow-y-auto w-[calc(100%-2rem)] max-w-lg p-0 gap-0">
             <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
-              <h3 className="text-xl font-black text-slate-900">
+              <DialogTitle className="text-xl font-black text-slate-900">
                 {editingCourse ? "Edit Course" : "Create New Course"}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition">
-                <X size={20} />
-              </button>
+              </DialogTitle>
             </div>
             
             <div className="p-8 space-y-4">
@@ -308,7 +308,7 @@ function CoursesAdmin() {
                   <input 
                     type="text" 
                     required
-                    name="title"
+                    name="title" aria-label="Course Title"
                     className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
                     value={formData.title}
                     onChange={e => setFormData({...formData, title: e.target.value})}
@@ -388,11 +388,11 @@ function CoursesAdmin() {
               <div className="space-y-2">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1">Enrollment count (starting number)</label>
                 <input
-                  type="number" min={0}
+                  type="text" inputMode="numeric" aria-label="Enrollment count"
                   placeholder="0"
                   className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
                   value={formData.enrollment_count}
-                  onChange={e => setFormData({ ...formData, enrollment_count: e.target.value })}
+                  onChange={e => setFormData({ ...formData, enrollment_count: normalizeAdminNumber(e.target.value) })}
                 />
                 <p className="text-[10px] text-slate-400 ml-1">Page shows this number + every new enrollment automatically.</p>
               </div>
@@ -401,10 +401,10 @@ function CoursesAdmin() {
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1">Original Price</label>
                   <input 
-                    type="number" 
+                    type="text" inputMode="decimal" 
                     className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
-                    value={formData.price}
-                    onChange={e => setFormData({...formData, price: e.target.value})}
+                    aria-label="Original Price" value={formData.price}
+                    onChange={e => setFormData({...formData, price: normalizeAdminNumber(e.target.value)})}
                   />
                   {isNaN(parseFloat(formData.price)) && (
                     <p className="text-[10px] text-red-500 font-bold ml-1">Must be a valid number</p>
@@ -413,10 +413,10 @@ function CoursesAdmin() {
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-wider ml-1">Discount Price</label>
                   <input 
-                    type="number" 
+                    type="text" inputMode="decimal" 
                     className="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
-                    value={formData.discount_price}
-                    onChange={e => setFormData({...formData, discount_price: e.target.value})}
+                    aria-label="Discount Price" value={formData.discount_price}
+                    onChange={e => setFormData({...formData, discount_price: normalizeAdminNumber(e.target.value)})}
                   />
                   {formData.discount_price !== "" && isNaN(parseFloat(formData.discount_price)) && (
                     <p className="text-[10px] text-red-500 font-bold ml-1">Must be a valid number or empty</p>
@@ -484,16 +484,15 @@ function CoursesAdmin() {
               <button 
                 type="button" 
                 onClick={handleCourseSubmit} 
-                disabled={isSubmitting || teachers.isPending || assignments.isPending} 
+                disabled={isSubmitting} 
                 className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg shadow-slate-200 hover:bg-black transition mt-4 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               > 
                 {isSubmitting && <Loader2 className="animate-spin" size={20}/>} 
                 {editingCourse ? "Save Changes" : "Create Course"} 
               </button>
             </div>
-          </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       <div className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4">
         <div className="flex-1 relative">
@@ -549,7 +548,7 @@ function CoursesAdmin() {
                 <div className="flex items-center gap-2 pt-4 border-t border-slate-50">
                     <div className="flex-1 flex flex-col gap-2">
                       <button 
-                        disabled={teachers.isPending || assignments.isPending}
+                        
                         onClick={() => {
                           setEditingCourse(course);
                           setTeacherIds(assignments.data?.filter(a => a.course_id === course.id).map(a => a.teacher_id) || []);
@@ -599,7 +598,7 @@ function CoursesAdmin() {
                       </label>
                     </div>
                    <button 
-                     onClick={() => window.confirm("Are you sure?") && deleteMutation.mutate(course.id)}
+                     onClick={async () => { if (await adminConfirm("Are you sure?")) deleteMutation.mutate(course.id); }}
                      className="p-2.5 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition"
                    >
                      <Trash2 size={16} />
@@ -629,7 +628,7 @@ function TemplatePicker({ kind, value, onPick }: { kind: string; value: string; 
   const list = templates.data?.filter(t => t.kind === kind) || [];
   const save = async () => {
     if (!value.trim()) return toast.error("Write something first, then save it as a template.");
-    const name = window.prompt("Template name:");
+    const name = await adminPrompt("Template name:");
     if (!name?.trim()) return;
     const { error } = await (supabase as any).from("content_templates").insert({ kind, name: name.trim(), body: value });
     if (error) return toast.error(`Template not saved: ${error.message}`);
@@ -637,7 +636,7 @@ function TemplatePicker({ kind, value, onPick }: { kind: string; value: string; 
     queryClient.invalidateQueries({ queryKey: ["content-templates"] });
   };
   const remove = async (id: string) => {
-    if (!window.confirm("Delete this template?")) return;
+    if (!await adminConfirm("Delete this template?")) return;
     const { error } = await (supabase as any).from("content_templates").delete().eq("id", id);
     if (error) return toast.error(error.message);
     queryClient.invalidateQueries({ queryKey: ["content-templates"] });

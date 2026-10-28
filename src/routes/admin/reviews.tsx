@@ -1,3 +1,5 @@
+import { normalizeAdminNumber, parseAdminNumber } from '@/lib/admin-input';
+import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog';
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,7 +102,7 @@ function ReviewsAndAdsAdmin() {
 
   const setExpiryMutation = useMutation({
     mutationFn: async ({ id, hours }: { id: string; hours: string }) => {
-      const n = Number(hours);
+      const n = hours ? parseAdminNumber(hours, "Hours") : 0;
       const expires_at = hours && n > 0 ? new Date(Date.now() + n * 3600_000).toISOString() : null;
       const { error } = await supabase.from("app_ads").update({ expires_at }).eq("id", id);
       if (error) throw error;
@@ -120,7 +122,7 @@ function ReviewsAndAdsAdmin() {
     mutationFn: async () => {
       if (!adPhoto) throw new Error("Choose a photo first");
       const url = await uploadToImageKit(adPhoto, "/ads");
-      const hours = Number(adHours);
+      const hours = adHours ? parseAdminNumber(adHours, "Hours") : 0;
       const expires_at =
         adHours && hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
       const base: any = {
@@ -203,7 +205,7 @@ function ReviewsAndAdsAdmin() {
                          <Button variant="ghost" size="icon" title="Delete review" aria-label="Delete review"
                            disabled={deleteReviewMutation.isPending}
                            className="text-destructive"
-                           onClick={() => window.confirm("Delete this review?") && deleteReviewMutation.mutate(review.id)}>
+                           onClick={async () => { if (await adminConfirm("Delete this review?")) deleteReviewMutation.mutate(review.id); }}>
                            <Trash2 size={18} />
                          </Button>
                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${
@@ -251,10 +253,10 @@ function ReviewsAndAdsAdmin() {
             <div>
               <label className="block text-sm font-bold text-slate-500 mb-2">Show for how many hours (optional)</label>
               <input
-                type="number"
+                type="text" inputMode="decimal"
                 min={1}
                 value={adHours}
-                onChange={(e) => setAdHours(e.target.value)}
+                onChange={(e) => setAdHours(normalizeAdminNumber(e.target.value))}
                 placeholder="Leave empty to keep it until you pause or delete it"
                 className="w-full p-3.5 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-brand/20 transition font-medium"
               />
@@ -305,10 +307,10 @@ function ReviewsAndAdsAdmin() {
                       )}
                       <div className="flex items-center gap-1.5 mt-2">
                         <input
-                          type="number"
+                          type="text" inputMode="decimal"
                           min={1}
                           value={expiryEdits[ad.id] ?? ""}
-                          onChange={(e) => setExpiryEdits((prev) => ({ ...prev, [ad.id]: e.target.value }))}
+                          onChange={(e) => setExpiryEdits((prev) => ({ ...prev, [ad.id]: normalizeAdminNumber(e.target.value) }))}
                           placeholder="Hours"
                           className="w-24 p-1.5 text-xs rounded-lg bg-slate-50 border border-slate-100 focus:ring-2 focus:ring-brand/20 font-medium"
                         />
@@ -332,7 +334,7 @@ function ReviewsAndAdsAdmin() {
                         {ad.is_active ? <Pause size={18} /> : <Play size={18} />}
                       </button>
                       <button 
-                        onClick={() => window.confirm("Delete this ad?") && deleteAdMutation.mutate(ad.id)}
+                        onClick={async () => { if (await adminConfirm("Delete this ad?")) deleteAdMutation.mutate(ad.id); }}
                         className="p-2.5 rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition"
                       >
                         <Trash2 size={18} />

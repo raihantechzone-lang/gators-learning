@@ -5,6 +5,9 @@ import { Award, Search, Upload, ExternalLink, Trash2, CheckCircle2 } from "lucid
 import { useState } from "react";
 import { toast } from "sonner";
 import { teacherMeta } from '@/lib/teachers';
+import { adminPrompt } from '@/components/admin/AdminActionDialog';
+import { certificateLink } from '@/lib/admin-input';
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/admin/certificates")({
   head: () => teacherMeta('Certificates Admin', 'Send student certificates for Gators Learning courses.'),
@@ -33,15 +36,16 @@ function CertificatesAdmin() {
 
   const uploadMutation = useMutation({
     mutationFn: async ({ id, url }: { id: string; url: string }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("enrollments")
-        .update({ certificate_url: url })
-        .eq("id", id);
+        .update({ certificate_url: certificateLink(url) })
+        .eq("id", id).select("id").single();
       if (error) throw error;
+      if (data?.id !== id) throw new Error("Certificate was not saved. Check admin permissions.");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-enrollments-certificates"] });
-      toast.success("Certificate uploaded and student notified!");
+      toast.success("Certificate saved and available on the student dashboard.");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -113,15 +117,16 @@ function CertificatesAdmin() {
                     </td>
                     <td className="px-6 py-4">
                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => {
-                              const url = window.prompt("Enter Certificate PDF URL (Cloudinary):");
+                          <Button 
+                            disabled={uploadMutation.isPending}
+                            onClick={async () => {
+                              const url = await adminPrompt("Certificate PDF link", e.certificate_url || "");
                               if (url) uploadMutation.mutate({ id: e.id, url });
                             }}
                             className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-xl text-xs font-black hover:scale-105 transition active:scale-95 shadow-lg shadow-brand/10"
                           >
                             <Upload size={14} /> {e.certificate_url ? "Update" : "Upload"}
-                          </button>
+                          </Button>
                           {e.certificate_url && (
                             <a 
                               href={e.certificate_url} 

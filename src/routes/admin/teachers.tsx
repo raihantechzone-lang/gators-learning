@@ -1,3 +1,4 @@
+import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,7 +41,7 @@ function TeachersAdmin() {
   };
   const edit = (teacher: Teacher) => { setEditing(teacher.id); setForm({ user_id: teacher.user_id, display_name: teacher.display_name, password: '', photo_url: teacher.photo_url || '', title: teacher.title || '', bio: teacher.bio || '' }); };
   const remove = async (teacher: Teacher) => {
-    if (!window.confirm('Remove this teacher and their course assignments? They will no longer be able to access the teacher dashboard.')) return;
+    if (!await adminConfirm('Remove this teacher and their course assignments? They will no longer be able to access the teacher dashboard.')) return;
     setDeleting(teacher.id);
     try {
       await requireTeacherAdmin();
