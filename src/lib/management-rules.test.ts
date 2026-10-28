@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { dashboardGroups, financialSummary, paymentAmount, absentStudents, liveClassOnDay, messageLink, enrollmentState, isFreeCourse } from './management-rules';
+import { dashboardGroups, financialSummary, weeklyRevenue, paymentAmount, absentStudents, liveClassOnDay, messageLink, enrollmentState, isFreeCourse } from './management-rules';
 import { panelPathAllowed, getPanelRole } from './panel-permissions';
 describe('requested dashboard and admin rules', () => {
   it('pending enrollments stay pending without granting access', () => {
@@ -29,6 +29,12 @@ describe('requested dashboard and admin rules', () => {
     assert.deepEqual(absentStudents([{profile_id:'a'},{profile_id:'b'}],[{profile_id:'a',lesson_id:'l',attended_on:'2026-10-28'},{profile_id:'b',lesson_id:'l',attended_on:'2026-10-27'}],'l','2026-10-28').map(s=>s.profile_id),['b']);
     assert.equal(liveClassOnDay({live_url:'https://example.com',live_expires_at:'2026-10-28T18:00:00Z'},'2026-10-28'),true);
     assert.equal(liveClassOnDay({live_url:'https://example.com',live_expires_at:'2026-10-26T18:00:00Z'},'2026-10-28'),false);
+  });
+  it('weekly earnings use actual payments and Dhaka month boundaries', () => {
+    const rows = [{id:'1',course_id:'a',payment_status:'verified',amount_paid:5000,enrolled_at:'2026-10-31T18:15:00Z'}];
+    assert.equal(weeklyRevenue(rows,new Date('2026-10-31T18:30:00Z'))[6].sales,5000);
+    const summary=financialSummary([...rows,{id:'2',course_id:'a',payment_status:'verified',amount_paid:2000,enrolled_at:'2026-10-15T00:00:00Z'}],new Date('2026-10-31T18:30:00Z'));
+    assert.equal(summary.monthlyRevenue,5000); assert.equal(summary.previousRevenue,2000);
   });
   it('manual WhatsApp queue encodes messages and normalizes 01 numbers', () => {
     assert.equal(messageLink('01712345678','Hello {name}',{name:'Raihan'}),'https://wa.me/8801712345678?text=Hello%20Raihan');

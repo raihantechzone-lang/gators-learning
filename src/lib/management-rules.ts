@@ -29,7 +29,10 @@ const dhakaMonth = (date: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 
 export function financialSummary(rows: PaymentRow[], now = new Date()) {
   const valid = rows.filter(enrollmentHasAccess).sort((a,b) => (b.enrolled_at || b.created_at || '').localeCompare(a.enrolled_at || a.created_at || ''));
   const month = dhakaMonth(now);
-  const previous = dhakaMonth(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15)));
+  const monthParts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dhaka', year: 'numeric', month: 'numeric' }).formatToParts(now);
+  const year = Number(monthParts.find(p => p.type === 'year')?.value);
+  const monthNumber = Number(monthParts.find(p => p.type === 'month')?.value);
+  const previous = dhakaMonth(new Date(Date.UTC(year, monthNumber - 2, 15)));
   let totalRevenue = 0, monthlyRevenue = 0, previousRevenue = 0;
   const grouped = new Map<string, { id: string; title: string; count: number; revenue: number }>();
   for (const row of valid) {
@@ -45,6 +48,14 @@ export function financialSummary(rows: PaymentRow[], now = new Date()) {
     item.count++; item.revenue += amount; grouped.set(row.course_id, item);
   }
   return { totalRevenue, monthlyRevenue, previousRevenue, count: valid.length, courseStats: [...grouped.values()].sort((a,b) => b.revenue - a.revenue), transactions: valid.slice(0,20) };
+}
+export function weeklyRevenue(rows: PaymentRow[], now = new Date()) {
+  const today = Date.parse(`${bangladeshDay(now)}T00:00:00+06:00`);
+  return Array.from({length:7}, (_, index) => {
+    const start = today - (6-index)*86400000;
+    const sales = rows.filter(r => enrollmentHasAccess(r) && Date.parse(r.enrolled_at || r.created_at || '') >= start && Date.parse(r.enrolled_at || r.created_at || '') < start+86400000).reduce((sum,r) => sum+paymentAmount(r),0);
+    return {name:new Intl.DateTimeFormat('bn-BD',{timeZone:'Asia/Dhaka',month:'short',day:'numeric'}).format(new Date(start)),sales};
+  });
 }
 export type MessageStudent = { profile_id: string; profiles?: { full_name?: string | null; phone?: string | null; whatsapp?: string | null; roll_number?: string | number | null } | null };
 export function absentStudents(students: MessageStudent[], rows: { profile_id: string; lesson_id: string; attended_on: string }[], lessonId: string, day: string) {
