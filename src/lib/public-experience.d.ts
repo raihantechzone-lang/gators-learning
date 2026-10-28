@@ -1,4 +1,8 @@
 export function normalizeStudentEmail(value: unknown): string;
+export function escapeHtml(value: unknown): string;
+export function safeWebUrl(value: unknown): string;
+export function enrollmentHasAccess(enrollment: { status?: string; payment_status?: string | null }): boolean;
+export function loadVisibleLessons(client: any, courseId?: string | null): Promise<{ data: any[] | null; error: any }>;
 export function accountLoginEmail(value: unknown): Promise<string>;
 export function accountDashboard(client: any, user: { id: string; email?: string | null }): Promise<'/dashboard' | '/teacher'>;
 export function coursePrices(course: { price?: unknown; discount_price?: unknown }): { original: number; payable: number; discounted: boolean };

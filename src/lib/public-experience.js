@@ -1,4 +1,35 @@
 /** Keep email input consistent across HTML and React account forms. Never alter passwords. */
+export function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+export function safeWebUrl(value) {
+  try {
+    const url = new URL(String(value ?? ''));
+    return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
+  } catch { return ''; }
+}
+
+export function enrollmentHasAccess(enrollment) {
+  if (['refunded', 'cancelled', 'canceled', 'revoked', 'expired'].includes(String(enrollment.status || '').toLowerCase())) return false;
+  if (enrollment.payment_status === 'verified') return true;
+  return enrollment.status === 'active' && enrollment.payment_status == null;
+}
+
+/** RPC returns public metadata plus resources only for authorized callers. No unsafe fallback. */
+export async function loadVisibleLessons(client, courseId = null) {
+  const result = await client.rpc('visible_course_lessons', { target_course: courseId });
+  if (!result.error) return { ...result, data: result.data || [] };
+  // While the external update awaits installation, display only safe metadata and free previews.
+  let meta = client.from('course_contents').select('id,course_id,title,position,created_at,is_free,thumbnail_url');
+  let previews = client.from('course_contents').select('*').eq('is_free', true);
+  if (courseId) { meta = meta.eq('course_id', courseId); previews = previews.eq('course_id', courseId); }
+  const [metadata, free] = await Promise.all([meta, previews]);
+  if (metadata.error) return metadata;
+  const byId = new Map((free.data || []).map(row => [row.id, row]));
+  return { data: (metadata.data || []).map(row => byId.get(row.id) || row), error: free.error };
+}
+
 export function normalizeStudentEmail(value) {
   return String(value ?? "").trim().toLowerCase();
 }

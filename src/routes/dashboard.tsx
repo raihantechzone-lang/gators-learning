@@ -7,7 +7,7 @@ import {
   ChevronRight, Lock, CheckCircle2, Download, Award, User, LogOut, Camera, Video, PenSquare, Play
 } from "lucide-react";
 import type { Course, Enrollment, CourseContent } from "@/lib/data";
-import { isLessonLive } from "@/lib/public-experience.js";
+import { isLessonLive, loadVisibleLessons, safeWebUrl } from "@/lib/public-experience.js";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { courseProgress, hasCourseAccess, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
@@ -60,7 +60,7 @@ function DashboardPage() {
       const [enc, courses, contents, saved] = await Promise.all([
         supabase.from("enrollments").select("*, courses(*)").eq("profile_id", user.id),
         supabase.from("courses").select("*").eq("is_published", true),
-        supabase.from("course_contents").select("*"),
+        loadVisibleLessons(supabase),
         loadStudentProgress(user.id).catch(() => readLocalProgress(user.id)),
       ]);
       setDataError(enc.error?.message || courses.error?.message || contents.error?.message || "");

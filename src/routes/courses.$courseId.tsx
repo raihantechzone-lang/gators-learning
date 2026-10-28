@@ -15,6 +15,7 @@ import { isLiveLinkActive, youtubeId, type Course, type CourseContent } from "@/
 import { hasCourseAccess, lessonReviewTag, readLocalProgress, type LessonProgressRecord } from "@/lib/student-progress";
 import { loadStudentProgress, saveStudentProgress } from "@/lib/progress-sync";
 import { toast } from "sonner";
+import { loadVisibleLessons, safeWebUrl } from '@/lib/public-experience.js';
 
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
@@ -103,7 +104,7 @@ function CourseDetailPage() {
     const load = async () => {
       const [{ data: c }, { data: list }, { data: secs }] = await Promise.all([
         supabase.from("courses").select("*").eq("id", courseId).maybeSingle(),
-        supabase.from("course_contents").select("*").eq("course_id", courseId).order("position", { ascending: true }).order("created_at", { ascending: true }),
+        loadVisibleLessons(supabase, courseId),
         supabase.from("course_sections").select("*").eq("course_id", courseId).order("position", { ascending: true }),
       ]);
       if (cancelled) return;
@@ -135,7 +136,7 @@ function CourseDetailPage() {
       window.removeEventListener("focus", load);
       supabase.removeChannel(channel);
     };
-  }, [courseId]);
+  }, [courseId, user?.id]);
 
   useEffect(() => {
     if (!user) {
@@ -158,11 +159,15 @@ function CourseDetailPage() {
       setCertificateUrl(list.find((en) => en.certificate_url)?.certificate_url ?? null);
     };
     load();
+    const refreshTimer = window.setInterval(load, 15000);
+    window.addEventListener('focus', load);
     const channel = supabase
       .channel(`enroll-${courseId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "enrollments" }, () => load())
       .subscribe();
     return () => {
+      clearInterval(refreshTimer);
+      window.removeEventListener('focus', load);
       supabase.removeChannel(channel);
     };
   }, [user, courseId]);
