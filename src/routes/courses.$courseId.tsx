@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Award, BookOpen, CheckCircle2, ChevronRight, Circle, ClipboardCheck, FileText, FolderOpen, HelpCircle, Info, Lock, MessageCircle, NotebookPen, PlayCircle, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -375,8 +376,8 @@ function CourseDetailPage() {
         <h1 className="text-3xl font-bold text-ink mb-1">{course?.title ?? "Course"}</h1>
         <p className="text-sm text-ink-muted mb-8">{course?.category}</p>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid lg:grid-cols-3 lg:grid-rows-[auto_1fr] gap-6 lg:gap-8 items-start">
+          <div className="lg:col-span-2 space-y-4 order-1 min-w-0">
             {active && canWatch && active.lesson_type === "text" ? (
               <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
                 <ArticleLesson html={active.article_html} />
@@ -455,70 +456,68 @@ function CourseDetailPage() {
               </div>
             )}
 
-            {active && enrolled && (
-              <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
-                <h2 className="font-bold text-ink mb-4">{active.title}</h2>
-                <div className="flex flex-wrap gap-3">
-                  {isLiveLinkActive(active) && (
-                    <a
-                      href={safeWebUrl(active.live_url) || undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-5 py-2.5 rounded-xl bg-destructive text-background text-sm font-bold"
-                    >
-                      🔴 Join live class
-                    </a>
-                  )}
-                  {active.pdf_url && (
-                    <a
-                      href={safeWebUrl(active.pdf_url) || undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-5 py-2.5 rounded-xl border-2 border-border text-sm font-bold"
-                    >
-                      📄 PDF notes
-                    </a>
-                  )}
-                  {active.exam_link && (
-                    <a
-                      href={safeWebUrl(active.exam_link) || undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-5 py-2.5 rounded-xl bg-brand text-brand-foreground text-sm font-bold"
-                    >
-                      📝 Take exam
-                    </a>
-                  )}
-                </div>
-                {active.live_url && !active.youtube_url && !active.video_file_url && !isLiveLinkActive(active) && (
-                  <p className="text-xs text-ink-muted mt-4 font-bengali">
-                    লাইভ ক্লাসের লিংকটির মেয়াদ শেষ হয়ে গেছে (২৪ ঘণ্টা পর স্বয়ংক্রিয়ভাবে মুছে যায়)।
-                  </p>
+            {active && enrolled && (isLiveLinkActive(active) || active.pdf_url || active.exam_link) && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {isLiveLinkActive(active) && (
+                  <ActionCard
+                    href={safeWebUrl(active.live_url)}
+                    icon={<Radio size={20} />}
+                    tone="bg-destructive/10 text-destructive"
+                    title="লাইভ ক্লাসে যোগ দিন"
+                    subtitle="এখনই লাইভ চলছে"
+                    pulse
+                  />
+                )}
+                {active.exam_link && (
+                  <ActionCard
+                    href={safeWebUrl(active.exam_link)}
+                    icon={<ClipboardCheck size={20} />}
+                    tone="bg-primary/10 text-primary"
+                    title="পরীক্ষা দিন"
+                    subtitle="এই লেসনের অনলাইন পরীক্ষা"
+                  />
+                )}
+                {active.pdf_url && (
+                  <ActionCard
+                    href={safeWebUrl(active.pdf_url)}
+                    icon={<FileText size={20} />}
+                    tone="bg-accent text-accent-foreground"
+                    title="লেকচার শিট PDF"
+                    subtitle="নোট দেখুন ও ডাউনলোড করুন"
+                  />
                 )}
               </div>
             )}
+            {active && enrolled && active.live_url && !active.youtube_url && !active.video_file_url && !isLiveLinkActive(active) && (
+              <p className="text-xs text-ink-muted font-bengali px-1">
+                লাইভ ক্লাসের লিংকটির মেয়াদ শেষ হয়ে গেছে (২৪ ঘণ্টা পর স্বয়ংক্রিয়ভাবে মুছে যায়)।
+              </p>
+            )}
 
             {active && user && enrolled && <AttendanceButton key={active.id} userId={user.id} courseId={courseId} lessonId={active.id} lesson={active} />}
+          </div>
+
+          <div className="lg:col-span-2 space-y-6 order-3 min-w-0">
             {active && (
-              <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
-                <div className="flex flex-wrap gap-2 mb-4 border-b border-border pb-3">
-                  {(["overview", "resources", "notes", "reviews", ...(enrolled && certificateEnabled ? ["certificate"] : [])] as Tab[]).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setTab(t)}
-                      className={`px-4 py-2 rounded-xl text-sm font-bold capitalize ${
-                        tab === t ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-muted"
-                      }`}
-                    >
-                      {!enrolled && (t === "resources" || t === "notes")
-                        ? `🔒 ${t}`
-                        : t === "reviews"
-                          ? "comments"
-                          : t === "certificate"
-                            ? `${certificateUrl ? "🎓" : "🔒"} certificate`
-                            : t}
-                    </button>
-                  ))}
+              <div className="rounded-2xl bg-background border border-border p-4 sm:p-6 shadow-sm">
+                <div className="grid grid-cols-4 sm:flex gap-1 sm:gap-2 mb-4 border-b border-border pb-3 overflow-x-auto">
+                  {(["overview", "resources", "notes", "reviews", ...(enrolled && certificateEnabled ? ["certificate"] : [])] as Tab[]).map((t) => {
+                    const meta = TAB_META[t];
+                    const locked = (!enrolled && (t === "resources" || t === "notes")) || (t === "certificate" && !certificateUrl);
+                    const Icon = locked ? Lock : meta.icon;
+                    return (
+                      <button
+                        key={t}
+                        onClick={() => setTab(t)}
+                        className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold font-bengali transition ${
+                          tab === t ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-muted"
+                        }`}
+                      >
+                        <Icon size={16} />
+                        {meta.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {tab === "overview" && (
@@ -614,14 +613,18 @@ function CourseDetailPage() {
             )}
           </div>
 
-          <aside className="rounded-2xl bg-background border border-border p-4 shadow-sm h-fit">
+          <aside className="order-2 lg:col-start-3 lg:row-start-1 lg:row-span-2 space-y-4 min-w-0">
             <CourseProgress records={progressRecords} contents={contents} sections={sections} />
-            <h2 className="font-bold text-ink px-2 py-2">Lessons ({contents.length})</h2>
+            <div className="rounded-2xl bg-background border border-border p-3 shadow-sm">
+            <h2 className="font-bold text-ink px-2 py-2 flex items-center gap-2 font-bengali"><BookOpen size={18} className="text-brand" /> লেসন ({contents.length.toLocaleString("bn-BD")})</h2>
             {grouped ? (
               <div className="space-y-4">
                 {grouped.map(({ section, items }) => (
                   <div key={section.id}>
-                    <p className="px-2 text-xs font-bold uppercase text-ink-muted mb-1">{section.title}</p>
+                    <p className="px-2 py-1.5 mb-1 flex items-center justify-between gap-2 text-xs font-bold text-ink-muted font-bengali rounded-lg bg-surface-alt">
+                      <span className="truncate">{section.title}</span>
+                      <span className="shrink-0 text-brand">{items.filter((c) => completedIds.has(c.id)).length.toLocaleString("bn-BD")}/{items.length.toLocaleString("bn-BD")} সম্পন্ন</span>
+                    </p>
                     <LessonList
                       items={items}
                       activeId={activeId}
@@ -656,6 +659,7 @@ function CourseDetailPage() {
                 offset={0}
               />
             )}
+            </div>
           </aside>
         </div>
       </main>
@@ -698,29 +702,73 @@ function LessonList({
 }) {
   return (
     <ul className="space-y-1">
-      {items.map((c, i) => (
-        <li key={c.id} className="flex items-center gap-1">
-          {user && (
-            <input
-              type="checkbox"
-              checked={completedIds.has(c.id)}
-              onChange={(e) => onToggle(c.id, e.target.checked)}
-              className="ml-1 shrink-0"
-              aria-label="Mark complete"
-            />
-          )}
-          <button
-            onClick={() => setActiveId(c.id)}
-            className={`flex-1 text-left px-3 py-3 rounded-xl text-sm font-semibold transition ${
-              c.id === activeId ? "bg-brand-soft text-brand" : "hover:bg-muted text-ink"
-            }`}
-          >
-            <span className="text-ink-muted mr-2">{String(offset + i + 1).padStart(2, "0")}</span>
-            {c.title}
-            {isLiveLinkActive(c) && <span className="ml-2 text-xs text-destructive font-bold">LIVE</span>}
-          </button>
-        </li>
-      ))}
+      {items.map((c, i) => {
+        const done = completedIds.has(c.id);
+        const current = c.id === activeId;
+        const TypeIcon = c.lesson_type === "quiz" ? HelpCircle : c.lesson_type === "assignment" ? ClipboardCheck : c.lesson_type === "text" ? FileText : PlayCircle;
+        return (
+          <li key={c.id} className="flex items-center gap-1">
+            {user ? (
+              <button
+                type="button"
+                onClick={() => onToggle(c.id, !done)}
+                aria-label={done ? "Mark incomplete" : "Mark complete"}
+                aria-pressed={done}
+                className={`ml-1 shrink-0 rounded-full transition ${done ? "text-brand" : "text-ink-muted/50 hover:text-brand"}`}
+              >
+                {done ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+              </button>
+            ) : (
+              <Lock size={16} className="ml-1 shrink-0 text-ink-muted/60" />
+            )}
+            <button
+              onClick={() => setActiveId(c.id)}
+              className={`flex-1 min-w-0 flex items-center gap-2 text-left px-3 py-2.5 rounded-xl text-sm font-semibold font-bengali transition ${
+                current ? "bg-brand-soft text-brand ring-1 ring-brand/30" : "hover:bg-muted text-ink"
+              }`}
+            >
+              <TypeIcon size={16} className={`shrink-0 ${current ? "text-brand" : "text-ink-muted"}`} />
+              <span className="text-ink-muted text-xs tabular-nums">{String(offset + i + 1).padStart(2, "0")}</span>
+              <span className="flex-1 min-w-0 truncate">{c.title}</span>
+              {isLiveLinkActive(c) && (
+                <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive text-[10px] font-bold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" /> LIVE
+                </span>
+              )}
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 }
+
+function ActionCard({ href, icon, tone, title, subtitle, pulse }: { href: string | null; icon: React.ReactNode; tone: string; title: string; subtitle: string; pulse?: boolean }) {
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-3 rounded-2xl bg-background border border-border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
+    >
+      <span className={`relative h-11 w-11 shrink-0 rounded-full flex items-center justify-center ${tone}`}>
+        {icon}
+        {pulse && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-destructive animate-pulse" />}
+      </span>
+      <span className="flex-1 min-w-0 font-bengali">
+        <span className="block font-bold text-ink text-sm">{title}</span>
+        <span className="block text-xs text-ink-muted truncate">{subtitle}</span>
+      </span>
+      <ChevronRight size={18} className="text-ink-muted group-hover:text-ink transition" />
+    </a>
+  );
+}
+
+const TAB_META: Record<Tab, { label: string; icon: typeof Info }> = {
+  overview: { label: "বিবরণ", icon: Info },
+  resources: { label: "রিসোর্স", icon: FolderOpen },
+  notes: { label: "নোটস", icon: NotebookPen },
+  reviews: { label: "মন্তব্য", icon: MessageCircle },
+  certificate: { label: "সার্টিফিকেট", icon: Award },
+};
