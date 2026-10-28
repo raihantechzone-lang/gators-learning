@@ -1,5 +1,5 @@
 export type PanelRole = 'admin' | 'moderator';
-const moderatorPaths = new Set(['/admin/categories','/admin/courses','/admin/content','/admin/results','/admin/students','/admin/attendance','/admin/enrollments','/admin/certificates','/admin/earnings','/admin/course-verification','/admin/notices','/admin/messages']);
+const moderatorPaths = new Set(['/admin/categories','/admin/courses','/admin/content','/admin/results','/admin/students','/admin/attendance','/admin/enrollments','/admin/certificates','/admin/course-verification','/admin/notices','/admin/messages']);
 export function panelPathAllowed(role: PanelRole | null, path: string) {
   if (role === 'admin') return true;
   return role === 'moderator' && moderatorPaths.has(path.replace(/\/$/, ''));

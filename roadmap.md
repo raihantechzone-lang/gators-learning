@@ -1,3 +1,5 @@
+- [ ] Repair moderator student read permissions through a narrowly scoped external SQL update; external activation and real moderator readback required.
+- [ ] Remove moderator Course Earnings access, switch all pages to Inter/Noto Sans Bengali and show floating WhatsApp only on Home; verify tests and preview.
 - [x] Implement pending cards without prices and separate published free-course section; rule tests pass.
 - [x] Real published free-course Continue Learning button navigates directly without payment; no browser runtime errors.
 - [x] Add moderator name/password form, isolated signup and shared name login; management access remains denied; 36 tests pass.
