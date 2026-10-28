@@ -392,7 +392,8 @@
     // Enrollment logic integration
     const enrollBtn = document.getElementById('enroll-main-btn');
     const myRows = await enrollmentRows(id);
-    const isEnrolled = myRows.some(enrollmentHasAccess);
+    const isFreeCourse = course.price != null && Number(course.price) === 0;
+    const isEnrolled = isFreeCourse || myRows.some(enrollmentHasAccess);
     const isPending = !isEnrolled && myRows.some(r => r.payment_status === "pending" || r.status === "pending");
 
     if (enrollBtn) {
@@ -426,6 +427,7 @@
     if (paymentForm) {
       paymentForm.onsubmit = async (e) => {
         e.preventDefault();
+        if (isFreeCourse) { window.location.href = '/courses/' + encodeURIComponent(id); return; }
         const btn = document.getElementById('pay-btn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { getPanelRole } from '@/lib/panel-permissions';
 import { Button } from '@/components/ui/button';
+import { moderatorLoginEmail } from '@/lib/moderator-login';
 
 export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const [username, setUsername] = useState("");
@@ -22,10 +23,14 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
 
     try {
       // 1. Authenticate with Supabase
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
+      let { error: authError } = await supabase.auth.signInWithPassword({
         email: loginInput.includes("@") ? loginInput : `${loginInput}@gmail.com`,
         password: password,
       });
+      if (authError && !loginInput.includes('@')) {
+        const retry=await supabase.auth.signInWithPassword({email:await moderatorLoginEmail(username),password});
+        authError=retry.error;
+      }
 
       if (authError) {
         setError(true);

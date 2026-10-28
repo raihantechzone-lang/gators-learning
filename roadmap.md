@@ -1,4 +1,5 @@
 - [x] Implement pending cards without prices and separate published free-course section; rule tests pass.
+- [ ] Free enrollment button opens Continue Learning directly; moderator name/password creation mirrors teacher accounts and excludes moderator management access.
 - [ ] Activate direct free-course resources: external lesson RPC update and authenticated student playback/readback unavailable.
 - [x] Replace financial overview/dashboard fake figures with saved-payment totals and dated trends; add verified/unverified views; rules pass.
 - [x] Add course/date-based absence template and manual per-recipient WhatsApp queue; never claim bulk delivery.
