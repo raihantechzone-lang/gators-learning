@@ -119,16 +119,10 @@
     }, 0);
   });
 
-  /* ---------- database: site settings ---------- */
-  async function loadSettings() {
-    const { data } = await supabase.from("settings").select("setting_key, setting_value");
-    if (!data) return;
-    for (const row of data) {
-      if (!row.setting_value) continue;
-      const el = document.getElementById(row.setting_key === "hero_title" ? "dynamic-site-title" : "");
-      if (el) el.textContent = row.setting_value;
-    }
-  }
+  /* ---------- database: site settings ----------
+     Hero title/subtitle are static markup now; no dynamic override is applied. */
+  async function loadSettings() {}
+
 
   /* ---------- database: homepage notices ---------- */
   async function loadNotices() {
