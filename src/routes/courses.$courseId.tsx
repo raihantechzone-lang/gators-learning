@@ -498,25 +498,25 @@ function CourseDetailPage() {
 
           <div className="lg:col-span-2 space-y-6 order-3 min-w-0">
             {active && (
-              <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
-                <div className="flex flex-wrap gap-2 mb-4 border-b border-border pb-3">
-                  {(["overview", "resources", "notes", "reviews", ...(enrolled && certificateEnabled ? ["certificate"] : [])] as Tab[]).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setTab(t)}
-                      className={`px-4 py-2 rounded-xl text-sm font-bold capitalize ${
-                        tab === t ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-muted"
-                      }`}
-                    >
-                      {!enrolled && (t === "resources" || t === "notes")
-                        ? `🔒 ${t}`
-                        : t === "reviews"
-                          ? "comments"
-                          : t === "certificate"
-                            ? `${certificateUrl ? "🎓" : "🔒"} certificate`
-                            : t}
-                    </button>
-                  ))}
+              <div className="rounded-2xl bg-background border border-border p-4 sm:p-6 shadow-sm">
+                <div className="grid grid-cols-4 sm:flex gap-1 sm:gap-2 mb-4 border-b border-border pb-3 overflow-x-auto">
+                  {(["overview", "resources", "notes", "reviews", ...(enrolled && certificateEnabled ? ["certificate"] : [])] as Tab[]).map((t) => {
+                    const meta = TAB_META[t];
+                    const locked = (!enrolled && (t === "resources" || t === "notes")) || (t === "certificate" && !certificateUrl);
+                    const Icon = locked ? Lock : meta.icon;
+                    return (
+                      <button
+                        key={t}
+                        onClick={() => setTab(t)}
+                        className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold font-bengali transition ${
+                          tab === t ? "bg-brand-soft text-brand" : "text-ink-muted hover:bg-muted"
+                        }`}
+                      >
+                        <Icon size={16} />
+                        {meta.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {tab === "overview" && (
