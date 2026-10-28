@@ -39,6 +39,39 @@ export async function createVideoControls(media, options = {}) {
   const player = new window.Plyr(target, { ...videoControlOptions(), title: options.title || '' });
   const root = player.elements.container;
   root.classList.add('gators-video');
+  const decorate = () => {
+  if (root.querySelector('.gators-video__center')) return;
+  // YouTube builds its bound buttons asynchronously; decorate only once ready.
+  const heading = document.createElement('div');
+  heading.className = 'gators-video__heading';
+  heading.textContent = options.title || media.title || '';
+  root.appendChild(heading);
+  const center = document.createElement('div');
+  center.className = 'gators-video__center';
+  const back = root.querySelector('[data-plyr="rewind"]');
+  const play = root.querySelector('.plyr__controls [data-plyr="play"]');
+  root.querySelector('.plyr__control--overlaid')?.remove();
+  play?.classList.add('gators-video__play');
+  const forward = root.querySelector('[data-plyr="fast-forward"]');
+  for (const [button, label] of [[back, '১০ সেকেন্ড পেছনে'], [play, 'চালু / বিরতি'], [forward, '১০ সেকেন্ড সামনে']]) {
+    if (!button) continue;
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
+    center.appendChild(button);
+    if (button !== play) {
+      const seconds = document.createElement('span');
+      seconds.className = 'gators-video__skip'; seconds.textContent = '10';
+      seconds.setAttribute('aria-hidden', 'true'); button.appendChild(seconds);
+    }
+  }
+  root.appendChild(center);
+  const settings = root.querySelector('[data-plyr="settings"]');
+  const speed = document.createElement('span');
+  speed.className = 'gators-video__speed'; speed.textContent = '1×'; speed.setAttribute('aria-hidden', 'true');
+  settings?.appendChild(speed);
+  settings?.setAttribute('title', 'ভিডিওর গতি');
+  player.on('ratechange', () => { speed.textContent = `${player.speed}×`; });
+  };
   let timer, destroyed = false;
   const clear = () => clearTimeout(timer);
   const reveal = () => {
@@ -54,6 +87,7 @@ export async function createVideoControls(media, options = {}) {
   };
   player.on('ready', () => {
     if (destroyed) return;
+    decorate();
     const start = options.startSeconds || 0;
     if (start > 0) player.currentTime = start;
     options.onReady?.(player); reveal();
