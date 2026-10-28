@@ -1,3 +1,8 @@
+- [ ] Show pending enrollments without prices and all published free courses with direct dashboard access.
+- [ ] Repair Financial Overview and add verified/unverified Course Verification views.
+- [ ] Add course/date-based absent-student WhatsApp messages and a manual bulk-recipient queue.
+- [ ] Add moderator account management and enforce permissions excluding Dashboard, Teachers, Reviews and Ads; external SQL activation required.
+- [ ] Run rule tests and browser checks; authenticated external account flows remain blocked without sessions.
 - [x] Repair repeat sign-in; real test signup → logout → same password login and welcome → dashboard pass. Rolls no longer substitute for passwords.
 - [x] Restyle university logo/rating section, remove pngwing.com (2) (4).png and replace requested homepage copy; all ten remaining logos load with no overflow at 375/648/1280px.
 - [x] Restore complete Hind Siliguri Bengali fonts and safe digit line boxes; actual HindSiliguri-Bold renders ১২টি. University logos now have an unframed layout with a five-star rating; 375/648/1280px checks pass.
