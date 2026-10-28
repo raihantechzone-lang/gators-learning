@@ -455,50 +455,48 @@ function CourseDetailPage() {
               </div>
             )}
 
-            {active && enrolled && (
-              <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
-                <h2 className="font-bold text-ink mb-4">{active.title}</h2>
-                <div className="flex flex-wrap gap-3">
-                  {isLiveLinkActive(active) && (
-                    <a
-                      href={safeWebUrl(active.live_url) || undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-5 py-2.5 rounded-xl bg-destructive text-background text-sm font-bold"
-                    >
-                      🔴 Join live class
-                    </a>
-                  )}
-                  {active.pdf_url && (
-                    <a
-                      href={safeWebUrl(active.pdf_url) || undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-5 py-2.5 rounded-xl border-2 border-border text-sm font-bold"
-                    >
-                      📄 PDF notes
-                    </a>
-                  )}
-                  {active.exam_link && (
-                    <a
-                      href={safeWebUrl(active.exam_link) || undefined}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-5 py-2.5 rounded-xl bg-brand text-brand-foreground text-sm font-bold"
-                    >
-                      📝 Take exam
-                    </a>
-                  )}
-                </div>
-                {active.live_url && !active.youtube_url && !active.video_file_url && !isLiveLinkActive(active) && (
-                  <p className="text-xs text-ink-muted mt-4 font-bengali">
-                    লাইভ ক্লাসের লিংকটির মেয়াদ শেষ হয়ে গেছে (২৪ ঘণ্টা পর স্বয়ংক্রিয়ভাবে মুছে যায়)।
-                  </p>
+            {active && enrolled && (isLiveLinkActive(active) || active.pdf_url || active.exam_link) && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {isLiveLinkActive(active) && (
+                  <ActionCard
+                    href={safeWebUrl(active.live_url)}
+                    icon={<Radio size={20} />}
+                    tone="bg-destructive/10 text-destructive"
+                    title="লাইভ ক্লাসে যোগ দিন"
+                    subtitle="এখনই লাইভ চলছে"
+                    pulse
+                  />
+                )}
+                {active.exam_link && (
+                  <ActionCard
+                    href={safeWebUrl(active.exam_link)}
+                    icon={<ClipboardCheck size={20} />}
+                    tone="bg-primary/10 text-primary"
+                    title="পরীক্ষা দিন"
+                    subtitle="এই লেসনের অনলাইন পরীক্ষা"
+                  />
+                )}
+                {active.pdf_url && (
+                  <ActionCard
+                    href={safeWebUrl(active.pdf_url)}
+                    icon={<FileText size={20} />}
+                    tone="bg-accent text-accent-foreground"
+                    title="লেকচার শিট PDF"
+                    subtitle="নোট দেখুন ও ডাউনলোড করুন"
+                  />
                 )}
               </div>
             )}
+            {active && enrolled && active.live_url && !active.youtube_url && !active.video_file_url && !isLiveLinkActive(active) && (
+              <p className="text-xs text-ink-muted font-bengali px-1">
+                লাইভ ক্লাসের লিংকটির মেয়াদ শেষ হয়ে গেছে (২৪ ঘণ্টা পর স্বয়ংক্রিয়ভাবে মুছে যায়)।
+              </p>
+            )}
 
             {active && user && enrolled && <AttendanceButton key={active.id} userId={user.id} courseId={courseId} lessonId={active.id} lesson={active} />}
+          </div>
+
+          <div className="lg:col-span-2 space-y-6 order-3 min-w-0">
             {active && (
               <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
                 <div className="flex flex-wrap gap-2 mb-4 border-b border-border pb-3">
