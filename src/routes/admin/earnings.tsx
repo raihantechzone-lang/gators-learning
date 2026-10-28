@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DollarSign, TrendingUp, Calendar, CreditCard, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { financialSummary, paymentAmount, type PaymentRow } from "@/lib/management-rules";
+import { Button } from "@/components/ui/button";
 import { approvedEnrollmentFilter } from "@/lib/enrollment-payment";
 
 export const Route = createFileRoute("/admin/earnings")({
@@ -17,53 +19,23 @@ export const Route = createFileRoute("/admin/earnings")({
 });
 
 function EarningsAdmin() {
-  const { data: stats } = useQuery({
+  const { data: stats, error, isLoading, refetch, isFetching } = useQuery({
+    refetchInterval: 30000,
     queryKey: ["admin-earnings"],
     queryFn: async () => {
-      const { data: enrollments, error } = await supabase
-        .from("enrollments")
-        .select(`
-          id,
-          created_at,
-          course_id,
-          courses (
-            id,
-            title,
-            price
-          )
-        `)
-        .or(approvedEnrollmentFilter);
-      
+      const { data, error } = await supabase.from("enrollments")
+        .select("id,course_id,status,payment_status,amount_paid,enrolled_at,courses(id,title,price,discount_price)")
+        .or(approvedEnrollmentFilter).order("enrolled_at", { ascending: false });
       if (error) throw error;
-
-      const courseStats: Record<string, { title: string, count: number, revenue: number }> = {};
-      let totalRevenue = 0;
-
-      enrollments?.forEach(item => {
-        const course = Array.isArray(item.courses) ? item.courses[0] : (item.courses as any);
-        if (!course) return;
-
-        const price = Number(course.price) || 0;
-        totalRevenue += price;
-
-        if (!courseStats[course.id]) {
-          courseStats[course.id] = { title: course.title, count: 0, revenue: 0 };
-        }
-        courseStats[course.id].count++;
-        courseStats[course.id].revenue += price;
-      });
-
-      return { 
-        totalRevenue, 
-        count: enrollments?.length || 0, 
-        courseStats: Object.values(courseStats).sort((a, b) => b.revenue - a.revenue),
-        transactions: enrollments 
-      };
+      return financialSummary((data || []) as PaymentRow[]);
     },
   });
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {isLoading && <p className="text-muted-foreground">হিসাব লোড হচ্ছে…</p>}
+      {error && <p role="alert" className="text-destructive">{error.message}</p>}
+      <Button variant="outline" disabled={isFetching} onClick={() => refetch()}>হিসাব রিফ্রেশ করুন</Button>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Financial Overview</h2>
@@ -71,7 +43,7 @@ function EarningsAdmin() {
         </div>
         <div className="flex items-center gap-2">
            <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-sm font-bold border border-emerald-100 flex items-center gap-2">
-             <DollarSign size={16} /> মোট আয়: ৳{stats?.totalRevenue?.toLocaleString()}
+             <DollarSign size={16} /> মোট আয়: ৳{(stats?.totalRevenue ?? 0).toLocaleString()}
            </div>
         </div>
       </div>
@@ -82,9 +54,9 @@ function EarningsAdmin() {
              <TrendingUp size={24} />
            </div>
            <p className="text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">Total Revenue</p>
-           <h3 className="text-2xl font-black text-slate-900">৳{stats?.totalRevenue?.toLocaleString()}</h3>
+           <h3 className="text-2xl font-black text-slate-900">৳{(stats?.totalRevenue ?? 0).toLocaleString()}</h3>
            <p className="text-xs text-emerald-500 font-bold mt-2 flex items-center gap-1">
-             <ArrowUpRight size={14} /> +12.5% vs last month
+             <ArrowUpRight size={14} /> এই মাসে ৳{(stats?.monthlyRevenue ?? 0).toLocaleString()}
            </p>
         </div>
 
@@ -93,7 +65,7 @@ function EarningsAdmin() {
              <CreditCard size={24} />
            </div>
            <p className="text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">Verified Sales</p>
-           <h3 className="text-2xl font-black text-slate-900">{stats?.count}</h3>
+           <h3 className="text-2xl font-black text-slate-900">{(stats?.count ?? 0)}</h3>
            <p className="text-xs text-slate-500 font-medium mt-2">Successful enrollments</p>
         </div>
 
@@ -101,9 +73,9 @@ function EarningsAdmin() {
            <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 mb-4">
              <Calendar size={24} />
            </div>
-           <p className="text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">Monthly Avg</p>
-           <h3 className="text-2xl font-black text-slate-900">৳{(stats?.totalRevenue && stats?.totalRevenue > 0 ? Math.round(stats.totalRevenue / 1) : 0).toLocaleString()}</h3>
-           <p className="text-xs text-slate-500 font-medium mt-2">Projection based on current data</p>
+           <p className="text-sm font-bold text-slate-400 mb-1 uppercase tracking-wider">This Month</p>
+           <h3 className="text-2xl font-black text-slate-900">৳{(stats?.monthlyRevenue ?? 0).toLocaleString()}</h3>
+           <p className="text-xs text-slate-500 font-medium mt-2">আগের মাসে ৳{(stats?.previousRevenue ?? 0).toLocaleString()}</p>
         </div>
       </div>
 
@@ -122,7 +94,7 @@ function EarningsAdmin() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {stats?.courseStats?.map((c: any) => (
-                <tr key={c.title} className="hover:bg-slate-50/50 transition">
+                <tr key={c.id} className="hover:bg-slate-50/50 transition">
                   <td className="px-6 py-4 text-sm font-bold text-slate-900">{c.title}</td>
                   <td className="px-6 py-4 text-sm font-medium text-slate-600">{c.count}</td>
                   <td className="px-6 py-4 text-sm font-black text-emerald-600">৳{c.revenue.toLocaleString()}</td>
@@ -151,17 +123,17 @@ function EarningsAdmin() {
               {stats?.transactions?.map((tx: any) => (
                 <tr key={tx.id} className="hover:bg-slate-50/50 transition">
                   <td className="px-6 py-4 text-sm font-medium text-slate-600">
-                    {new Date(tx.created_at).toLocaleDateString()}
+                    {new Date(tx.enrolled_at).toLocaleDateString("bn-BD", {timeZone:"Asia/Dhaka"})}
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-slate-900">
                     {tx.id.slice(0, 8)}...
                   </td>
                   <td className="px-6 py-4 text-sm font-black text-slate-900">
-                    ৳{(Array.isArray(tx.courses) ? tx.courses[0]?.price : tx.courses?.price) || 0}
+                    ৳{paymentAmount(tx).toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-                      Active
+                      {tx.payment_status === "verified" ? "Verified" : "Legacy active"}
                     </span>
                   </td>
                 </tr>
