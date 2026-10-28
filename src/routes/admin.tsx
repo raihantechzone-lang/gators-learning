@@ -5,22 +5,24 @@ import { AdminLogin } from "@/components/admin/AdminLogin";
 import { LayoutDashboard, BookOpen, Users, Settings, LogOut, Star, FileText, Award, CalendarCheck, UserPlus, Medal, DollarSign, ShieldCheck, Folders, BadgeCheck, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { teacherMeta } from '@/lib/teachers';
-import { verifyAdminAccess } from '@/lib/admin-access';
+import { getPanelRole, panelPathAllowed } from '@/lib/panel-permissions';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from '@tanstack/react-router';
+import { useRouter, useLocation } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/admin")({
   head: () => teacherMeta('Admin Control Panel', 'Manage the Gators Learning teaching platform.'),
   ssr: false,
   beforeLoad: async () => {
-    try { return { adminAllowed: await verifyAdminAccess(), adminError: '' }; }
-    catch (error) { return { adminAllowed: false, adminError: error instanceof Error ? error.message : 'অ্যাডমিনের অনুমতি যাচাই করা যাচ্ছে না।' }; }
+    try { const panelRole = await getPanelRole(supabase); return { adminAllowed: !!panelRole, panelRole, adminError: '' }; }
+    catch (error) { return { adminAllowed: false, panelRole: null, adminError: error instanceof Error ? error.message : 'অ্যাডমিনের অনুমতি যাচাই করা যাচ্ছে না।' }; }
   },
   component: AdminGuard,
 });
 
 function AdminGuard() {
-  const { adminAllowed, adminError } = Route.useRouteContext();
+  const { adminAllowed, adminError, panelRole } = Route.useRouteContext();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const router = useRouter();
@@ -55,6 +57,8 @@ function AdminGuard() {
     { name: "Course Verification", href: "/admin/course-verification", icon: BadgeCheck },
     { name: "Notice", href: "/admin/notices", icon: Megaphone },
     { name: "Reviews & Ads", href: "/admin/reviews", icon: Star },
+    { name: "Bulk Message", href: "/admin/messages", icon: Megaphone },
+    { name: "Moderator", href: "/admin/moderators", icon: ShieldCheck },
   ];
 
   return (
@@ -71,7 +75,7 @@ function AdminGuard() {
           </div>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto pr-2 custom-scrollbar">
-          {navItems.map((item) => (
+          {navItems.filter(item => panelPathAllowed(panelRole,item.href)).map((item) => (
             <Link
               key={item.name}
               to={item.href}
@@ -103,7 +107,7 @@ function AdminGuard() {
         </header>
         <div className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
           <div className="max-w-7xl mx-auto">
-            <Outlet />
+            {panelPathAllowed(panelRole, location.pathname) ? <Outlet /> : <section className="space-y-4"><h1 className="text-xl font-bold">এই পৃষ্ঠার অনুমতি নেই</h1><Button asChild><Link to="/admin/courses">কোর্সে ফিরে যান</Link></Button></section>}
           </div>
         </div>
       </main>

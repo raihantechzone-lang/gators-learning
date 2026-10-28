@@ -521,7 +521,7 @@
 
           contents.forEach((c, idx) => {
 
-             const isLocked = !c.is_free && !isEnrolled;
+             const isLocked = !c.is_free && !(course.price != null && Number(course.price) === 0) && !isEnrolled;
              const item = document.createElement("div");
              item.className = `group flex items-center justify-between p-4 sm:px-6 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-0 ${isLocked ? 'opacity-80' : 'relative overflow-hidden'}`;
              if (!isLocked) {
@@ -611,7 +611,7 @@
                   materialsContainer.innerHTML = '<p class="text-xs text-slate-400 py-4 text-center">কোনো কন্টেন্ট নেই</p>';
               } else {
                   pdfs.forEach(p => {
-                      const isLocked = !p.is_free && !isEnrolled;
+                      const isLocked = !p.is_free && !(course.price != null && Number(course.price) === 0) && !isEnrolled;
                       const div = document.createElement("div");
                       div.className = "flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100";
                       div.innerHTML = `

@@ -31,6 +31,8 @@ import { Route as AdminCourseVerificationRouteImport } from './routes/admin/cour
 import { Route as AdminCoursesRouteImport } from './routes/admin/courses'
 import { Route as AdminEarningsRouteImport } from './routes/admin/earnings'
 import { Route as AdminEnrollmentsRouteImport } from './routes/admin/enrollments'
+import { Route as AdminMessagesRouteImport } from './routes/admin/messages'
+import { Route as AdminModeratorsRouteImport } from './routes/admin/moderators'
 import { Route as AdminNoticesRouteImport } from './routes/admin/notices'
 import { Route as AdminResultsRouteImport } from './routes/admin/results'
 import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
@@ -162,6 +164,16 @@ const AdminEnrollmentsRoute = AdminEnrollmentsRouteImport.update({
   path: '/enrollments',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMessagesRoute = AdminMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminModeratorsRoute = AdminModeratorsRouteImport.update({
+  id: '/moderators',
+  path: '/moderators',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminNoticesRoute = AdminNoticesRouteImport.update({
   id: '/notices',
   path: '/notices',
@@ -286,6 +298,8 @@ export interface FileRoutesByFullPath {
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/earnings': typeof AdminEarningsRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/moderators': typeof AdminModeratorsRoute
   '/admin/notices': typeof AdminNoticesRoute
   '/admin/results': typeof AdminResultsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -329,6 +343,8 @@ export interface FileRoutesByTo {
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/earnings': typeof AdminEarningsRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/moderators': typeof AdminModeratorsRoute
   '/admin/notices': typeof AdminNoticesRoute
   '/admin/results': typeof AdminResultsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -374,6 +390,8 @@ export interface FileRoutesById {
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/earnings': typeof AdminEarningsRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
+  '/admin/messages': typeof AdminMessagesRoute
+  '/admin/moderators': typeof AdminModeratorsRoute
   '/admin/notices': typeof AdminNoticesRoute
   '/admin/results': typeof AdminResultsRoute
   '/admin/reviews': typeof AdminReviewsRoute
@@ -420,6 +438,8 @@ export interface FileRouteTypes {
     | '/admin/courses'
     | '/admin/earnings'
     | '/admin/enrollments'
+    | '/admin/messages'
+    | '/admin/moderators'
     | '/admin/notices'
     | '/admin/results'
     | '/admin/reviews'
@@ -463,6 +483,8 @@ export interface FileRouteTypes {
     | '/admin/courses'
     | '/admin/earnings'
     | '/admin/enrollments'
+    | '/admin/messages'
+    | '/admin/moderators'
     | '/admin/notices'
     | '/admin/results'
     | '/admin/reviews'
@@ -507,6 +529,8 @@ export interface FileRouteTypes {
     | '/admin/courses'
     | '/admin/earnings'
     | '/admin/enrollments'
+    | '/admin/messages'
+    | '/admin/moderators'
     | '/admin/notices'
     | '/admin/results'
     | '/admin/reviews'
@@ -708,6 +732,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEnrollmentsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/messages': {
+      id: '/admin/messages'
+      path: '/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AdminMessagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/moderators': {
+      id: '/admin/moderators'
+      path: '/moderators'
+      fullPath: '/admin/moderators'
+      preLoaderRoute: typeof AdminModeratorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/notices': {
       id: '/admin/notices'
       path: '/notices'
@@ -860,6 +898,8 @@ interface AdminRouteChildren {
   AdminCoursesRoute: typeof AdminCoursesRoute
   AdminEarningsRoute: typeof AdminEarningsRoute
   AdminEnrollmentsRoute: typeof AdminEnrollmentsRoute
+  AdminMessagesRoute: typeof AdminMessagesRoute
+  AdminModeratorsRoute: typeof AdminModeratorsRoute
   AdminNoticesRoute: typeof AdminNoticesRoute
   AdminResultsRoute: typeof AdminResultsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
@@ -879,6 +919,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCoursesRoute: AdminCoursesRoute,
   AdminEarningsRoute: AdminEarningsRoute,
   AdminEnrollmentsRoute: AdminEnrollmentsRoute,
+  AdminMessagesRoute: AdminMessagesRoute,
+  AdminModeratorsRoute: AdminModeratorsRoute,
   AdminNoticesRoute: AdminNoticesRoute,
   AdminResultsRoute: AdminResultsRoute,
   AdminReviewsRoute: AdminReviewsRoute,

@@ -1,8 +1,12 @@
-export async function requireUploadAccess(db: any, courseId?: string) {
+export async function requireUploadAccess(db: any, courseId?: string, moderatorAllowed = false) {
   const { data, error } = await db.auth.getUser();
   if (error || !data?.user) throw new Error('Please sign in again.');
   const roles = await db.from('user_roles').select('role').eq('user_id', data.user.id).eq('role', 'admin');
   let authorized = !roles.error && roles.data?.some((row: { role: string }) => row.role === 'admin');
+  if (moderatorAllowed && !courseId) {
+    const moderator = await db.from('user_roles').select('role').eq('user_id', data.user.id).eq('role','moderator');
+    if (!moderator.error && moderator.data?.some((row:{role:string}) => row.role === 'moderator')) authorized = true;
+  }
   if (courseId) {
     const assigned = await db.rpc('teaches_course', { target_course: courseId });
     if (!assigned.error && assigned.data === true) authorized = true;

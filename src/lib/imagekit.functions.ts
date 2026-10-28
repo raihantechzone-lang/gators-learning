@@ -1,13 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import { requireUploadAccess } from './upload-access';
+import { z } from 'zod';
 
 /**
  * ImageKit browser uploads must be signed server-side.
  * Returns { token, expire, signature } for the upload API.
  */
-export const getImageKitAuth = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
-  await requireUploadAccess(context.supabase);
+export const getImageKitAuth = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator(z.object({folder:z.string().max(80)}))
+  .handler(async ({ context, data }) => {
+  await requireUploadAccess(context.supabase, undefined, ['/courses','/lessons','/notes','/videos'].some(folder => data.folder === folder || data.folder.startsWith(folder + '/')));
   const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
   if (!privateKey) throw new Error("IMAGEKIT_PRIVATE_KEY is not configured");
 

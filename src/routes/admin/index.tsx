@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Users, BookOpen, CreditCard, Star, TrendingUp, DollarSign } from "lucide-react";
 import { approvedEnrollmentFilter } from "@/lib/enrollment-payment";
+import { financialSummary, weeklyRevenue, type PaymentRow } from '@/lib/management-rules';
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [
@@ -21,7 +22,8 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function AdminDashboard() {
-  const { data: stats } = useQuery({
+  const { data: stats, error } = useQuery({
+    refetchInterval: 30000,
     queryKey: ["admin-stats"],
     queryFn: async () => {
       const [courses, students, enrollments, reviews, recentRequests, earnings] = await Promise.all([
@@ -30,13 +32,13 @@ function AdminDashboard() {
         supabase.from("enrollments").select("id, status"),
         supabase.from("reviews").select("id", { count: "exact" }),
         supabase.from("enrollments").select("*, courses(title), profiles(full_name)").eq("payment_status", "pending").order("enrolled_at", { ascending: false }).limit(5),
-        supabase.from("enrollments").select("id, courses(price)").or(approvedEnrollmentFilter)
+        supabase.from("enrollments").select("id,course_id,status,payment_status,amount_paid,enrolled_at,courses(id,title,price,discount_price)").or(approvedEnrollmentFilter)
       ]);
 
-      const totalRevenue = (earnings.data || []).reduce((sum, item) => {
-        const price = (item.courses as any)?.price || 0;
-        return sum + Number(price);
-      }, 0);
+      const failed = [courses,students,enrollments,reviews,recentRequests,earnings].find(result => result.error);
+      if (failed?.error) throw failed.error;
+      const payments = (earnings.data || []) as PaymentRow[];
+      const {totalRevenue} = financialSummary(payments);
 
       return {
         totalCourses: courses.count || 0,
@@ -44,23 +46,17 @@ function AdminDashboard() {
         totalEnrollments: enrollments.data?.length || 0,
         totalReviews: reviews.count || 0,
         totalRevenue,
+        chartData: weeklyRevenue(payments),
         recentRequests: recentRequests.data || []
       };
     },
   });
 
-  const chartData = [
-    { name: "Sat", sales: 4000 },
-    { name: "Sun", sales: 3000 },
-    { name: "Mon", sales: 2000 },
-    { name: "Tue", sales: 2780 },
-    { name: "Wed", sales: 1890 },
-    { name: "Thu", sales: 2390 },
-    { name: "Fri", sales: 3490 },
-  ];
+  const chartData = stats?.chartData || [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {error && <p role="alert" className="text-destructive">{error.message}</p>}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Overview</h1>
