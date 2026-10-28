@@ -35,6 +35,6 @@
 - Admin input/confirmation dialogs render through body portals, not inside animated page containers or browser-native prompts, so embedded previews and scrolling pages remain usable.
 - Admin numeric form values use a shared Bengali-digit normalizer and strict parsing before saving, so Bengali input is accepted without silently converting invalid values to zero.
 - Public/student lesson reads use visible_course_lessons, which redacts resources without entitlement; external SQL is delivered separately and never applied to the unrelated Cloud database.
-- Upload signing revalidates Auth and a protected admin role or assigned course; no browser flag or legacy email fallback authorizes uploads.
+- Upload signing revalidates Auth and a protected admin role or assigned course and consumes an atomic external database quota; missing quota configuration fails closed, and no browser flag or legacy email fallback authorizes uploads.
 - Refund approval uses an admin-only atomic RPC and shared access checks reject revoked states, avoiding partial approvals and constrained enrollment-status changes.
 - Shared raw-injected security helpers escape text and allow HTTPS resource URLs across HTML and React; response headers allow the Lovable preview but prohibit unrelated framing.

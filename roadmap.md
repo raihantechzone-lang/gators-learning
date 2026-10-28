@@ -46,5 +46,7 @@
 - [x] Replace admin password bypass with verified account/role login; user confirmed successful real course creation, and current preview telemetry confirms Auth user and admin role reads return 200.
 - [x] Repair course dialogs, Bengali numeric inputs, all admin native prompts/confirmations and certificate URL entry; browser fixture save/readback passes and 13 rule tests pass.
 - [x] Keep RLS unchanged; require verified administrator provisioning and real admin/student/teacher checks before staged policy activation.
-- [ ] Resolve all current security findings: XSS, upload authorization, entitlement/refunds, review approval, external policies and dependency vulnerabilities.
+- [x] Harden frontend text/URL sinks, signing Auth/role checks, revoked entitlement checks and security headers; 74 tests pass, package audit reports zero vulnerabilities, public homepage/enrollment render without runtime errors.
+- [ ] Resolve database-dependent security findings (public profile/paid resource exposure, enrollment/role/review privileges): external-security-hardening_v3.sql must be applied and authenticated permission/constraint compatibility tested; not yet resolved.
 - [ ] Apply external security hardening SQL and verify real admin/teacher/student flows: external database administration and authenticated testing sessions are unavailable to the agent.
+- [ ] Verify signed-out admin form rendering: browser navigation remained blank after two seconds; no runtime error captured, so do not count this as a successful route test.
