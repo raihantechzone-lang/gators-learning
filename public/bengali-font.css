@@ -1,34 +1,52 @@
-/* Complete Unicode Bengali fonts, including every Bengali digit. */
 @font-face {
-  font-family: "Hind Siliguri";
-  src: url("/__l5e/assets-v1/632771aa-4e58-40e2-a551-4346ebacfdcd/HindSiliguri-Regular.woff") format("woff");
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
   font-weight: 400;
-  font-style: normal;
+  font-stretch: normal;
   font-display: swap;
+  src: url(https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsolLudA.ttf) format('truetype');
 }
 @font-face {
-  font-family: "Hind Siliguri";
-  src: url("/__l5e/assets-v1/c9c7f953-bfae-47a6-a9d6-222323d7ecdf/HindSiliguri-Medium.woff") format("woff");
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
   font-weight: 500;
-  font-style: normal;
+  font-stretch: normal;
   font-display: swap;
+  src: url(https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsrtLudA.ttf) format('truetype');
 }
 @font-face {
-  font-family: "Hind Siliguri";
-  src: url("/__l5e/assets-v1/069a4ab9-135f-4b2c-8656-9df4c9ae1ab9/HindSiliguri-SemiBold.woff") format("woff");
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
   font-weight: 600;
-  font-style: normal;
+  font-stretch: normal;
   font-display: swap;
+  src: url(https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsldMudA.ttf) format('truetype');
 }
 @font-face {
-  font-family: "Hind Siliguri";
-  src: url("/__l5e/assets-v1/4d4288cf-81c9-474b-84d0-7e28e542a30b/HindSiliguri-Bold.woff") format("woff");
-  font-weight: 700;
+  font-family: 'Noto Sans Bengali';
   font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
   font-display: swap;
+  src: url(https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6Kmsm5MudA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: normal;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsglMudA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
+  font-weight: 900;
+  font-stretch: normal;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsiBMudA.ttf) format('truetype');
 }
 
-:root { --site-bengali-font: "Hind Siliguri", sans-serif; }
-/* Safe line boxes for Bengali matras and digits, even inside truncated text. */
+:root { --site-bengali-font: "Inter", "Noto Sans Bengali", sans-serif; }
 .font-bengali { font-family: var(--site-bengali-font); line-height: 1.6; letter-spacing: 0; }
 .font-bengali.bengali-numeral { line-height: 1.65; padding-inline: .12em; overflow: visible; font-weight: 700; }
