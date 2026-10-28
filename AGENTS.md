@@ -11,14 +11,14 @@
 
 - The homepage and enrollment are full-document HTML server responses; React links to those pages must use `reloadDocument` so navigation runs their HTML scripts.
 - Keep `/details/$courseId` as a permanent redirect to enrollment, rather than a second course page, to preserve published course links.
-- React/HTML lessons share one Plyr adapter and its bound title/center/timeline controls, with thumbnail-first/native fallback; never duplicate YouTube instances or fake quality choices.
+- React/HTML lessons share one Plyr adapter and its bound center/timeline controls, with thumbnail-first/native fallback; never duplicate YouTube instances or fake quality choices.
 - Progress uses owner-scoped lesson_progress with a labeled per-user browser fallback; external SQL is delivered separately, never applied through unrelated Cloud tools.
 - All signup/login paths use the shared student-roll helper, injected into full-document HTML from its raw source; preserve numeric assigned rolls and derive new 9-digit numeric rolls from the full user UUID, because the external roll_number column is integer.
 - Shared public-experience helpers normalize email identically in HTML/React account forms without altering passwords and optimize ImageKit advertisement delivery; inject their raw source into full-document pages to keep those paths consistent.
 - Public review reads must use only supported profile columns; homepage reviews and ads refresh on focus and periodically as a fallback when external realtime is unavailable.
 - Payment approval updates only payment_status, never the external backend's constrained enrollment status; access and approved-payment reads share verified-payment semantics, with legacy active/null-payment access retained.
 
-- Course-page reviews are lesson-scoped via a `[lesson:<id>] ` comment prefix (external reviews table has no lesson column); the homepage shows only reviews with null course_id.
+- Course-page reviews are lesson-scoped via a `[lesson:<id>] ` comment prefix (external reviews table has no lesson column); a database trigger and compatible owner-scoped INSERT policy publish valid lesson comments immediately, while null-course homepage reviews retain administrator approval.
 - Course-page and dashboard progress use the shared owner-scoped progress-sync helper with serialized cloud writes and a timestamped browser cache; cloud loads happen before capturing resume position so fresh devices resume correctly.
 - Lesson lifecycle writes use the shared lessonUpdate helper; React and full-document pages share isLessonLive from the raw-injected public-experience helper to keep recording/expiry visibility consistent.
 - Enrollment page marketing sections (subtitle, highlights, details, instructor, benefits, FAQs) come from optional text columns on courses, edited in admin Courses; empty fields hide their section so no demo copy appears.
