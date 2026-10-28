@@ -1,3 +1,4 @@
+import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog';
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -317,8 +318,8 @@ export function ContentAdmin({ allowedCourses, initialCourseId = '' }: { allowed
                              <Edit2 size={18} />
                            </Button>
                            <button 
-                             onClick={() => window.confirm("Delete this lesson?") && deleteMutation.mutate(content.id)}
-                             className="p-2 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition opacity-0 group-hover:opacity-100"
+                             onClick={async () => { if (await adminConfirm("Delete this lesson?")) deleteMutation.mutate(content.id); }}
+                             className="p-2 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition "
                            >
                              <Trash2 size={18} />
                            </button>

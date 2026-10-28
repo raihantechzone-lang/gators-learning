@@ -1,3 +1,4 @@
+import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog';
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,7 +61,7 @@ function MarkSheetAdmin() {
         <FileText className="text-brand shrink-0" /><span className="font-bold flex-1 min-w-0 break-words">{sheet.title}</span>
         <Button asChild variant="outline" size="icon"><a href={sheet.url} target="_blank" rel="noopener noreferrer" aria-label="Open PDF"><ExternalLink size={16} /></a></Button>
         <Button variant="ghost" size="icon" aria-label="Edit PDF" onClick={() => { setEditingId(sheet.id); setTitle(sheet.title); setUrl(sheet.url); }}><Pencil size={16} /></Button>
-        <Button variant="ghost" size="icon" aria-label="Delete PDF" disabled={save.isPending} onClick={() => { if (window.confirm('মার্কশিট মুছবেন?')) save.mutate((sheets.data || []).filter(s => s.id !== sheet.id)); }}><Trash2 size={16} /></Button>
+        <Button variant="ghost" size="icon" aria-label="Delete PDF" disabled={save.isPending} onClick={async () => { if (await adminConfirm('মার্কশিট মুছবেন?')) save.mutate((sheets.data || []).filter(s => s.id !== sheet.id)); }}><Trash2 size={16} /></Button>
       </div>)}</div>}
     </>}
   </div>;

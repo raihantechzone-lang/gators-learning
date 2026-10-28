@@ -1,3 +1,4 @@
+import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog';
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +49,7 @@ function EnrollmentsAdmin() {
     new Map(
       (enrollments ?? [])
         .filter((e) => e.courses?.title)
-        .map((e) => [e.course_id, e.courses!.title as string])
+        .map((e) => [e.course_id, e.courses?.title || ""])
     ).entries()
   );
 
@@ -149,7 +150,7 @@ function EnrollmentsAdmin() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button 
-                      onClick={() => window.confirm("Remove enrollment?") && deleteMutation.mutate(e.id)}
+                      onClick={async () => { if (await adminConfirm("Remove enrollment?")) deleteMutation.mutate(e.id); }}
                       className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition"
                     >
                       <Trash2 size={18} />

@@ -1,3 +1,4 @@
+import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog';
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -37,7 +38,7 @@ function NoticesAdmin() {
     refresh();
   };
   const remove = async (n: Notice) => {
-    if (!window.confirm("Delete this notice?")) return;
+    if (!await adminConfirm("Delete this notice?")) return;
     const { error } = await (supabase as any).from("notices").delete().eq("id", n.id);
     if (error) return toast.error(error.message);
     refresh();

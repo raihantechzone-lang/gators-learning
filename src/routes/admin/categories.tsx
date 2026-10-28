@@ -1,3 +1,4 @@
+import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog';
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,10 +129,11 @@ function CategoriesAdmin() {
                       </div>
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => {
-                            const newName = window.prompt("Edit category name:", cat.name);
+                          onClick={async () => {
+                            const newName = await adminPrompt("Edit category name:", cat.name);
                             if (newName && newName !== cat.name) {
-                              supabase.from("categories").update({ name: newName }).eq("id", cat.id).then(() => {
+                              supabase.from("categories").update({ name: newName.trim() }).eq("id", cat.id).select("id").single().then(({ data, error }) => {
+                                if (error || !data) { toast.error(error?.message || "Category was not saved. Check admin permissions."); return; }
                                 queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
                                 toast.success("Category updated");
                               });
@@ -142,7 +144,7 @@ function CategoriesAdmin() {
                           <Edit2 size={18} />
                         </button>
                         <button 
-                          onClick={() => window.confirm("Delete this category?") && deleteMutation.mutate(cat.id)}
+                          onClick={async () => { if (await adminConfirm("Delete this category?")) deleteMutation.mutate(cat.id); }}
                           className="p-2 text-slate-400 hover:text-rose-600 transition"
                         >
                           <Trash2 size={18} />
