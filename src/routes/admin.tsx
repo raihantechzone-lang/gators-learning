@@ -1,76 +1,43 @@
 import { createFileRoute, Outlet, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { LayoutDashboard, BookOpen, Users, Settings, LogOut, Star, FileText, Award, CalendarCheck, UserPlus, Medal, DollarSign, ShieldCheck, Folders, BadgeCheck, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { teacherMeta } from '@/lib/teachers';
+import { verifyAdminAccess } from '@/lib/admin-access';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from '@tanstack/react-router';
 
 export const Route = createFileRoute("/admin")({
   head: () => teacherMeta('Admin Control Panel', 'Manage the Gators Learning teaching platform.'),
+  ssr: false,
+  beforeLoad: async () => {
+    try { return { adminAllowed: await verifyAdminAccess(), adminError: '' }; }
+    catch (error) { return { adminAllowed: false, adminError: error instanceof Error ? error.message : 'অ্যাডমিনের অনুমতি যাচাই করা যাচ্ছে না।' }; }
+  },
   component: AdminGuard,
 });
 
-const SESSION_KEY = "gators-admin-session";
-
 function AdminGuard() {
-  const [authed, setAuthed] = useState<boolean | null>(null);
-  const [checkingRole, setCheckingRole] = useState(true);
+  const { adminAllowed, adminError } = Route.useRouteContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    async function checkAdmin() {
-      const isAuthed = localStorage.getItem(SESSION_KEY) === "1";
-      if (!isAuthed) {
-        setAuthed(false);
-        setCheckingRole(false);
-        return;
-      }
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        localStorage.removeItem(SESSION_KEY);
-        setAuthed(false);
-        setCheckingRole(false);
-        return;
-      }
-
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin");
-
-      if (!roles || roles.length === 0) {
-        localStorage.removeItem(SESSION_KEY);
-        setAuthed(false);
-      } else {
-        setAuthed(true);
-      }
-      setCheckingRole(false);
-    }
-
-    checkAdmin();
-  }, []);
-
-  if (authed === null || checkingRole) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-alt">
-        <div className="w-10 h-10 border-4 border-brand/30 border-t-brand rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!authed) {
-    return <AdminLogin onSuccess={() => setAuthed(true)} />;
+  if (!adminAllowed) {
+    return <><AdminLogin onSuccess={() => { queryClient.clear(); void router.invalidate(); }} />
+      {adminError && <p role="alert" className="fixed bottom-4 inset-x-4 text-center text-destructive">{adminError}</p>}</>;
   }
 
   const handleLogout = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await supabase.auth.signOut();
-    localStorage.removeItem(SESSION_KEY);
-    setAuthed(false);
-    navigate({ to: "/admin" });
+    localStorage.removeItem('gators-admin-session');
+    await router.invalidate();
+    await navigate({ to: '/admin', replace: true });
   };
 
   const navItems = [

@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Lock, Mail, User } from "lucide-react";
+import { Lock, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const ADMIN_USER = "adel111";
-const ADMIN_EMAIL = "adel111@gmail.com";
-const ADMIN_PASS = "adel111";
-const SESSION_KEY = "gators-admin-session";
+import { verifyAdminAccess } from '@/lib/admin-access';
+import { Button } from '@/components/ui/button';
 
 export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const [username, setUsername] = useState("");
@@ -21,15 +19,8 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
     setErrorMessage("");
 
     const loginInput = username.trim().toLowerCase();
-    const isHardcodedAdmin = (loginInput === ADMIN_USER || loginInput === ADMIN_EMAIL) && password === ADMIN_PASS;
 
     try {
-      if (isHardcodedAdmin) {
-        localStorage.setItem(SESSION_KEY, "1");
-        onSuccess();
-        return;
-      }
-
       // 1. Authenticate with Supabase
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: loginInput.includes("@") ? loginInput : `${loginInput}@gmail.com`,
@@ -43,24 +34,16 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
         return;
       }
 
-      // 2. Check if user has admin role
-      const { data: roles, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", data.user.id)
-        .eq("role", "admin");
-
-      if (roleError || !roles || roles.length === 0) {
+      if (!await verifyAdminAccess()) {
         setError(true);
-        setErrorMessage("Access denied. Admin privileges required.");
+        setErrorMessage("এই অ্যাকাউন্টে অ্যাডমিনের অনুমতি নেই।");
         await supabase.auth.signOut();
       } else {
-        localStorage.setItem(SESSION_KEY, "1");
         onSuccess();
       }
     } catch (err) {
       setError(true);
-      setErrorMessage("An unexpected error occurred.");
+      setErrorMessage(err instanceof Error ? err.message : "লগইন করা যাচ্ছে না। আবার চেষ্টা করুন।");
     } finally {
       setLoading(false);
     }
@@ -118,7 +101,7 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
               </div>
             )}
 
-            <button 
+            <Button 
               type="submit" 
               disabled={loading}
               className="w-full py-4 bg-brand text-white rounded-2xl font-black text-lg shadow-xl shadow-brand/20 hover:scale-[1.02] active:scale-95 transition disabled:opacity-50 disabled:scale-100 mt-4 flex items-center justify-center gap-2"
@@ -126,7 +109,7 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : "Unlock Dashboard"}
-            </button>
+            </Button>
           </form>
 
           <p className="text-center mt-8 text-xs font-bold text-slate-400">
