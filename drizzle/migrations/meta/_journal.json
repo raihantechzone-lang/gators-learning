@@ -22,6 +22,13 @@
       "when": 1793171389049,
       "tag": "0002_enforce_role_owner_and_paid_lesson_security",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793171763975,
+      "tag": "0003_align_cloud_paid_lesson_entitlement",
+      "breakpoints": true
     }
   ]
 }
