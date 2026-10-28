@@ -2,10 +2,12 @@ export async function requireUploadAccess(db: any, courseId?: string) {
   const { data, error } = await db.auth.getUser();
   if (error || !data?.user) throw new Error('Please sign in again.');
   const roles = await db.from('user_roles').select('role').eq('user_id', data.user.id).eq('role', 'admin');
-  if (!roles.error && roles.data?.some((row: { role: string }) => row.role === 'admin')) return;
+  let authorized = !roles.error && roles.data?.some((row: { role: string }) => row.role === 'admin');
   if (courseId) {
     const assigned = await db.rpc('teaches_course', { target_course: courseId });
-    if (!assigned.error && assigned.data === true) return;
+    if (!assigned.error && assigned.data === true) authorized = true;
   }
-  throw new Error('You do not have permission to upload.');
+  if (!authorized) throw new Error('You do not have permission to upload.');
+  const limit = await db.rpc('consume_upload_quota');
+  if (limit.error || limit.data !== true) throw new Error('Upload security setup required or upload limit reached. Try again later.');
 }

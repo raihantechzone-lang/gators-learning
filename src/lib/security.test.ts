@@ -7,7 +7,7 @@ function client(role: string, assigned = false, signedIn = true) {
   return {
     auth: { getUser: async () => ({ data: { user: signedIn ? { id: 'u' } : null }, error: null }) },
     from: () => ({ select: () => ({ eq: () => ({ eq: async () => ({ data: [{ role }], error: null }) }) }) }),
-    rpc: async () => ({ data: assigned, error: null }),
+    rpc: async (name: string) => ({ data: name === 'consume_upload_quota' ? true : assigned, error: null }),
   };
 }
 describe('Upload authorization', () => {
@@ -18,6 +18,11 @@ describe('Upload authorization', () => {
     await assert.doesNotReject(requireUploadAccess(client('student', true), 'course'));
     await assert.rejects(requireUploadAccess(client('student', false), 'other'));
     await assert.rejects(requireUploadAccess(client('student', true)));
+  });
+  it('rejects uploads when the durable quota is exhausted', async () => {
+    const db = client('admin');
+    db.rpc = async () => ({ data: false, error: null });
+    await assert.rejects(requireUploadAccess(db));
   });
 });
 describe('Untrusted inputs', () => {

@@ -298,8 +298,9 @@
         const box = document.getElementById('course-enrolled');
         if (!box || !window.supabase) return;
         const paint = async () => {
-            const { count } = await window.supabase.from('enrollments').select('id', { count: 'exact', head: true }).eq('course_id', course.id);
-            const total = (Number(course.enrollment_count) || 0) + (count || 0);
+            const { data: count, error } = await window.supabase.rpc('public_course_enrollment_count', { target_course: course.id });
+            if (error) return;
+            const total = (Number(course.enrollment_count) || 0) + (Number(count) || 0);
             box.querySelector('span').textContent = `${total.toLocaleString('bn-BD')} জন ভর্তি হয়েছেন`;
             box.classList.remove('hidden'); box.classList.add('flex');
         };
@@ -360,7 +361,7 @@
         const el = document.getElementById('course-chips'); if (!el) return;
         const chip = (i, t) => `<span class="inline-flex items-center gap-2 text-sm text-slate-600 border border-slate-200 rounded-full px-3 py-1.5 bg-white"><i class="fa-solid ${i} text-brand-500"></i>${t}</span>`;
         const free = contents.filter(c => c.is_free).length;
-        el.innerHTML = chip('fa-circle-play', contents.length + 'টি লেসন') + (free ? chip('fa-unlock', free + 'টি ফ্রি লেসন') : '') + (contents.some(c => c.pdf_url) ? chip('fa-file-pdf', 'PDF নোট') : '');
+        el.innerHTML = chip('fa-circle-play', contents.length + 'টি লেসন') + (free ? chip('fa-unlock', free + 'টি ফ্রি লেসন') : '') + (contents.some(c => c.pdf_url || c.has_pdf) ? chip('fa-file-pdf', 'PDF নোট') : '');
     };
     window.renderAssignedTeachers = function (teachers) {
         if (!teachers.length) return;
