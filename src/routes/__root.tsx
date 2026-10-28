@@ -119,6 +119,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <script src="/inspect-guard.js" defer />
         <Scripts />
       </body>
     </html>
