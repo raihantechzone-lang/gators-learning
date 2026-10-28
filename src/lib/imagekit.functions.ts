@@ -10,7 +10,7 @@ import { z } from 'zod';
 export const getImageKitAuth = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator(z.object({folder:z.string().max(80)}))
   .handler(async ({ context, data }) => {
-  await requireUploadAccess(context.supabase, undefined, ['/courses','/lessons','/notes','/videos'].includes(data.folder));
+  await requireUploadAccess(context.supabase, undefined, ['/courses','/lessons','/notes','/videos'].some(folder => data.folder === folder || data.folder.startsWith(folder + '/')));
   const privateKey = process.env["IMAGEKIT_PRIVATE_KEY"];
   if (!privateKey) throw new Error("IMAGEKIT_PRIVATE_KEY is not configured");
 

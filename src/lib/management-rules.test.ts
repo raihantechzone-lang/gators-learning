@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { dashboardGroups, financialSummary, paymentAmount, absentStudents, liveClassOnDay, messageLink, enrollmentState, isFreeCourse } from './management-rules';
-import { panelPathAllowed } from './panel-permissions';
+import { panelPathAllowed, getPanelRole } from './panel-permissions';
 describe('requested dashboard and admin rules', () => {
   it('pending enrollments stay pending without granting access', () => {
     assert.equal(enrollmentState([{course_id:'paid',status:'pending',payment_status:'pending'}]),'pending');
@@ -38,5 +38,11 @@ describe('requested dashboard and admin rules', () => {
     for (const path of ['/admin','/admin/teachers','/admin/reviews','/admin/moderators','/admin/settings']) assert.equal(panelPathAllowed('moderator',path),false,path);
     for (const path of ['/admin/courses','/admin/attendance','/admin/messages','/admin/earnings','/admin/course-verification']) assert.equal(panelPathAllowed('moderator',path),true,path);
     assert.equal(panelPathAllowed(null,'/admin/courses'),false);
+  });
+  it('panel roles require a verified Auth identity and a protected role read', async () => {
+    const query = {eq: async () => ({data:[{role:'moderator'}],error:null})};
+    const client = {auth:{getUser:async () => ({data:{user:{id:'m'}},error:null})},from:() => ({select:()=>query})};
+    assert.equal(await getPanelRole(client),'moderator');
+    assert.equal(await getPanelRole({...client,auth:{getUser:async () => ({data:{user:null},error:null})}}),null);
   });
 });

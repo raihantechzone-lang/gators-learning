@@ -14,6 +14,10 @@ describe('Upload authorization', () => {
   it('rejects signed-out uploads', async () => { await assert.rejects(requireUploadAccess(client('admin', false, false))); });
   it('rejects students', async () => { await assert.rejects(requireUploadAccess(client('student'))); });
   it('allows verified administrators', async () => { await assert.doesNotReject(requireUploadAccess(client('admin'))); });
+  it('allows moderator course uploads but denies the general admin-only signer', async () => {
+    await assert.doesNotReject(requireUploadAccess(client('moderator'), undefined, true));
+    await assert.rejects(requireUploadAccess(client('moderator')));
+  });
   it('allows assigned teachers only for their course', async () => {
     await assert.doesNotReject(requireUploadAccess(client('student', true), 'course'));
     await assert.rejects(requireUploadAccess(client('student', false), 'other'));
