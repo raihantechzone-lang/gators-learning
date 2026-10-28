@@ -16,6 +16,7 @@ import { hasCourseAccess, lessonReviewTag, readLocalProgress, type LessonProgres
 import { loadStudentProgress, saveStudentProgress } from "@/lib/progress-sync";
 import { toast } from "sonner";
 import { loadVisibleLessons, safeWebUrl } from '@/lib/public-experience.js';
+import { isFreeCourse } from '@/lib/management-rules';
 
 export const Route = createFileRoute("/courses/$courseId")({
   head: () => ({
@@ -87,7 +88,8 @@ function CourseDetailPage() {
   const [contents, setContents] = useState<RichContent[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [enrolled, setEnrolled] = useState(false);
+  const [paidEnrollment, setEnrolled] = useState(false);
+  const enrolled = paidEnrollment || isFreeCourse(course);
   const [pending, setPending] = useState(false);
   const [certificateUrl, setCertificateUrl] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("overview");

@@ -14,6 +14,7 @@ import { courseProgress, hasCourseAccess, readLocalProgress, type LessonProgress
 import { loadStudentProgress } from "@/lib/progress-sync";
 import { AcademicPanel } from "@/components/site/AcademicPanel";
 import { CalendarCheck } from "lucide-react";
+import { dashboardGroups, isFreeCourse } from '@/lib/management-rules';
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-type DashboardTab = "courses" | "notes" | "live" | "results" | "attendance";
+type DashboardTab = "courses" | "free" | "notes" | "live" | "results" | "attendance";
 
 function DashboardPage() {
   const { user, profile, loading, signOut } = useAuth();
@@ -43,9 +44,9 @@ function DashboardPage() {
   const [dataError, setDataError] = useState("");
   const [dataLoading, setDataLoading] = useState(true);
   const approved = enrollments.filter(hasCourseAccess);
-  // Live classes are only for students with an approved enrollment in that course, even for free lessons.
-  const liveLessons = lessons.filter(l => isLessonLive(l) && approved.some(e => e.course_id === l.course_id));
-  const otherCourses = catalog.filter(course => !approved.some(e => e.course_id === course.id));
+  const groups = dashboardGroups(catalog, enrollments);
+  const liveLessons = lessons.filter(l => isLessonLive(l) && (approved.some(e => e.course_id === l.course_id) || groups.free.some(c => c.id === l.course_id)));
+  const otherCourses = groups.other;
   const getProgress = (id: string) => courseProgress(lessons.filter(l => l.course_id === id).map(l => l.id), progress);
   const totalProgress = courseProgress(lessons.filter(l => approved.some(e => e.course_id === l.course_id)).map(l => l.id), progress);
   const resumeCourse = approved.find(e => progress.some(p => p.course_id === e.course_id && p.progress_percent > 0 && !p.completed)) || approved[0];
@@ -240,6 +241,7 @@ function DashboardPage() {
         {/* Dashboard Nav Tabs */}
         <div className="flex gap-8 sm:gap-14 overflow-x-auto pb-4 mb-10 border-b border-gray-100 no-scrollbar">
            <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={BookOpen} label="আমার কোর্সসমূহ" color="orange" />
+           <TabButton active={activeTab === 'free'} onClick={() => setActiveTab('free')} icon={Play} label="ফ্রি কোর্স" color="emerald" />
            <TabButton active={activeTab === 'live'} onClick={() => setActiveTab('live')} icon={Video} label="লাইভ ক্লাস" color="red" />
            <TabButton active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} icon={FileText} label="ক্লাস নোটস" color="purple" />
            <TabButton active={activeTab === 'results'} onClick={() => setActiveTab('results')} icon={Trophy} label="পরীক্ষার ফলাফল" color="emerald" />
@@ -273,7 +275,7 @@ function DashboardPage() {
                     <span className="w-1.5 h-8 bg-[#0f9d58] rounded-full"></span> এনরোলকৃত কোর্সসমূহ
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                     {approved.map(e => (
+                     {approved.filter(e => !isFreeCourse(e.courses)).map(e => (
                         <div key={e.id} className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                            <div className="h-40 relative">
                               <img src={e.courses?.thumbnail_url || ""} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
@@ -301,6 +303,13 @@ function DashboardPage() {
                      ))}
                   </div>
                </div>
+               {groups.pending.length > 0 && <section>
+                 <h3 className="text-xl font-bold text-ink mb-6 font-bengali">অনুমোদনের অপেক্ষায়</h3>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">{groups.pending.map(course => <article key={course.id} className="bg-background border border-border rounded-lg overflow-hidden">
+                   {course.thumbnail_url && <img src={course.thumbnail_url} alt={course.title} className="h-40 w-full object-cover" />}
+                   <div className="p-5 space-y-3"><h4 className="font-bold text-ink font-bengali">{course.title}</h4><p className="text-sm font-semibold text-ink-muted">Pending — পেমেন্ট যাচাইয়ের অপেক্ষায়</p><Lock size={18} className="text-ink-muted" /></div>
+                 </article>)}</div>
+               </section>}
                <section>
                  <h3 className="text-xl font-bold text-ink mb-6 font-bengali">অন্যান্য কোর্সসমূহ</h3>
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -322,6 +331,17 @@ function DashboardPage() {
                </section>
              </>
            )}
+
+           {activeTab === 'free' && <section>
+             <h3 className="text-xl font-bold text-ink mb-6 font-bengali">ফ্রি কোর্স</h3>
+             {dataLoading && <p className="text-ink-muted">কোর্স লোড হচ্ছে…</p>}
+             {dataError && <p role="alert" className="text-destructive">{dataError}</p>}
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">{groups.free.map(course => <article key={course.id} className="bg-background border border-border rounded-lg overflow-hidden">
+               {course.thumbnail_url && <img src={course.thumbnail_url} alt={course.title} className="h-40 w-full object-cover" />}
+               <div className="p-5 space-y-3"><h4 className="font-bold text-ink font-bengali">{course.title}</h4><Progress value={getProgress(course.id)} /><Button asChild variant="outline"><Link to="/courses/$courseId" params={{courseId:course.id}}><Play size={16} />ক্লাস শুরু করুন</Link></Button></div>
+             </article>)}</div>
+             {!dataLoading && !groups.free.length && <p className="text-ink-muted">এখন কোনো ফ্রি কোর্স নেই।</p>}
+           </section>}
 
            {activeTab === 'live' && (
              <section className="space-y-6">
@@ -347,7 +367,7 @@ function DashboardPage() {
              <AcademicPanel
                mode={activeTab}
                userId={user.id}
-               courses={[...new Map(approved.flatMap(e => e.courses ? [[e.course_id, { id: e.course_id, title: e.courses.title }] as const] : [])).values()]}
+               courses={[...new Map([...approved.flatMap(e => e.courses ? [[e.course_id, { id: e.course_id, title: e.courses.title }] as const] : []), ...groups.free.map(c => [c.id, {id:c.id,title:c.title}] as const)]).values()]}
                lessons={lessons as any}
              />
            )}
@@ -361,8 +381,8 @@ function DashboardPage() {
                 </div>
                 <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
                    <div className="grid gap-4 md:grid-cols-2">
-                     {lessons.filter(l => l.pdf_url && approved.some(e => e.course_id === l.course_id)).map(l => <a key={l.id} href={l.pdf_url || undefined} target="_blank" rel="noopener noreferrer" className="p-4 bg-brand-soft border border-border rounded-lg flex items-center justify-between text-ink"><span>{l.title}</span><Download size={18} /></a>)}
-                     {!lessons.some(l => l.pdf_url && approved.some(e => e.course_id === l.course_id)) && <p className="text-ink-muted">কোনো ক্লাস নোটস নেই।</p>}
+                     {lessons.filter(l => safeWebUrl(l.pdf_url) && (approved.some(e => e.course_id === l.course_id) || groups.free.some(c => c.id === l.course_id))).map(l => <a key={l.id} href={safeWebUrl(l.pdf_url)} target="_blank" rel="noopener noreferrer" className="p-4 bg-brand-soft border border-border rounded-lg flex items-center justify-between text-ink"><span>{l.title}</span><Download size={18} /></a>)}
+                     {!lessons.some(l => l.pdf_url && (approved.some(e => e.course_id === l.course_id) || groups.free.some(c => c.id === l.course_id))) && <p className="text-ink-muted">কোনো ক্লাস নোটস নেই।</p>}
                    </div>
                 </div>
              </div>
