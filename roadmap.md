@@ -1,5 +1,6 @@
-- [x] Remove the website title overlay from the shared video player; preserve YouTube title and playback controls.
-- [ ] Repair lesson-comment INSERT RLS and verify immediate publishing without changing homepage review approval; external SQL activation and real student session required.
+- [x] Remove website title overlay from shared player; browser confirms center controls remain and no title overlay renders; latest build OK.
+- [x] Supply lesson-comments-auto-approve_v2.sql with compatible INSERT policy and unified guard; 26 tests pass, including actual PostgreSQL lesson publication, pending homepage reviews and owner/course rejection.
+- [ ] Activate lesson comment SQL and verify real student comment submission/readback: user must run attached correction on external database; authenticated external testing unavailable.
 - [x] Restyle shared player with lesson title, central play/pause and ±10 seconds, bottom timeline and speed; real YouTube play/pause, seek, 1.5x, fullscreen, three-second hide/reveal pass at desktop and 651px. Three rule tests pass; build OK.
 - [x] Add shared custom controls: real YouTube play/pause, seek, +10s, 1.5x, fullscreen and three-second hide/reveal pass; desktop/mobile checked, file adapter tested with local recording; 19 rule/progress tests pass.
 - [ ] Verify custom playback progress write and fresh-device resume as a real student: authenticated external session unavailable; existing owner-scoped sync preserved.
