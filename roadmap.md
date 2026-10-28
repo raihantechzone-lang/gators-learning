@@ -43,3 +43,6 @@
 - [x] Restrict Student Reviews to homepage and attendance to active live classes; rule tests pass.
 - [x] Use requested WhatsApp enrollment confirmation message with editable number dialog.
 - [ ] Verify real admin PDF save → enrolled student PDF read, successful teacher login and payment approval → WhatsApp: external authenticated accounts unavailable; public checks and 33 tests passed.
+- [ ] Replace admin password bypass with verified account/role login; actual sign-in verification requires an external administrator account.
+- [ ] Repair course dialogs, Bengali numeric inputs, template prompts and certificate URL entry.
+- [ ] Explain a staged external RLS rollout; do not enable policies before real administrator access is verified.
