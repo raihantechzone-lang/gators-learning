@@ -17,7 +17,7 @@ function EnrollmentsAdmin() {
   const [courseFilter, setCourseFilter] = useState("all");
   const queryClient = useQueryClient();
 
-  const { data: enrollments, isLoading } = useQuery({
+  const { data: enrollments, isLoading, error } = useQuery({
     queryKey: ["admin-enrollments"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -62,6 +62,7 @@ function EnrollmentsAdmin() {
 
   return (
     <div className="p-8 animate-in fade-in duration-500 space-y-8">
+      {error && <p role="alert" className="text-destructive">এনরোলমেন্টের তথ্য লোড হয়নি: {error.message}</p>}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Enrollment Tracking</h2>

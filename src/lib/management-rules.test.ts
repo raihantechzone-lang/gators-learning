@@ -42,7 +42,7 @@ describe('requested dashboard and admin rules', () => {
   });
   it('moderators cannot open Dashboard Teachers Reviews Ads or manage roles', () => {
     for (const path of ['/admin','/admin/teachers','/admin/reviews','/admin/moderators','/admin/settings']) assert.equal(panelPathAllowed('moderator',path),false,path);
-    for (const path of ['/admin/courses','/admin/attendance','/admin/messages','/admin/earnings','/admin/course-verification']) assert.equal(panelPathAllowed('moderator',path),true,path);
+    for (const path of ['/admin/courses','/admin/attendance','/admin/messages','/admin/students','/admin/course-verification']) assert.equal(panelPathAllowed('moderator',path),true,path);
     assert.equal(panelPathAllowed(null,'/admin/courses'),false);
   });
   it('panel roles require a verified Auth identity and a protected role read', async () => {
@@ -50,5 +50,10 @@ describe('requested dashboard and admin rules', () => {
     const client = {auth:{getUser:async () => ({data:{user:{id:'m'}},error:null})},from:() => ({select:()=>query})};
     assert.equal(await getPanelRole(client),'moderator');
     assert.equal(await getPanelRole({...client,auth:{getUser:async () => ({data:{user:null},error:null})}}),null);
+  });
+  it('Course Earnings is admin-only even through a direct URL', () => {
+    assert.equal(panelPathAllowed('moderator','/admin/earnings'),false);
+    assert.equal(panelPathAllowed('moderator','/admin/earnings/'),false);
+    assert.equal(panelPathAllowed('admin','/admin/earnings'),true);
   });
 });

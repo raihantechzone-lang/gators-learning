@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useRouterState } from "@tanstack/react-router";
 
 export const CONTACT = {
   whatsapp: "https://wa.me/8801789407200",
@@ -39,6 +40,8 @@ export function ContactPopup({ open, onClose }: { open: boolean; onClose: () => 
 }
 
 export function FloatingWhatsApp() {
+  const pathname = useRouterState({ select: state => state.location.pathname });
+  if (pathname !== '/') return null;
   return (
     <a href={CONTACT.whatsapp} target="_blank" rel="noreferrer" aria-label="WhatsApp 01789-407200"
       className="fixed bottom-6 right-6 z-[90] w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-lg hover:scale-110 transition"

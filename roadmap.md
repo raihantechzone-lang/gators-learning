@@ -1,3 +1,5 @@
+- [ ] Activate moderator-student-read-fix.sql on external database and verify actual moderator student readback; no external administration/session available. Additive read-only correction supplied.
+- [x] Remove moderator Course Earnings access, switch all pages to Inter/Noto Sans Bengali and show floating WhatsApp only on Home; 13 tests pass, three preview pages checked without runtime errors.
 - [x] Implement pending cards without prices and separate published free-course section; rule tests pass.
 - [x] Real published free-course Continue Learning button navigates directly without payment; no browser runtime errors.
 - [x] Add moderator name/password form, isolated signup and shared name login; management access remains denied; 36 tests pass.
