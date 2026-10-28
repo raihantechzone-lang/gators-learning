@@ -49,4 +49,4 @@
 - [x] Harden frontend text/URL sinks, signing Auth/role checks, revoked entitlement checks and security headers; 74 tests pass, package audit reports zero vulnerabilities, public homepage/enrollment render without runtime errors.
 - [ ] Resolve database-dependent security findings (public profile/paid resource exposure, enrollment/role/review privileges): external-security-hardening_v3.sql must be applied and authenticated permission/constraint compatibility tested; not yet resolved.
 - [ ] Apply external security hardening SQL and verify real admin/teacher/student flows: external database administration and authenticated testing sessions are unavailable to the agent.
-- [ ] Verify signed-out admin form rendering: browser navigation remained blank after two seconds; no runtime error captured, so do not count this as a successful route test.
+- [x] Signed-out admin shows login form after loading; homepage/course navigation works and browser reports no runtime errors. This does not verify authenticated saves or permissions.
