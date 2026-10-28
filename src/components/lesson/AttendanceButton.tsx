@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { todayKey } from "@/lib/academic";
+import { bangladeshDay } from "@/lib/management-rules";
 import { toast } from "sonner";
 import { isLessonLive } from '@/lib/public-experience.js';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 export function AttendanceButton({ userId, courseId, lessonId, lesson }: { userId: string; courseId: string; lessonId: string; lesson: { live_url?: string | null; live_expires_at?: string | null; youtube_url?: string | null; video_file_url?: string | null } }) {
   const [markedOn, setMarkedOn] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const today = todayKey();
+  const today = bangladeshDay();
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
   const live = isLessonLive(lesson, now);
