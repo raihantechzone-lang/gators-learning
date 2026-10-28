@@ -776,25 +776,24 @@
       if (msg) window.showToast(msg, title);
     };
 
-    const isAdminCreds = (id, pass) =>
-      (String(id || "").trim().toLowerCase() === "adel111" ||
-        String(id || "").trim().toLowerCase() === "adel111@gmail.com") &&
-      String(pass || "") === "adel111";
-    const openAdmin = () => {
-      // Same key the /admin panel checks, so it opens straight away.
-      localStorage.setItem("gators-admin-session", "1");
-      window.location.href = "/admin";
-    };
-
     try {
       if (type === "Admin") {
-        if (isAdminCreds(fd.get("adminId"), fd.get("adminPass"))) return openAdmin();
-        finish("Invalid admin credentials.", "Access denied");
+        const identifier = normalizeStudentEmail(fd.get("adminId"));
+        const { error } = await supabase.auth.signInWithPassword({
+          email: identifier.includes('@') ? identifier : identifier + '@gmail.com',
+          password: String(fd.get("adminPass") || ""),
+        });
+        if (error) return finish(error.message, "Login failed");
+        const { data: verified, error: userError } = await supabase.auth.getUser();
+        if (userError || !verified?.user) return finish("আবার লগইন করুন।", "Login failed");
+        const { data: roles, error: roleError } = await supabase.from('user_roles').select('role').eq('user_id', verified.user.id).eq('role', 'admin');
+        if (roleError || !roles?.some(row => row.role === 'admin')) {
+          await supabase.auth.signOut();
+          return finish("এই অ্যাকাউন্টে অ্যাডমিনের অনুমতি নেই।", "Access denied");
+        }
+        window.location.href = '/admin';
         return;
       }
-
-      // Admin can also log in from the normal login form on the homepage.
-      if (type !== "Signup" && isAdminCreds(fd.get("email"), fd.get("password"))) return openAdmin();
 
 
       if (type === "Signup") {
@@ -854,6 +853,11 @@
       });
       if (error) return finish(error.message, "Login failed");
       if (!ld?.session) return finish("Could not start a session.", "Login failed");
+      const { data: verified } = await supabase.auth.getUser();
+      if (verified?.user) {
+        const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', verified.user.id).eq('role', 'admin');
+        if (roles?.some(row => row.role === 'admin')) { window.location.href = '/admin'; return; }
+      }
       const destination = await accountDashboard(supabase, ld.user);
       form.reset();
       window.closeModal("authModal");
