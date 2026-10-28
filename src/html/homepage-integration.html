@@ -17,6 +17,7 @@
     }
   );
   window.supabase = supabase;
+  window.safeWebUrl = safeWebUrl;
 
   let currentUser = null;
   let currentProfile = null;
@@ -85,7 +86,7 @@
     if (!currentUser) return false;
     // Admin-verified payments unlock access without rewriting the backend's constrained status.
     const rows = await enrollmentRows(courseId);
-    return rows.some(r => r.payment_status === "verified" || (r.status === "active" && r.payment_status == null));
+    return rows.some(enrollmentHasAccess);
   }
 
   // Duplicate rows can exist; read them all instead of expecting one.
@@ -182,7 +183,7 @@
         return;
     }
     
-    const { data: contents } = await supabase.from("course_contents").select("id, course_id");
+    const { data: contents } = await loadVisibleLessons(supabase);
     const counts = {};
     (contents || []).forEach((c) => {
       counts[c.course_id] = (counts[c.course_id] || 0) + 1;
@@ -240,13 +241,15 @@
       <button id="tab-all" onclick="filterCourses('all')" class="tab-btn active px-5 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap bg-white text-rs-dark shadow-sm">All</button>
     `;
 
-    const categoryTabsHtml = categories.map(cat => `
-      <button id="tab-${cat.name.toLowerCase().replace(/\s+/g, '-')}" onclick="filterCourses('${cat.name.toLowerCase()}')" class="tab-btn px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-rs-dark transition-all whitespace-nowrap">
-        ${cat.name}
-      </button>
-    `).join('');
-
-    tabsContainer.innerHTML = allTabHtml + categoryTabsHtml;
+    tabsContainer.innerHTML = allTabHtml;
+    categories.forEach(cat => {
+      const button = document.createElement('button');
+      button.id = 'tab-' + String(cat.name).toLowerCase();
+      button.className = 'tab-btn px-5 py-2 rounded-lg text-sm font-bold text-gray-500 hover:text-rs-dark transition-all whitespace-nowrap';
+      button.textContent = cat.name;
+      button.onclick = () => window.filterCourses(String(cat.name));
+      tabsContainer.appendChild(button);
+    });
   }
 
   function renderFilteredCourses() {
@@ -395,7 +398,7 @@
     // Enrollment logic integration
     const enrollBtn = document.getElementById('enroll-main-btn');
     const myRows = await enrollmentRows(id);
-    const isEnrolled = myRows.some(r => r.payment_status === "verified" || (r.status === "active" && r.payment_status == null));
+    const isEnrolled = myRows.some(enrollmentHasAccess);
     const isPending = !isEnrolled && myRows.some(r => r.payment_status === "pending" || r.status === "pending");
 
     if (enrollBtn) {
@@ -490,11 +493,7 @@
     }
 
     // Load contents and populate the list
-    const { data: contents, error: contentsError } = await supabase.from("course_contents")
-      .select("*")
-      .eq("course_id", id)
-      .order("position", { ascending: true })
-      .abortSignal(AbortSignal.timeout(15000));
+    const { data: contents, error: contentsError } = await loadVisibleLessons(supabase, id);
     
     const contentContainer = document.querySelector('section .bg-white.border.border-slate-200\\/60.rounded-3xl');
     if (contentsError) {
@@ -622,13 +621,13 @@
                       const div = document.createElement("div");
                       div.className = "flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100";
                       div.innerHTML = `
-                          <span class="font-medium text-sm text-slate-600 truncate mr-3">${p.title}</span>
+                          <span class="font-medium text-sm text-slate-600 truncate mr-3">${escapeHtml(p.title)}</span>
                           <button class="shrink-0 w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 flex items-center justify-center note-btn">
                             <i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-download'} text-xs"></i>
                           </button>
                       `;
                       div.onclick = () => {
-                          if (!isLocked && p.pdf_url) window.open(p.pdf_url, '_blank');
+                          if (!isLocked && safeWebUrl(p.pdf_url)) window.open(safeWebUrl(p.pdf_url), '_blank', 'noopener,noreferrer');
                           else if (isLocked) window.showToast("Enroll to download materials.", "Locked");
                       };
                       materialsContainer.appendChild(div);
@@ -642,13 +641,15 @@
   async function loadReviews() {
     const { data, error } = await supabase
       .from("reviews")
-      .select("comment, rating, created_at, profiles(full_name)")
+      .select("profile_id, comment, rating, created_at")
       .eq("is_approved", true)
       .is("course_id", null)
       .order("created_at", { ascending: false });
     if (error) { console.error("Reviews could not load:", error.message); return; }
+    const names = await supabase.rpc('public_reviewer_names');
+    const byId = new Map((names.data || []).map(p => [p.id, p.full_name]));
     window.db.feedbacks = (data || []).map((r) => ({
-      name: r.profiles?.full_name || "Student",
+      name: byId.get(r.profile_id) || "Student",
       role: r.rating ? r.rating + " ★ Student Review" : "Student",
       text: r.comment,
       status: "approved",
@@ -950,12 +951,12 @@
     const img = document.createElement("img");
     img.fetchPriority = "high";
     img.loading = "eager";
-    img.src = adDisplayImage(ad.image_url);
+    img.src = safeWebUrl(adDisplayImage(ad.image_url));
     img.alt = ad.title || "Advertisement";
     img.style.cssText = "width:100%;height:auto;display:block;border:0;outline:0;vertical-align:top;";
-    if (ad.target_link) {
+    if (safeWebUrl(ad.target_link)) {
       const a = document.createElement("a");
-      a.href = ad.target_link;
+      a.href = safeWebUrl(ad.target_link);
       a.target = "_blank";
       a.rel = "noopener noreferrer";
       a.style.cssText = "display:block;line-height:0;font-size:0;";

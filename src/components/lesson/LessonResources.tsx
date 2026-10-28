@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { safeWebUrl } from '@/lib/public-experience.js';
 
 interface Resource {
   id: string;
@@ -34,7 +35,7 @@ export function LessonResources({ contentId, pdfUrl }: { contentId: string; pdfU
       {pdfUrl && (
         <li>
           <a
-            href={pdfUrl}
+            href={safeWebUrl(pdfUrl) || undefined}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-surface-alt border border-border text-sm font-semibold text-ink"
@@ -46,7 +47,7 @@ export function LessonResources({ contentId, pdfUrl }: { contentId: string; pdfU
       {resources.map((r) => (
         <li key={r.id}>
           <a
-            href={r.file_url}
+            href={safeWebUrl(r.file_url) || undefined}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-surface-alt border border-border text-sm font-semibold text-ink"

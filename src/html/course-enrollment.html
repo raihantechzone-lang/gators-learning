@@ -321,7 +321,7 @@
         }
         if (course.subtitle) { $('course-subtitle').textContent = course.subtitle; show('course-subtitle'); }
         if (course.instructor_name) {
-            const img = course.instructor_photo ? `<img src="${esc(course.instructor_photo)}" alt="" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user"></i>`;
+            const img = window.safeWebUrl?.(course.instructor_photo) ? `<img src="${esc(window.safeWebUrl(course.instructor_photo))}" alt="" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user"></i>`;
             const av = (s) => `<div class="${s} rounded-full overflow-hidden bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">${img}</div>`;
             const mini = $('course-instructor-mini');
             mini.innerHTML = av('w-9 h-9') + `<span class="text-sm text-slate-500">শেখাবেন <b class="text-surface-900">${esc(course.instructor_name)}</b></span>`;
@@ -365,7 +365,7 @@
     window.renderAssignedTeachers = function (teachers) {
         if (!teachers.length) return;
         const esc = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-        const profile = (t, small) => `<a href="/teachers/${encodeURIComponent(t.id)}" class="flex items-center gap-3 min-w-0">${t.photo_url ? `<img src="${esc(t.photo_url)}" alt="${esc(t.display_name)}" class="${small ? 'w-9 h-9' : 'w-16 h-16'} rounded-full object-cover shrink-0">` : '<i class="fa-solid fa-user text-brand-600"></i>'}<div class="min-w-0"><div class="font-bold text-surface-900">${esc(t.display_name)}</div><span class="text-xs text-brand-600 font-semibold">Teacher</span>${!small && t.title ? `<p class="text-sm text-slate-500">${esc(t.title)}</p>` : ''}</div></a>`;
+        const profile = (t, small) => `<a href="/teachers/${encodeURIComponent(t.id)}" class="flex items-center gap-3 min-w-0">${window.safeWebUrl?.(t.photo_url) ? `<img src="${esc(window.safeWebUrl(t.photo_url))}" alt="${esc(t.display_name)}" class="${small ? 'w-9 h-9' : 'w-16 h-16'} rounded-full object-cover shrink-0">` : '<i class="fa-solid fa-user text-brand-600"></i>'}<div class="min-w-0"><div class="font-bold text-surface-900">${esc(t.display_name)}</div><span class="text-xs text-brand-600 font-semibold">Teacher</span>${!small && t.title ? `<p class="text-sm text-slate-500">${esc(t.title)}</p>` : ''}</div></a>`;
         const mini = document.getElementById('course-instructor-mini');
         mini.innerHTML = teachers.map(t => profile(t, true)).join(''); mini.classList.remove('hidden'); mini.classList.add('flex', 'flex-wrap');
         const full = document.getElementById('course-instructor');

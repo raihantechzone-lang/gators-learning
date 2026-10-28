@@ -457,7 +457,7 @@ function CourseDetailPage() {
                 <div className="flex flex-wrap gap-3">
                   {isLiveLinkActive(active) && (
                     <a
-                      href={active.live_url || undefined}
+                      href={safeWebUrl(active.live_url) || undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 rounded-xl bg-destructive text-background text-sm font-bold"
@@ -467,7 +467,7 @@ function CourseDetailPage() {
                   )}
                   {active.pdf_url && (
                     <a
-                      href={active.pdf_url}
+                      href={safeWebUrl(active.pdf_url) || undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 rounded-xl border-2 border-border text-sm font-bold"
@@ -477,7 +477,7 @@ function CourseDetailPage() {
                   )}
                   {active.exam_link && (
                     <a
-                      href={active.exam_link}
+                      href={safeWebUrl(active.exam_link) || undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 rounded-xl bg-brand text-brand-foreground text-sm font-bold"
@@ -667,7 +667,7 @@ function CourseDetailPage() {
               description: course.details ?? undefined,
               provider: { "@type": "Organization", name: "Gators Learning" },
               image: course.thumbnail_url ?? undefined,
-            }),
+            }).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029'),
           }}
         />
       )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { safeWebUrl } from '@/lib/public-experience.js';
 
 interface Ad {
   id: string;
@@ -62,8 +63,8 @@ export function InterstitialAd({ placement }: { placement: "home" | "dashboard" 
         >
           ✕
         </button>
-        {ad.target_link ? (
-          <a href={ad.target_link} target="_blank" rel="noopener noreferrer">
+        {safeWebUrl(ad.target_link) ? (
+          <a href={safeWebUrl(ad.target_link)} target="_blank" rel="noopener noreferrer">
             <img src={ad.image_url ?? ""} alt={ad.title ?? "Advertisement"} className="w-full h-auto" />
           </a>
         ) : (

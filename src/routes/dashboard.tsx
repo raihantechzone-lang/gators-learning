@@ -335,7 +335,7 @@ function DashboardPage() {
                      <span className="text-destructive text-xs font-bold">LIVE</span>
                      <h4 className="text-ink font-bold">{lesson.title}</h4>
                      <p className="text-sm text-ink-muted">{catalog.find(c => c.id === lesson.course_id)?.title}</p>
-                     <Button asChild variant="destructive"><a href={lesson.live_url || undefined} target="_blank" rel="noopener noreferrer"><Video size={16} /> লাইভ ক্লাসে যোগ দিন</a></Button>
+                     <Button asChild variant="destructive"><a href={safeWebUrl(lesson.live_url) || undefined} target="_blank" rel="noopener noreferrer"><Video size={16} /> লাইভ ক্লাসে যোগ দিন</a></Button>
                    </div>
                  </div>)}
                </div>
@@ -347,7 +347,7 @@ function DashboardPage() {
              <AcademicPanel
                mode={activeTab}
                userId={user.id}
-               courses={[...new Map(approved.filter(e => e.courses).map(e => [e.course_id, { id: e.course_id, title: e.courses!.title }])).values()]}
+               courses={[...new Map(approved.flatMap(e => e.courses ? [[e.course_id, { id: e.course_id, title: e.courses.title }] as const] : [])).values()]}
                lessons={lessons as any}
              />
            )}
