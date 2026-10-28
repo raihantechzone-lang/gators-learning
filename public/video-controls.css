@@ -25,7 +25,8 @@
 .gators-video .plyr__progress__container { flex-basis: 100%; order: -1; }
 .gators-video__heading { position: absolute; inset: 0 0 auto; padding: 16px 20px 28px; color: var(--video-foreground); background: var(--video-heading-overlay); font-size: 15px; font-weight: 600; line-height: 1.5; pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: opacity .2s; }
 .gators-video__heading:empty { display: none; }
-.gators-video__center { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 30px; transition: opacity .2s; }
+.gators-video__heading { z-index: 3; }
+.gators-video__center { position: absolute; z-index: 4; inset: 50% auto auto 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 30px; transition: opacity .2s; }
 .gators-video__center .plyr__control { position: relative; inset: auto; transform: none; opacity: 1; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--video-button-surface); color: var(--video-foreground); border: 1px solid var(--video-button-border); padding: 12px; }
 .gators-video__center .gators-video__play { width: 68px; height: 68px; padding: 21px; }
 .gators-video__center .plyr__control:hover { background: var(--video-button-hover); }
