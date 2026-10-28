@@ -20,17 +20,19 @@ export function useApprovedReviews() {
     const load = () =>
       supabase
         .from("reviews")
-        .select("id, rating, comment, created_at, profiles(full_name)")
+        .select("id, profile_id, rating, comment, created_at")
         .eq("is_approved", true)
         .is("course_id", null)
         .order("created_at", { ascending: false })
-        .then(({ data }) => {
+        .then(async ({ data }) => {
+          const names = await supabase.rpc('public_reviewer_names');
+          const byId = new Map((names.data || []).map((p: any) => [p.id, p.full_name]));
           if (!cancelled) {
             const formatted = (data || []).map((r: any) => ({
               id: r.id,
               rating: r.rating,
               comment: r.comment,
-              student_name: r.profiles?.full_name,
+              student_name: byId.get(r.profile_id) || 'Student',
               student_photo: null,
               created_at: r.created_at
             }));
