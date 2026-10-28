@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Award, BookOpen, CheckCircle2, ChevronRight, Circle, ClipboardCheck, FileText, FolderOpen, HelpCircle, Info, Lock, MessageCircle, NotebookPen, PlayCircle, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -612,7 +613,7 @@ function CourseDetailPage() {
             )}
           </div>
 
-          <aside className="order-2 lg:col-start-3 lg:row-start-1 lg:row-span-2 space-y-4 lg:sticky lg:top-28 min-w-0">
+          <aside className="order-2 lg:col-start-3 lg:row-start-1 lg:row-span-2 space-y-4 min-w-0">
             <CourseProgress records={progressRecords} contents={contents} sections={sections} />
             <div className="rounded-2xl bg-background border border-border p-3 shadow-sm">
             <h2 className="font-bold text-ink px-2 py-2 flex items-center gap-2 font-bengali"><BookOpen size={18} className="text-brand" /> লেসন ({contents.length.toLocaleString("bn-BD")})</h2>
@@ -620,7 +621,10 @@ function CourseDetailPage() {
               <div className="space-y-4">
                 {grouped.map(({ section, items }) => (
                   <div key={section.id}>
-                    <p className="px-2 text-xs font-bold uppercase text-ink-muted mb-1">{section.title}</p>
+                    <p className="px-2 py-1.5 mb-1 flex items-center justify-between gap-2 text-xs font-bold text-ink-muted font-bengali rounded-lg bg-surface-alt">
+                      <span className="truncate">{section.title}</span>
+                      <span className="shrink-0 text-brand">{items.filter((c) => completedIds.has(c.id)).length.toLocaleString("bn-BD")}/{items.length.toLocaleString("bn-BD")} সম্পন্ন</span>
+                    </p>
                     <LessonList
                       items={items}
                       activeId={activeId}
@@ -655,6 +659,7 @@ function CourseDetailPage() {
                 offset={0}
               />
             )}
+            </div>
           </aside>
         </div>
       </main>
@@ -697,29 +702,73 @@ function LessonList({
 }) {
   return (
     <ul className="space-y-1">
-      {items.map((c, i) => (
-        <li key={c.id} className="flex items-center gap-1">
-          {user && (
-            <input
-              type="checkbox"
-              checked={completedIds.has(c.id)}
-              onChange={(e) => onToggle(c.id, e.target.checked)}
-              className="ml-1 shrink-0"
-              aria-label="Mark complete"
-            />
-          )}
-          <button
-            onClick={() => setActiveId(c.id)}
-            className={`flex-1 text-left px-3 py-3 rounded-xl text-sm font-semibold transition ${
-              c.id === activeId ? "bg-brand-soft text-brand" : "hover:bg-muted text-ink"
-            }`}
-          >
-            <span className="text-ink-muted mr-2">{String(offset + i + 1).padStart(2, "0")}</span>
-            {c.title}
-            {isLiveLinkActive(c) && <span className="ml-2 text-xs text-destructive font-bold">LIVE</span>}
-          </button>
-        </li>
-      ))}
+      {items.map((c, i) => {
+        const done = completedIds.has(c.id);
+        const current = c.id === activeId;
+        const TypeIcon = c.lesson_type === "quiz" ? HelpCircle : c.lesson_type === "assignment" ? ClipboardCheck : c.lesson_type === "text" ? FileText : PlayCircle;
+        return (
+          <li key={c.id} className="flex items-center gap-1">
+            {user ? (
+              <button
+                type="button"
+                onClick={() => onToggle(c.id, !done)}
+                aria-label={done ? "Mark incomplete" : "Mark complete"}
+                aria-pressed={done}
+                className={`ml-1 shrink-0 rounded-full transition ${done ? "text-brand" : "text-ink-muted/50 hover:text-brand"}`}
+              >
+                {done ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+              </button>
+            ) : (
+              <Lock size={16} className="ml-1 shrink-0 text-ink-muted/60" />
+            )}
+            <button
+              onClick={() => setActiveId(c.id)}
+              className={`flex-1 min-w-0 flex items-center gap-2 text-left px-3 py-2.5 rounded-xl text-sm font-semibold font-bengali transition ${
+                current ? "bg-brand-soft text-brand ring-1 ring-brand/30" : "hover:bg-muted text-ink"
+              }`}
+            >
+              <TypeIcon size={16} className={`shrink-0 ${current ? "text-brand" : "text-ink-muted"}`} />
+              <span className="text-ink-muted text-xs tabular-nums">{String(offset + i + 1).padStart(2, "0")}</span>
+              <span className="flex-1 min-w-0 truncate">{c.title}</span>
+              {isLiveLinkActive(c) && (
+                <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive text-[10px] font-bold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" /> LIVE
+                </span>
+              )}
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 }
+
+function ActionCard({ href, icon, tone, title, subtitle, pulse }: { href: string | null; icon: React.ReactNode; tone: string; title: string; subtitle: string; pulse?: boolean }) {
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-3 rounded-2xl bg-background border border-border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition"
+    >
+      <span className={`relative h-11 w-11 shrink-0 rounded-full flex items-center justify-center ${tone}`}>
+        {icon}
+        {pulse && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-destructive animate-pulse" />}
+      </span>
+      <span className="flex-1 min-w-0 font-bengali">
+        <span className="block font-bold text-ink text-sm">{title}</span>
+        <span className="block text-xs text-ink-muted truncate">{subtitle}</span>
+      </span>
+      <ChevronRight size={18} className="text-ink-muted group-hover:text-ink transition" />
+    </a>
+  );
+}
+
+const TAB_META: Record<Tab, { label: string; icon: typeof Info }> = {
+  overview: { label: "বিবরণ", icon: Info },
+  resources: { label: "রিসোর্স", icon: FolderOpen },
+  notes: { label: "নোটস", icon: NotebookPen },
+  reviews: { label: "মন্তব্য", icon: MessageCircle },
+  certificate: { label: "সার্টিফিকেট", icon: Award },
+};
