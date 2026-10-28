@@ -12,18 +12,22 @@
   --plyr-color-main: var(--brand, var(--video-brand));
   --plyr-video-background: var(--video-surface);
   --plyr-video-control-color: var(--video-foreground);
-  --plyr-video-controls-background: var(--video-controls-overlay);
+  --plyr-video-controls-background: transparent;
   --plyr-font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
   --plyr-control-radius: 6px;
   width: 100%; height: 100%; min-width: 0; container-type: inline-size;
 }
 .gators-video .plyr__video-wrapper { height: 100%; }
 .gators-video.plyr--full-ui iframe { pointer-events: none; }
+.gators-video .plyr__poster { display: none; }
+.gators-video__end { display: none; position: absolute; inset: 0; z-index: 5; place-items: center; background: var(--video-surface); color: var(--video-foreground); border: 0; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; }
+.gators-video--ended .gators-video__end { display: grid; }
+.gators-video--ended .gators-video__center { display: none; }
 .gators-video video { object-fit: contain; }
 .gators-video.plyr--fullscreen-fallback { z-index: 9999; }
-.gators-video .plyr__controls { gap: 6px; padding: 12px 16px; flex-wrap: wrap; background: var(--video-surface); }
+.gators-video .plyr__controls { gap: 6px; padding: 12px 16px; flex-wrap: wrap; background: transparent; }
 .gators-video .plyr__progress__container { flex-basis: 100%; order: -1; }
-.gators-video__heading { position: absolute; inset: 0 0 auto; padding: 16px 20px 28px; color: var(--video-foreground); background: var(--video-heading-overlay); font-size: 15px; font-weight: 600; line-height: 1.5; pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: opacity .2s; }
+.gators-video__heading { position: absolute; inset: 0 0 auto; padding: 16px 20px 28px; color: var(--video-foreground); font-size: 15px; font-weight: 600; line-height: 1.5; pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: opacity .2s; }
 .gators-video__heading:empty { display: none; }
 .gators-video__heading { z-index: 3; }
 .gators-video__center { position: absolute; z-index: 4; inset: 50% auto auto 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 30px; transition: opacity .2s; }
