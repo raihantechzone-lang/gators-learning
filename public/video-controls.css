@@ -19,7 +19,6 @@
 }
 .gators-video .plyr__video-wrapper { height: 100%; }
 .gators-video.plyr--full-ui iframe { pointer-events: none; }
-.gators-video .plyr__poster { display: none; }
 .gators-video__end { display: none; position: absolute; inset: 0; z-index: 5; place-items: center; background: var(--video-surface); color: var(--video-foreground); border: 0; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; }
 .gators-video--ended .gators-video__end { display: grid; }
 .gators-video--ended .gators-video__center { display: none; }

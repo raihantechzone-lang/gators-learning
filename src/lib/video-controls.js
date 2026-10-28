@@ -7,7 +7,7 @@ export function videoControlOptions() {
     settings: ['speed'], speed: { selected: 1, options: [...VIDEO_SPEEDS] }, seekTime: 10,
     hideControls: false, autoplay: true, playsinline: true,
     keyboard: { focused: true, global: false }, storage: { enabled: false },
-    iconUrl: '/vendor/plyr.svg', youtube: { noCookie: true, rel: 0, modestbranding: 1, customControls: true },
+    iconUrl: '/vendor/plyr.svg', youtube: { noCookie: true, rel: 0, modestbranding: 1, iv_load_policy: 3, disablekb: 1, showinfo: 0, customControls: true },
     fullscreen: { enabled: true, fallback: true, iosNative: true },
   };
 }
