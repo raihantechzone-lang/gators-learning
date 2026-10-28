@@ -1,3 +1,4 @@
+- [ ] Restyle shared player with lesson title, central play/pause and ±10 seconds, bottom timeline and speed; verify real playback, auto-hide and small-screen layout.
 - [x] Add shared custom controls: real YouTube play/pause, seek, +10s, 1.5x, fullscreen and three-second hide/reveal pass; desktop/mobile checked, file adapter tested with local recording; 19 rule/progress tests pass.
 - [ ] Verify custom playback progress write and fresh-device resume as a real student: authenticated external session unavailable; existing owner-scoped sync preserved.
 - [ ] Activate moderator-student-read-fix.sql on external database and verify actual moderator student readback; no external administration/session available. Additive read-only correction supplied.

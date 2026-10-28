@@ -39,6 +39,41 @@ export async function createVideoControls(media, options = {}) {
   const player = new window.Plyr(target, { ...videoControlOptions(), title: options.title || '' });
   const root = player.elements.container;
   root.classList.add('gators-video');
+  // Reuse Plyr's bound buttons so all controls share its single media instance.
+  const heading = document.createElement('div');
+  heading.className = 'gators-video__heading';
+  heading.textContent = options.title || media.title || '';
+  root.appendChild(heading);
+  const center = document.createElement('div');
+  center.className = 'gators-video__center';
+  const back = root.querySelector('[data-plyr="rewind"]');
+  const play = root.querySelector('.plyr__control--overlaid');
+  const forward = root.querySelector('[data-plyr="fast-forward"]');
+  for (const [button, label] of [[back, '১০ সেকেন্ড পেছনে'], [play, 'চালু / বিরতি'], [forward, '১০ সেকেন্ড সামনে']]) {
+    if (!button) continue;
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
+    center.appendChild(button);
+    if (button !== play) {
+      const seconds = document.createElement('span');
+      seconds.className = 'gators-video__skip'; seconds.textContent = '10';
+      seconds.setAttribute('aria-hidden', 'true'); button.appendChild(seconds);
+    }
+  }
+  if (play) {
+    const pause = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    pause.setAttribute('viewBox', '0 0 18 18'); pause.setAttribute('aria-hidden', 'true');
+    pause.classList.add('gators-video__pause');
+    const bars = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    bars.setAttribute('d', 'M4 3h4v12H4zM10 3h4v12h-4z'); pause.appendChild(bars); play.appendChild(pause);
+  }
+  root.appendChild(center);
+  const settings = root.querySelector('[data-plyr="settings"]');
+  const speed = document.createElement('span');
+  speed.className = 'gators-video__speed'; speed.textContent = '1×'; speed.setAttribute('aria-hidden', 'true');
+  settings?.appendChild(speed);
+  settings?.setAttribute('title', 'ভিডিওর গতি');
+  player.on('ratechange', () => { speed.textContent = `${player.speed}×`; });
   let timer, destroyed = false;
   const clear = () => clearTimeout(timer);
   const reveal = () => {
