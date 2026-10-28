@@ -45,10 +45,32 @@ export async function accountLoginEmail(value) {
 }
 
 export async function accountDashboard(client, user) {
+  if (String(user?.email || '').endsWith('@moderators.gators.invalid')) {
+    const verified = await client.auth.getUser();
+    if (verified.error || verified.data?.user?.id !== user.id) throw new Error('Moderator identity could not be verified.');
+    const roles = await client.from('user_roles').select('role').eq('user_id', user.id);
+    if (roles.error || !roles.data?.some(row => row.role === 'moderator' || row.role === 'admin')) throw new Error('Moderator access is not active.');
+    return '/admin/courses';
+  }
   if (!String(user?.email || '').endsWith('@teachers.gators.invalid')) return '/dashboard';
   const { data, error } = await client.from('teachers').select('id').eq('user_id', user.id).maybeSingle();
   if (error || !data) throw new Error('This account is not assigned as a teacher. Contact your administrator.');
   return '/teacher';
+}
+
+/** Teacher and moderator names stay separate; credentials are never normalized. */
+export async function signInAccount(client, value, password) {
+  const input = String(value ?? '').trim();
+  let result = await client.auth.signInWithPassword({email: await accountLoginEmail(input), password});
+  if (result.error && !input.includes('@')) {
+    const teacherEmail = await accountLoginEmail(input);
+    result = await client.auth.signInWithPassword({email:teacherEmail.replace('@teachers.gators.invalid','@moderators.gators.invalid'),password});
+  }
+  return result;
+}
+
+export function courseNeedsPayment(course) {
+  return !(course?.price != null && String(course.price).trim() !== '' && Number(course.price) === 0);
 }
 
 export function coursePrices(course) {

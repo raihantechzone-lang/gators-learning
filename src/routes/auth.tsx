@@ -5,7 +5,7 @@ import { useAuth, signInWithGoogle } from "@/lib/auth";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { normalizeStudentEmail, accountLoginEmail, accountDashboard } from "@/lib/public-experience.js";
+import { normalizeStudentEmail, signInAccount, accountDashboard } from "@/lib/public-experience.js";
 import { saveStudentProfile } from "@/lib/student-profile";
 
 type Mode = "login" | "signup";
@@ -60,14 +60,14 @@ function AuthPage() {
             password,
             options: { data: { full_name: fullName.trim(), phone: phone.trim() }, emailRedirectTo: window.location.origin },
           })
-        : await supabase.auth.signInWithPassword({ email: await accountLoginEmail(email), password });
+        : await signInAccount(supabase,email,password);
     if (res.error) throw res.error;
     if (!res.data.session || !res.data.user) {
       setError("Account created. Email confirmation is still enabled for your account service; confirm your email before signing in.");
       return;
     }
     const destination = await accountDashboard(supabase, res.data.user);
-    if (destination === '/teacher') { await router.navigate({ to: destination, replace: true }); return; }
+    if (destination !== '/dashboard') { await router.navigate({ to: destination, replace: true }); return; }
     const profile = await saveStudentProfile(res.data.user);
     setWelcome({ name: profile.full_name, roll: String(profile.roll_number) });
     } catch (err) {
