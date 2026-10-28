@@ -42,10 +42,6 @@ export async function createVideoControls(media, options = {}) {
   const decorate = () => {
   if (root.querySelector('.gators-video__center')) return;
   // YouTube builds its bound buttons asynchronously; decorate only once ready.
-  const heading = document.createElement('div');
-  heading.className = 'gators-video__heading';
-  heading.textContent = options.title || media.title || '';
-  root.appendChild(heading);
   const center = document.createElement('div');
   center.className = 'gators-video__center';
   const back = root.querySelector('[data-plyr="rewind"]');
