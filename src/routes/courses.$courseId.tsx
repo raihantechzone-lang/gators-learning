@@ -375,8 +375,8 @@ function CourseDetailPage() {
         <h1 className="text-3xl font-bold text-ink mb-1">{course?.title ?? "Course"}</h1>
         <p className="text-sm text-ink-muted mb-8">{course?.category}</p>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid lg:grid-cols-3 lg:grid-rows-[auto_1fr] gap-6 lg:gap-8 items-start">
+          <div className="lg:col-span-2 space-y-4 order-1 min-w-0">
             {active && canWatch && active.lesson_type === "text" ? (
               <div className="rounded-2xl bg-background border border-border p-6 shadow-sm">
                 <ArticleLesson html={active.article_html} />
@@ -612,9 +612,10 @@ function CourseDetailPage() {
             )}
           </div>
 
-          <aside className="rounded-2xl bg-background border border-border p-4 shadow-sm h-fit">
+          <aside className="order-2 lg:col-start-3 lg:row-start-1 lg:row-span-2 space-y-4 lg:sticky lg:top-28 min-w-0">
             <CourseProgress records={progressRecords} contents={contents} sections={sections} />
-            <h2 className="font-bold text-ink px-2 py-2">Lessons ({contents.length})</h2>
+            <div className="rounded-2xl bg-background border border-border p-3 shadow-sm">
+            <h2 className="font-bold text-ink px-2 py-2 flex items-center gap-2 font-bengali"><BookOpen size={18} className="text-brand" /> লেসন ({contents.length.toLocaleString("bn-BD")})</h2>
             {grouped ? (
               <div className="space-y-4">
                 {grouped.map(({ section, items }) => (
