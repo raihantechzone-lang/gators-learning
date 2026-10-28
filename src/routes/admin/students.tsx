@@ -15,7 +15,7 @@ function StudentsAdmin() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: students, isLoading, error, refetch } = useQuery({
+  const { data: students, isLoading, error } = useQuery({
     queryKey: ["admin-students-list"],
     queryFn: async () => {
       const { data, error } = await supabase
