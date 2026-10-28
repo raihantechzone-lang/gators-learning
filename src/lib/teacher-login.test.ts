@@ -27,4 +27,10 @@ describe('Admin-issued teacher credentials', () => {
   it('rejects an expired admin session', async () => {
     await assert.rejects(() => requireTeacherAdmin(clientWithRoles([], null)), /session has expired/);
   });
+  it('rejects a forged browser admin flag', async () => {
+    const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: () => '1' } });
+    try { await assert.rejects(() => requireTeacherAdmin(clientWithRoles([], null)), /session has expired/); }
+    finally { if (previous) Object.defineProperty(globalThis, 'localStorage', previous); else Reflect.deleteProperty(globalThis, 'localStorage'); }
+  });
 });
