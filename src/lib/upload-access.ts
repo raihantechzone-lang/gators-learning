@@ -3,7 +3,7 @@ export async function requireUploadAccess(db: any, courseId?: string, moderatorA
   if (error || !data?.user) throw new Error('Please sign in again.');
   const roles = await db.from('user_roles').select('role').eq('user_id', data.user.id).eq('role', 'admin');
   let authorized = !roles.error && roles.data?.some((row: { role: string }) => row.role === 'admin');
-  if (moderatorAllowed || courseId) {
+  if (moderatorAllowed && !courseId) {
     const moderator = await db.from('user_roles').select('role').eq('user_id', data.user.id).eq('role','moderator');
     if (!moderator.error && moderator.data?.some((row:{role:string}) => row.role === 'moderator')) authorized = true;
   }

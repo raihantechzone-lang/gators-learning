@@ -17,6 +17,8 @@ describe('Upload authorization', () => {
   it('allows moderator course uploads but denies the general admin-only signer', async () => {
     await assert.doesNotReject(requireUploadAccess(client('moderator'), undefined, true));
     await assert.rejects(requireUploadAccess(client('moderator')));
+    await assert.rejects(requireUploadAccess(client('moderator'), 'unassigned-course'));
+    await assert.doesNotReject(requireUploadAccess(client('moderator', true), 'assigned-course'));
   });
   it('allows assigned teachers only for their course', async () => {
     await assert.doesNotReject(requireUploadAccess(client('student', true), 'course'));
