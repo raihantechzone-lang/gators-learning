@@ -257,15 +257,17 @@ function CourseDetailPage() {
     const load = async () => {
       const { data } = await supabase
         .from("reviews")
-        .select("id, profile_id, rating, comment, is_approved, created_at, profiles(full_name)")
+        .select("id, profile_id, rating, comment, is_approved, created_at")
         .eq("course_id", courseId)
         .like("comment", `${lessonReviewTag(activeLessonId ?? "")}%`)
         .order("created_at", { ascending: false });
       if (cancelled) return;
+      const names = await supabase.rpc('public_reviewer_names');
+      const byId = new Map((names.data || []).map((p: any) => [p.id, p.full_name]));
       const formatted = (data || []).map((r: any) => ({
         ...r,
         comment: String(r.comment ?? "").slice(lessonReviewTag(activeLessonId ?? "").length),
-        student_name: r.profiles?.full_name || "Student",
+        student_name: byId.get(r.profile_id) || "Student",
         student_photo: null
       }));
       setReviews(formatted as Review[]);
