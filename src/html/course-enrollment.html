@@ -9,6 +9,9 @@
     <meta property="og:description" content="View course lessons, materials and enrollment details on Gators Learning.">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="/vendor/plyr.css">
+    <link rel="stylesheet" href="/video-controls.css">
+    <script src="/vendor/plyr.min.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/bengali-font.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -669,6 +672,8 @@
         // Handled by homepage-integration.html
         window.logoutUser = window.logoutUser || (() => {});
 
+        /* VIDEO_CONTROLS_HELPER */
+
         // Lesson thumbnail first; clicking it opens the standard YouTube player in a popup.
         window.openVideoPopup = function(videoId, title) {
             if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) return;
@@ -775,9 +780,10 @@
             trackingGeneration++;
             clearInterval(trackingTimer);
             if (trackingReady && trackedPlayer) {
-                try { savedPosition = trackedPlayer.getCurrentTime(); savedDuration = trackedPlayer.getDuration(); } catch {}
+                try { savedPosition = trackedPlayer.currentTime; savedDuration = trackedPlayer.duration; } catch {}
             }
             savePlayback();
+            trackedPlayer?.destroy?.();
             trackedPlayer = null; trackingReady = false;
         };
         window.startLessonTracking = async (iframe, lesson) => {
@@ -787,8 +793,7 @@
             trackingUser = null; savedPosition = 0; savedDuration = 0; ended = false;
             if (!lesson) return;
             try { trackingUser = JSON.parse(localStorage.getItem('gators-learning-auth') || 'null')?.user?.id; } catch {}
-            if (!trackingUser) return;
-            if (window.supabase) {
+            if (trackingUser && window.supabase) {
                 const owner = trackingUser;
                 const { data, error } = await window.supabase.from('lesson_progress').select('lesson_id, course_id, progress_percent, last_position_seconds, duration_seconds, completed, updated_at').eq('profile_id', owner).eq('course_id', lesson.courseId);
                 if (generation !== trackingGeneration || !iframe.isConnected) return;
@@ -805,33 +810,36 @@
                 }
             }
             const resume = getRecords().find(r => r.lesson_id === lesson.lessonId);
-            if (iframe.tagName === 'VIDEO') {
-                const seek = () => { if (resume?.last_position_seconds && !resume.completed) iframe.currentTime = resume.last_position_seconds; };
-                if (iframe.readyState >= 1) seek(); else iframe.addEventListener('loadedmetadata', seek, { once: true });
+            const resumeAt = resume?.last_position_seconds && !resume.completed ? resume.last_position_seconds : 0;
+            try {
+                const player = await createVideoControls(iframe, {
+                    title: lesson.title, startSeconds: resumeAt,
+                    cancelled: () => generation !== trackingGeneration,
+                    onReady: player => {
+                        if (generation !== trackingGeneration) return;
+                        trackedPlayer = player;
+                        trackingReady = true;
+                    },
+                    onProgress: (seconds, duration) => {
+                        if (generation !== trackingGeneration) return;
+                        savedPosition = seconds; savedDuration = duration;
+                    },
+                    onEnded: () => { if (generation === trackingGeneration) { ended = true; savePlayback(); } }
+                });
+                if (generation !== trackingGeneration) { player?.destroy(); return; }
+                trackedPlayer = player;
                 let ticks = 0;
-                trackingTimer = setInterval(() => { savedPosition = iframe.currentTime; savedDuration = iframe.duration || 0; ended = iframe.ended; if (++ticks % 3 === 0) savePlayback(); }, 1000);
-                iframe.addEventListener('pause', savePlayback); iframe.addEventListener('ended', () => { ended = true; savePlayback(); });
-                return;
+                trackingTimer = setInterval(() => { if (++ticks % 5 === 0) savePlayback(); }, 1000);
+            } catch {
+                if (generation !== trackingGeneration) return;
+                // Native controls remain available when enhancement fails.
+                if (iframe.tagName === 'VIDEO') {
+                    iframe.controls = true;
+                    const seek = () => { iframe.currentTime = resumeAt; };
+                    if (iframe.readyState >= 1) seek(); else iframe.addEventListener('loadedmetadata', seek, { once: true });
+                    trackingTimer = setInterval(() => { savedPosition = iframe.currentTime; savedDuration = iframe.duration || 0; savePlayback(); }, 5000);
+                } else if (resumeAt) iframe.src += '&start=' + Math.floor(resumeAt);
             }
-            if (resume?.last_position_seconds && !resume.completed) iframe.src += '&start=' + Math.floor(resume.last_position_seconds);
-            if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-                const script = document.createElement('script'); script.src = 'https://www.youtube.com/iframe_api'; script.async = true; document.head.appendChild(script);
-            }
-            let attempts = 0;
-            trackingTimer = setInterval(() => {
-                attempts++;
-                if (!trackedPlayer && window.YT?.Player && iframe.isConnected) {
-                    trackedPlayer = new window.YT.Player(iframe, { events: {
-                        onReady: () => { trackingReady = true; },
-                        onStateChange: event => { if (event.data === 0) { ended = true; savedDuration = trackedPlayer.getDuration(); savedPosition = savedDuration; savePlayback(); } }
-                    } });
-                }
-                if (trackingReady && trackedPlayer) {
-                    savedPosition = trackedPlayer.getCurrentTime(); savedDuration = trackedPlayer.getDuration();
-                    if (attempts % 5 === 0) savePlayback();
-                }
-                if (!trackedPlayer && attempts > 30) clearInterval(trackingTimer);
-            }, 1000);
         };
         window.addEventListener('pagehide', () => window.stopLessonTracking?.());
 

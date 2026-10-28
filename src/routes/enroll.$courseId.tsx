@@ -3,6 +3,7 @@ import enrollHtml from "../html/course-enrollment.html?raw";
 import integrationHtml from "../html/homepage-integration.html?raw";
 import studentRollSource from "../lib/student-roll.js?raw";
 import publicExperienceSource from "../lib/public-experience.js?raw";
+import videoControlsSource from "../lib/video-controls.js?raw";
 import bkashLogo from "../assets/bkash-logo.png.asset.json";
 
 const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", studentRollSource.replace("export function", "function"))
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/enroll/$courseId")({
         const { courseId } = params;
         const page = enrollHtml
           .replaceAll('__BKASH_LOGO__', bkashLogo.url)
+          .replace('/* VIDEO_CONTROLS_HELPER */', videoControlsSource.replaceAll('export async function', 'async function').replaceAll('export function', 'function').replaceAll('export const', 'const'))
           .replace("</body>", `<script>window.currentCourseId = ${JSON.stringify(courseId).replace(/</g, "\\u003c")};</script>\n${integration}\n</body>`);
         return new Response(page, {
           headers: { "content-type": "text/html; charset=utf-8" },
