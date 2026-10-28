@@ -1,4 +1,5 @@
-- [ ] Implement shared custom YouTube/uploaded-video controls and verify playback, seeking, speed, fullscreen and three-second idle behavior; preserve existing progress sync.
+- [x] Add shared custom controls: real YouTube play/pause, seek, +10s, 1.5x, fullscreen and three-second hide/reveal pass; desktop/mobile checked, file adapter tested with local recording; 19 rule/progress tests pass.
+- [ ] Verify custom playback progress write and fresh-device resume as a real student: authenticated external session unavailable; existing owner-scoped sync preserved.
 - [ ] Activate moderator-student-read-fix.sql on external database and verify actual moderator student readback; no external administration/session available. Additive read-only correction supplied.
 - [x] Remove moderator Course Earnings access, switch all pages to Inter/Noto Sans Bengali and show floating WhatsApp only on Home; 13 tests pass, three preview pages checked without runtime errors.
 - [x] Implement pending cards without prices and separate published free-course section; rule tests pass.
