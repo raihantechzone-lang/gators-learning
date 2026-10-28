@@ -11,7 +11,7 @@
 
 - The homepage and enrollment are full-document HTML server responses; React links to those pages must use `reloadDocument` so navigation runs their HTML scripts.
 - Keep `/details/$courseId` as a permanent redirect to enrollment, rather than a second course page, to preserve published course links.
-- Enrollment page shows the lesson thumbnail first and replaces it in place with the native YouTube iframe on click; the optional player API must never block playback.
+- React and full-document lessons share the self-hosted Plyr adapter for custom playback controls; thumbnails remain first, native playback is the failure fallback, and only that adapter owns the YouTube API instance to avoid duplicate progress tracking.
 - Progress uses owner-scoped lesson_progress with a labeled per-user browser fallback; external SQL is delivered separately, never applied through unrelated Cloud tools.
 - All signup/login paths use the shared student-roll helper, injected into full-document HTML from its raw source; preserve numeric assigned rolls and derive new 9-digit numeric rolls from the full user UUID, because the external roll_number column is integer.
 - Shared public-experience helpers normalize email identically in HTML/React account forms without altering passwords and optimize ImageKit advertisement delivery; inject their raw source into full-document pages to keep those paths consistent.

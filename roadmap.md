@@ -1,3 +1,4 @@
+- [ ] Implement shared custom YouTube/uploaded-video controls and verify playback, seeking, speed, fullscreen and three-second idle behavior; preserve existing progress sync.
 - [ ] Activate moderator-student-read-fix.sql on external database and verify actual moderator student readback; no external administration/session available. Additive read-only correction supplied.
 - [x] Remove moderator Course Earnings access, switch all pages to Inter/Noto Sans Bengali and show floating WhatsApp only on Home; 13 tests pass, three preview pages checked without runtime errors.
 - [x] Implement pending cards without prices and separate published free-course section; rule tests pass.
