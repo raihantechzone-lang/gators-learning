@@ -1,8 +1,20 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeStudentEmail, adDisplayImage, whatsappPhone, courseFaqs, coursePrices, isHomepageReview, accountLoginEmail, accountDashboard, isLessonLive } from "./public-experience.js";
+import { normalizeStudentEmail, adDisplayImage, whatsappPhone, courseFaqs, coursePrices, isHomepageReview, accountLoginEmail, accountDashboard, isLessonLive, signInAccount, courseNeedsPayment } from "./public-experience.js";
 
 describe('Requested course and account rules', () => {
+  it('free enrollment skips payment while unknown and paid prices do not',()=>{assert.equal(courseNeedsPayment({price:0}),false);assert.equal(courseNeedsPayment({price:5000}),true);assert.equal(courseNeedsPayment({price:null}),true);});
+  it('moderator names sign in without changing assigned passwords',async()=>{
+    const calls: {email:string;password:string}[]=[];
+    const client={auth:{signInWithPassword:async(input:{email:string;password:string})=>{calls.push(input);return {error:input.email.endsWith('@moderators.gators.invalid')?null:{message:'invalid'},data:{}};}}};
+    await signInAccount(client,'Raihan',' Secret 123 ');
+    assert.equal(calls.length,2);assert.match(calls[1].email,/@moderators\.gators\.invalid$/);assert.equal(calls[1].password,' Secret 123 ');
+  });
+  it('moderator login requires the protected role before opening courses',async()=>{
+    const client={auth:{getUser:async()=>({data:{user:{id:'m'}},error:null})},from:()=>({select:()=>({eq:async()=>({data:[{role:'moderator'}],error:null})})})};
+    assert.equal(await accountDashboard(client,{id:'m',email:'hash@moderators.gators.invalid'}),'/admin/courses');
+    await assert.rejects(accountDashboard({...client,auth:{getUser:async()=>({data:{user:{id:'other'}},error:null})}},{id:'m',email:'hash@moderators.gators.invalid'}));
+  });
   it('permits attendance only during the live window, never for recorded or expired classes', () => {
     const now = Date.parse('2026-10-27T17:45:00Z');
     const lesson = { live_url: 'https://meet.example.com/class', live_expires_at: '2026-10-27T18:00:00Z' };

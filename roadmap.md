@@ -1,4 +1,7 @@
 - [x] Implement pending cards without prices and separate published free-course section; rule tests pass.
+- [x] Real published free-course Continue Learning button navigates directly without payment; no browser runtime errors.
+- [x] Add moderator name/password form, isolated signup and shared name login; management access remains denied; 36 tests pass.
+- [ ] Activate moderator account creation: user must apply moderator-account-setup.sql to external database; real admin create/login tests unavailable.
 - [ ] Activate direct free-course resources: external lesson RPC update and authenticated student playback/readback unavailable.
 - [x] Replace financial overview/dashboard fake figures with saved-payment totals and dated trends; add verified/unverified views; rules pass.
 - [x] Add course/date-based absence template and manual per-recipient WhatsApp queue; never claim bulk delivery.

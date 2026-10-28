@@ -392,7 +392,8 @@
     // Enrollment logic integration
     const enrollBtn = document.getElementById('enroll-main-btn');
     const myRows = await enrollmentRows(id);
-    const isEnrolled = myRows.some(enrollmentHasAccess);
+    const isFreeCourse = !courseNeedsPayment(course);
+    const isEnrolled = isFreeCourse || myRows.some(enrollmentHasAccess);
     const isPending = !isEnrolled && myRows.some(r => r.payment_status === "pending" || r.status === "pending");
 
     if (enrollBtn) {
@@ -426,6 +427,7 @@
     if (paymentForm) {
       paymentForm.onsubmit = async (e) => {
         e.preventDefault();
+        if (isFreeCourse) { window.location.href = '/courses/' + encodeURIComponent(id); return; }
         const btn = document.getElementById('pay-btn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
@@ -839,13 +841,9 @@
 
       }
 
-      const email = await accountLoginEmail(fd.get("email"));
       const password = String(fd.get("password"));
 
-      const { data: ld, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: ld, error } = await signInAccount(supabase,fd.get('email'),password);
       if (error) return finish(error.message, "Login failed");
       if (!ld?.session) return finish("Could not start a session.", "Login failed");
       const { data: verified } = await supabase.auth.getUser();
@@ -856,7 +854,7 @@
       const destination = await accountDashboard(supabase, ld.user);
       form.reset();
       window.closeModal("authModal");
-      if (destination === '/teacher') { window.location.href = destination; finish(); return; }
+      if (destination !== '/dashboard') { window.location.href = destination; finish(); return; }
       await window.showStudentWelcome(ld.user);
       finish();
     } catch (err) {
