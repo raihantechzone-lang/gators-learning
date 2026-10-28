@@ -31,7 +31,12 @@ export async function createVideoControls(media, options = {}) {
     });
   }
   if (!media.isConnected || options.cancelled?.()) return null;
-  const player = new window.Plyr(media, { ...videoControlOptions(), title: options.title || '' });
+  let target = media;
+  if (media.tagName === 'IFRAME') {
+    target = document.createElement('div');
+    media.replaceWith(target); target.appendChild(media);
+  }
+  const player = new window.Plyr(target, { ...videoControlOptions(), title: options.title || '' });
   const root = player.elements.container;
   root.classList.add('gators-video');
   let timer, destroyed = false;
