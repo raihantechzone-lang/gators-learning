@@ -15,7 +15,7 @@ function StudentsAdmin() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: students, isLoading } = useQuery({
+  const { data: students, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-students-list"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,6 +41,7 @@ function StudentsAdmin() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {error && <p role="alert" className="text-destructive">শিক্ষার্থীর তথ্য লোড হয়নি: {error.message}</p>}
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
               <h2 className="text-xl font-bold text-slate-900">Active Registered Students</h2>

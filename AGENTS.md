@@ -31,7 +31,7 @@
 - Normal account forms resolve teacher aliases through raw-injected public-experience helpers and verify the teacher row before opening the dashboard; legacy separate login and removed admin URLs redirect to their current destinations.
 - Attendance controls expire using the shared live predicate and re-read the lesson before submitting, so stale pages cannot mark an expired or recorded class through the UI.
 - Share complete CDN-hosted Bengali font faces through public/bengali-font.css across HTML documents and React; keep Unicode digit coverage and safe line boxes so Bengali numerals are not lost to font subsetting or clipping.
-- Panel access requires revalidated Auth and protected roles; moderator page allowlists and additive external RLS exclude dashboard, teacher accounts, reviews, ads and role management.
+- Panel access requires revalidated Auth and protected roles; moderator page allowlists exclude dashboard, teacher accounts, reviews, ads, earnings and role management. Student visibility uses additive read-only external RLS, never an expanded admin helper, to preserve privilege boundaries.
 - Admin input/confirmation dialogs render through body portals, not inside animated page containers or browser-native prompts, so embedded previews and scrolling pages remain usable.
 - Admin numeric form values use a shared Bengali-digit normalizer and strict parsing before saving, so Bengali input is accepted without silently converting invalid values to zero.
 - Public/student lesson reads use visible_course_lessons, which redacts resources without entitlement; external SQL is delivered separately and never applied to the unrelated Cloud database.

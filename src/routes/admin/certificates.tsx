@@ -18,7 +18,7 @@ function CertificatesAdmin() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: enrollments, isLoading } = useQuery({
+  const { data: enrollments, isLoading, error } = useQuery({
     queryKey: ["admin-enrollments-certificates"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -58,6 +58,7 @@ function CertificatesAdmin() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {error && <p role="alert" className="text-destructive">শিক্ষার্থীর তথ্য লোড হয়নি: {error.message}</p>}
       <div>
         <h2 className="text-3xl font-black text-slate-900">Certificate Issuance</h2>
         <p className="text-slate-500 font-medium">Upload PDF certificates to unlock them for students.</p>
