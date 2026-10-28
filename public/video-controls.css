@@ -32,6 +32,7 @@
 .gators-video__center .plyr__control:hover { background: var(--video-button-hover); }
 .gators-video__center [data-plyr="rewind"] svg, .gators-video__center [data-plyr="fast-forward"] svg { width: 22px; height: 22px; }
 .gators-video__skip { font-size: 10px; font-weight: 700; line-height: 1; margin-top: 1px; }
+.gators-video__center .plyr__control > *, .gators-video [data-plyr="settings"] > * { pointer-events: none; }
 .gators-video.plyr--hide-controls .gators-video__heading, .gators-video.plyr--hide-controls .gators-video__center { opacity: 0; pointer-events: none; }
 .gators-video [data-plyr="settings"] { display: flex; align-items: center; gap: 5px; }
 .gators-video__speed { font-size: 12px; font-weight: 600; min-width: 25px; }
