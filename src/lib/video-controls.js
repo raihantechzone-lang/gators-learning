@@ -39,7 +39,7 @@ export async function createVideoControls(media, options = {}) {
   const reveal = () => {
     clear(); player.toggleControls(true);
     if (player.playing) timer = setTimeout(() => {
-      if (!destroyed && player.playing && !root.contains(document.activeElement) && !root.querySelector('.plyr__menu [aria-expanded="true"]')) player.toggleControls(false);
+      if (!destroyed && player.playing && !root.querySelector(':focus-visible') && !root.querySelector('.plyr__menu [aria-expanded="true"]')) player.toggleControls(false);
     }, CONTROL_IDLE_MS);
   };
   for (const event of ['pointermove', 'pointerdown', 'touchstart', 'keydown']) root.addEventListener(event, reveal, { passive: true });
