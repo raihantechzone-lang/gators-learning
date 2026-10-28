@@ -332,11 +332,12 @@ function CourseDetailPage() {
       rating: 5,
       // The reviews table has no lesson column, so the lesson is tagged in the comment.
       comment: lessonReviewTag(active.id) + myReview.comment.trim(),
-      is_approved: true,
+      // Students cannot self-approve; the admin approves comments from the Reviews panel.
+      is_approved: false,
     };
     const { error } = await supabase.from("reviews").insert(payload);
     if (error) { toast.error("কমেন্ট সেভ হয়নি: " + error.message); return; }
-    toast.success("কমেন্ট যোগ হয়েছে");
+    toast.success("কমেন্ট জমা হয়েছে, অ্যাডমিন অনুমোদন দিলে সবাই দেখতে পাবে");
     setMyReview({ rating: 5, comment: "" });
     setReviewTick((n) => n + 1);
   };
@@ -573,6 +574,7 @@ function CourseDetailPage() {
                           <div className="flex items-center gap-2 mb-1">
                             {r.student_photo && <img src={r.student_photo} className="h-6 w-6 rounded-full object-cover" alt="" />}
                             <span className="text-xs font-bold text-ink">{r.student_name}</span>
+                            {!r.is_approved && <span className="text-[10px] font-bold font-bengali px-1.5 py-0.5 rounded-md bg-muted text-ink-muted">অনুমোদনের অপেক্ষায়</span>}
                           </div>
                           <p className="text-sm text-ink-muted">{r.comment}</p>
                         </li>
