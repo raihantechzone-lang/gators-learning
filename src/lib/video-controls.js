@@ -7,7 +7,7 @@ export function videoControlOptions() {
     settings: ['speed'], speed: { selected: 1, options: [...VIDEO_SPEEDS] }, seekTime: 10,
     hideControls: false, autoplay: true, playsinline: true,
     keyboard: { focused: true, global: false }, storage: { enabled: false },
-    iconUrl: '/vendor/plyr.svg', youtube: { noCookie: true, rel: 0, modestbranding: 1, customControls: true },
+    iconUrl: '/vendor/plyr.svg', youtube: { noCookie: true, rel: 0, modestbranding: 1, iv_load_policy: 3, disablekb: 1, showinfo: 0, customControls: true },
     fullscreen: { enabled: true, fallback: true, iosNative: true },
   };
 }
@@ -65,6 +65,11 @@ export async function createVideoControls(media, options = {}) {
     }
   }
   root.appendChild(center);
+  const endCover = document.createElement('button');
+  endCover.type = 'button'; endCover.className = 'gators-video__end';
+  endCover.setAttribute('aria-label', 'আবার দেখুন'); endCover.textContent = '↻ আবার দেখুন';
+  endCover.addEventListener('click', () => { root.classList.remove('gators-video--ended'); player.currentTime = 0; player.play(); });
+  root.appendChild(endCover);
   const settings = root.querySelector('[data-plyr="settings"]');
   const speed = document.createElement('span');
   speed.className = 'gators-video__speed'; speed.textContent = '1×'; speed.setAttribute('aria-hidden', 'true');
@@ -93,10 +98,10 @@ export async function createVideoControls(media, options = {}) {
     options.onReady?.(player); reveal();
     player.play()?.catch?.(() => { player.toggleControls(true); });
   });
-  player.on('play', reveal);
+  player.on('play', () => { root.classList.remove('gators-video--ended'); reveal(); });
   player.on('pause', () => { clear(); player.toggleControls(true); report(); });
   player.on('timeupdate', report);
-  player.on('ended', () => { clear(); player.toggleControls(true); report(); options.onEnded?.(); });
+  player.on('ended', () => { root.classList.add('gators-video--ended'); clear(); player.toggleControls(true); report(); options.onEnded?.(); });
   player.on('error', () => { clear(); options.onError?.(); });
   const originalDestroy = player.destroy.bind(player);
   player.destroy = () => {
