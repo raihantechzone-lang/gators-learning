@@ -20,6 +20,7 @@ import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as PurchasesRouteImport } from './routes/purchases'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TeacherRouteImport } from './routes/teacher'
 import { Route as TeacherLoginRouteImport } from './routes/teacher-login'
 import { Route as WishlistRouteImport } from './routes/wishlist'
@@ -108,6 +109,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ReviewsRoute = ReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TeacherRoute = TeacherRouteImport.update({
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teacher': typeof TeacherRoute
   '/teacher-login': typeof TeacherLoginRoute
   '/wishlist': typeof WishlistRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByTo {
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teacher': typeof TeacherRoute
   '/teacher-login': typeof TeacherLoginRoute
   '/wishlist': typeof WishlistRoute
@@ -388,6 +396,7 @@ export interface FileRoutesById {
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teacher': typeof TeacherRoute
   '/teacher-login': typeof TeacherLoginRoute
   '/wishlist': typeof WishlistRoute
@@ -437,6 +446,7 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reset-password'
     | '/reviews'
+    | '/sitemap.xml'
     | '/teacher'
     | '/teacher-login'
     | '/wishlist'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reset-password'
     | '/reviews'
+    | '/sitemap.xml'
     | '/teacher'
     | '/teacher-login'
     | '/wishlist'
@@ -530,6 +541,7 @@ export interface FileRouteTypes {
     | '/purchases'
     | '/reset-password'
     | '/reviews'
+    | '/sitemap.xml'
     | '/teacher'
     | '/teacher-login'
     | '/wishlist'
@@ -578,6 +590,7 @@ export interface RootRouteChildren {
   PurchasesRoute: typeof PurchasesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeacherRoute: typeof TeacherRoute
   TeacherLoginRoute: typeof TeacherLoginRoute
   WishlistRoute: typeof WishlistRoute
@@ -666,6 +679,13 @@ declare module '@tanstack/react-router' {
       path: '/reviews'
       fullPath: '/reviews'
       preLoaderRoute: typeof ReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/teacher': {
@@ -998,6 +1018,7 @@ const rootRouteChildren: RootRouteChildren = {
   PurchasesRoute: PurchasesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeacherRoute: TeacherRoute,
   TeacherLoginRoute: TeacherLoginRoute,
   WishlistRoute: WishlistRoute,
