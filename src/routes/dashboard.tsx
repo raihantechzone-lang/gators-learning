@@ -15,6 +15,7 @@ import { loadStudentProgress } from "@/lib/progress-sync";
 import { AcademicPanel } from "@/components/site/AcademicPanel";
 import { CalendarCheck } from "lucide-react";
 import { dashboardGroups, isFreeCourse } from '@/lib/management-rules';
+import duIllustration from "@/assets/du-illustration.png";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [
@@ -191,8 +192,12 @@ function DashboardPage() {
 
           <div className="flex items-center gap-4">
              <span className="hidden md:block text-sm font-bold text-[#0f9d58]">Dashboard</span>
-             <div className="h-10 w-10 rounded-full bg-emerald-50 border-2 border-[#0f9d58] overflow-hidden shadow-sm ring-offset-2 hover:ring-2 hover:ring-emerald-200 transition-all cursor-pointer">
-                <img src={String(profile?.photo_url || `https://ui-avatars.com/api/?name=${profile?.full_name || 'Student'}&background=0f9d58&color=fff`)} className="w-full h-full object-cover" alt="" />
+             <div className="h-10 w-10 rounded-full bg-emerald-50 border-2 border-[#0f9d58] overflow-hidden shadow-sm ring-offset-2 hover:ring-2 hover:ring-emerald-200 transition-all cursor-pointer flex items-center justify-center">
+                {profile?.photo_url ? (
+                  <img src={String(profile.photo_url)} className="w-full h-full object-cover" alt="" />
+                ) : (
+                  <User size={20} className="text-[#0f9d58]" strokeWidth={2} />
+                )}
              </div>
           </div>
         </nav>
@@ -200,14 +205,18 @@ function DashboardPage() {
 
       <main className="pt-32 sm:pt-40 pb-20 max-w-[1000px] mx-auto px-4 sm:px-6">
         {/* Profile Card */}
-        <div className="bg-gradient-to-r from-[#ffe4d6] to-[#fff3ed] rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between shadow-sm border border-[#ffdbce] relative overflow-hidden mb-8 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="bg-gradient-to-r from-[#eafaf1] to-[#f4fbf7] rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between shadow-sm border-2 border-[#0f9d58]/60 relative overflow-hidden mb-8 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
            <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
               <div 
                 className="relative group cursor-pointer" 
                 onClick={() => fileInputRef.current?.click()}
               >
-                 <div className="w-24 h-24 bg-white rounded-full border-4 border-white shadow-sm overflow-hidden group-hover:border-[#0f9d58] transition-colors">
-                    <img src={String(profile?.photo_url || `https://ui-avatars.com/api/?name=${profile?.full_name || 'Student'}&background=0f9d58&color=fff`)} className="w-full h-full object-cover" alt="" />
+                 <div className="w-24 h-24 bg-white rounded-full border-4 border-[#0f9d58] shadow-md overflow-hidden flex items-center justify-center transition-colors">
+                    {profile?.photo_url ? (
+                      <img src={String(profile.photo_url)} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <User size={44} className="text-[#0f9d58]" strokeWidth={1.8} />
+                    )}
                  </div>
                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera className="text-white" size={24} />
@@ -217,7 +226,7 @@ function DashboardPage() {
 
               <div className="text-center sm:text-left">
                  <div className="flex items-center gap-2 justify-center sm:justify-start">
-                    <h2 className="text-2xl font-bengali font-bold text-gray-900">{profile?.full_name || "Student Name"}</h2>
+                     <h2 className="text-2xl font-bengali font-bold text-gray-900">{profile?.full_name || "Student Name"}</h2>
                     <button onClick={editName} className="text-slate-400 hover:text-[#0f9d58] transition-colors">
                        <PenSquare size={18} />
                     </button>
@@ -227,7 +236,7 @@ function DashboardPage() {
                  <div className="flex gap-4 mt-4 justify-center sm:justify-start">
                     <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-orange-200 text-xs font-bold text-gray-700 shadow-sm flex items-center gap-2">
                        <BookOpen size={14} className="text-orange-500" /> Enrolled: {approved.length}
-                    </div>
+                     </div>
                     <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-purple-200 text-xs font-bold text-gray-700 shadow-sm flex items-center gap-2">
                        <CheckCircle2 size={14} className="text-purple-500" /> Completed: {totalProgress}%
                     </div>
@@ -235,7 +244,11 @@ function DashboardPage() {
               </div>
            </div>
 
-           <img src="https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png" alt="" className="hidden md:block w-40 h-32 object-contain mix-blend-multiply opacity-80 animate-bounce [animation-duration:3s]" />
+           <div className="hidden md:block relative z-10 shrink-0">
+              <div className="rounded-[1.5rem] border-2 border-[#0f9d58]/60 bg-white/70 backdrop-blur p-2 shadow-[0_10px_30px_-10px_rgba(15,157,88,0.35)] rotate-2">
+                 <img src={duIllustration} alt="Dhaka University" loading="lazy" width={816} height={816} className="w-36 h-36 object-contain" />
+              </div>
+           </div>
         </div>
 
         {/* Dashboard Nav Tabs */}
@@ -259,7 +272,7 @@ function DashboardPage() {
                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Continue Watching</span>
                        <h4 className="font-bengali font-bold text-white text-lg sm:text-xl truncate">{resumeCourse.courses?.title}</h4>
                        <div className="mt-4 flex items-center gap-4">
-                          <Progress className="flex-1 max-w-[200px]" value={getProgress(resumeCourse.course_id)} />
+                          <Progress className="flex-1 max-w-[200px] h-1" value={getProgress(resumeCourse.course_id)} />
                           <span className="text-xs font-bold text-muted-foreground">{getProgress(resumeCourse.course_id)}% Done</span>
                        </div>
                     </div>
@@ -283,7 +296,7 @@ function DashboardPage() {
                            </div>
                            <div className="p-5">
                               <h4 className="font-bengali font-bold text-slate-800 line-clamp-2 min-h-[3rem]">{e.courses?.title}</h4>
-                              <div className="mt-3"><Progress value={getProgress(e.course_id)} /><p className="text-xs text-ink-muted mt-1">{getProgress(e.course_id)}% সম্পন্ন</p></div>
+                              <div className="mt-3"><Progress className="h-1" value={getProgress(e.course_id)} /><p className="text-xs text-ink-muted mt-1">{getProgress(e.course_id)}% সম্পন্ন</p></div>
                               <div className="mt-4 flex items-center justify-between">
                                  <Link 
                                    to="/courses/$courseId"
@@ -338,7 +351,7 @@ function DashboardPage() {
              {dataError && <p role="alert" className="text-destructive">{dataError}</p>}
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">{groups.free.map(course => <article key={course.id} className="bg-background border border-border rounded-lg overflow-hidden">
                {course.thumbnail_url && <img src={course.thumbnail_url} alt={course.title} className="h-40 w-full object-cover" />}
-               <div className="p-5 space-y-3"><h4 className="font-bold text-ink font-bengali">{course.title}</h4><Progress value={getProgress(course.id)} /><Button asChild variant="outline"><Link to="/courses/$courseId" params={{courseId:course.id}}><Play size={16} />ক্লাস শুরু করুন</Link></Button></div>
+               <div className="p-5 space-y-3"><h4 className="font-bold text-ink font-bengali">{course.title}</h4><Progress className="h-1" value={getProgress(course.id)} /><Button asChild variant="outline"><Link to="/courses/$courseId" params={{courseId:course.id}}><Play size={16} />ক্লাস শুরু করুন</Link></Button></div>
              </article>)}</div>
              {!dataLoading && !groups.free.length && <p className="text-ink-muted">এখন কোনো ফ্রি কোর্স নেই।</p>}
            </section>}
@@ -436,17 +449,30 @@ function DashboardPage() {
 }
 
 function TabButton({ active, onClick, icon: Icon, label, color }: { active: boolean, onClick: () => void, icon: any, label: string, color: string }) {
-  const colors: Record<string, string> = {
-    orange: 'bg-orange-100 text-orange-500 active:bg-orange-500',
-    red: 'bg-red-100 text-red-500 active:bg-red-500',
-    purple: 'bg-purple-100 text-purple-500 active:bg-purple-500',
-    emerald: 'bg-emerald-100 text-[#0f9d58] active:bg-[#0f9d58]',
+  const styles: Record<string, { base: string; active: string }> = {
+    orange: {
+      base: 'bg-gradient-to-br from-orange-300 via-orange-400 to-orange-500 text-white shadow-[0_8px_20px_-6px_rgba(249,115,22,0.55),inset_0_2px_4px_rgba(255,255,255,0.45),inset_0_-3px_6px_rgba(0,0,0,0.18)]',
+      active: 'ring-4 ring-orange-200 scale-110',
+    },
+    red: {
+      base: 'bg-gradient-to-br from-rose-300 via-rose-400 to-red-500 text-white shadow-[0_8px_20px_-6px_rgba(239,68,68,0.55),inset_0_2px_4px_rgba(255,255,255,0.45),inset_0_-3px_6px_rgba(0,0,0,0.18)]',
+      active: 'ring-4 ring-rose-200 scale-110',
+    },
+    purple: {
+      base: 'bg-gradient-to-br from-violet-300 via-purple-400 to-purple-600 text-white shadow-[0_8px_20px_-6px_rgba(147,51,234,0.55),inset_0_2px_4px_rgba(255,255,255,0.45),inset_0_-3px_6px_rgba(0,0,0,0.18)]',
+      active: 'ring-4 ring-purple-200 scale-110',
+    },
+    emerald: {
+      base: 'bg-gradient-to-br from-emerald-300 via-[#22b573] to-[#0f9d58] text-white shadow-[0_8px_20px_-6px_rgba(15,157,88,0.55),inset_0_2px_4px_rgba(255,255,255,0.45),inset_0_-3px_6px_rgba(0,0,0,0.18)]',
+      active: 'ring-4 ring-emerald-200 scale-110',
+    },
   };
+  const s = styles[color] || styles.emerald;
 
   return (
     <div className="flex flex-col items-center gap-3 cursor-pointer group min-w-[80px]" onClick={onClick}>
-       <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all duration-300 shadow-sm group-hover:scale-110 ${active ? colors[color].split(' ')[0].replace('100', '500') + ' text-white' : colors[color] + ' group-hover:' + colors[color].split(' ')[0].replace('100', '500') + ' group-hover:text-white'}`}>
-          <Icon size={24} />
+       <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-0.5 ${s.base} ${active ? s.active : ''}`}>
+          <Icon size={24} strokeWidth={2.2} />
        </div>
        <span className={`text-[10px] sm:text-xs font-bold font-bengali text-center transition-colors ${active ? 'text-slate-900' : 'text-slate-500'}`}>{label}</span>
     </div>
