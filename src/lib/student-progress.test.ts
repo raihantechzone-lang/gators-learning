@@ -11,6 +11,14 @@ describe("Student dashboard rules", () => {
   it('revokes canceled access even if payment was verified', () => {
     assert.equal(hasCourseAccess({ status: 'cancelled', payment_status: 'verified' }), false);
   });
+  it('refunded status remains locked regardless of casing or surrounding whitespace', () => {
+    assert.equal(hasCourseAccess({ status: ' REFUNDED ', payment_status: 'verified' }), false);
+  });
+  it('revoked payment states cannot unlock an active enrollment', () => {
+    for (const payment_status of ['refunded', 'cancelled', 'canceled', 'revoked', 'expired']) {
+      assert.equal(hasCourseAccess({ status: 'active', payment_status }), false, payment_status);
+    }
+  });
   it("counts unwatched lessons as zero in real course progress", () => {
     assert.equal(courseProgress(["a", "b"], [{ lesson_id: "a", course_id: "c", progress_percent: 60, last_position_seconds: 60, duration_seconds: 100, completed: false }]), 30);
   });

@@ -142,19 +142,30 @@ function CourseDetailPage() {
   }, [courseId, user?.id]);
 
   useEffect(() => {
+    let cancelled = false;
+    let latestRequest = 0;
+    setEnrolled(false);
+    setPending(false);
+    setCertificateUrl(null);
     if (!user) {
-      setEnrolled(false);
-      setPending(false);
       return;
     }
     const load = async () => {
+      const request = ++latestRequest;
       // Pending payments and active enrollments both live in the enrollments table.
       // A student may have several rows for one course (old duplicates); any approved row unlocks it.
-      const { data: rows } = await supabase
+      const { data: rows, error } = await supabase
         .from("enrollments")
         .select("id, status, payment_status, certificate_url")
         .eq("profile_id", user.id)
         .eq("course_id", courseId);
+      if (cancelled || request !== latestRequest) return;
+      if (error) {
+        setEnrolled(false);
+        setPending(false);
+        setCertificateUrl(null);
+        return;
+      }
       const list = rows ?? [];
       const ok = list.some(hasCourseAccess);
       setEnrolled(ok);
@@ -169,6 +180,7 @@ function CourseDetailPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "enrollments" }, () => load())
       .subscribe();
     return () => {
+      cancelled = true;
       clearInterval(refreshTimer);
       window.removeEventListener('focus', load);
       supabase.removeChannel(channel);
