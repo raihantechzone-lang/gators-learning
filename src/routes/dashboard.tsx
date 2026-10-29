@@ -419,6 +419,9 @@ function DashboardPage() {
                   </ul>
                </div>
                <div className="space-y-6">
+                  {(user?.email || "").toLowerCase() === "raihan111@gmail.com" && (
+                     <a href="/developer" className="flex items-center gap-2 text-dev-credit font-bold hover:underline">Developer অপশন</a>
+                  )}
                   <button onClick={signOut} className="flex items-center gap-2 text-rose-500 font-bold hover:text-rose-400 transition-colors">
                      <LogOut size={18} /> Log Out from Device
                   </button>
