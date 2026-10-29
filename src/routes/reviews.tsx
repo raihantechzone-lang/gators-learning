@@ -25,7 +25,7 @@ function ReviewsPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="pt-24 sm:pt-32">
-        <ReviewsSection />
+        <ReviewsSection pageHeading />
       </main>
       <SiteFooter />
     </div>

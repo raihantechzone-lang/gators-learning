@@ -87,6 +87,8 @@ function CourseDetailPage() {
   const { courseId } = Route.useParams();
   const { user, profile } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
+  const [courseBusy, setCourseBusy] = useState(true);
+  const [courseFailed, setCourseFailed] = useState(false);
   const [contents, setContents] = useState<RichContent[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -105,13 +107,19 @@ function CourseDetailPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setCourseBusy(true);
+    setCourseFailed(false);
+    setCourse(null);
     const load = async () => {
-      const [{ data: c }, { data: list }, { data: secs }] = await Promise.all([
+      try {
+      const [{ data: c, error: courseError }, { data: list }, { data: secs }] = await Promise.all([
         supabase.from("courses").select("*").eq("id", courseId).maybeSingle(),
         loadVisibleLessons(supabase, courseId),
         supabase.from("course_sections").select("*").eq("course_id", courseId).order("position", { ascending: true }),
       ]);
       if (cancelled) return;
+      if (courseError) throw new Error("Course information unavailable");
+      setCourseFailed(false);
       setCourse((c as Course) ?? null);
       const items = (list as RichContent[]) ?? [];
       setContents(items);
@@ -124,6 +132,11 @@ function CourseDetailPage() {
           .eq("id", (c as any).instructor_id)
           .maybeSingle();
         if (!cancelled) setInstructor((instr as InstructorProfile) ?? null);
+      }
+      } catch {
+        if (!cancelled) setCourseFailed(true);
+      } finally {
+        if (!cancelled) setCourseBusy(false);
       }
     };
     load();
@@ -383,11 +396,20 @@ function CourseDetailPage() {
   }, [sections, contents]);
   const ungrouped = useMemo(() => contents.filter((c) => !c.section_id), [contents]);
 
+  if (courseBusy || courseFailed || !course?.title?.trim()) {
+    return <div className="min-h-screen bg-surface-alt"><SiteHeader /><main className="pt-32 sm:pt-40 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section aria-busy={courseBusy} role={courseFailed ? "alert" : undefined}>
+        <h1 className="text-3xl font-bold text-ink">{courseBusy ? "কোর্সের তথ্য লোড হচ্ছে…" : courseFailed ? "কোর্সের তথ্য লোড করা যায়নি" : "কোর্সটি পাওয়া যায়নি"}</h1>
+        {!courseBusy && <p className="text-ink-muted mt-3">{courseFailed ? "কিছুক্ষণ পর আবার চেষ্টা করুন।" : "এই লিংকে কোনো উপলব্ধ কোর্স নেই।"} অন্য কোর্স দেখতে <Link to="/courses" className="text-brand underline">কোর্স তালিকায় যান</Link>।</p>}
+      </section>
+    </main><SiteFooter /></div>;
+  }
+
   return (
     <div className="min-h-screen bg-surface-alt">
       <SiteHeader />
       <main className="pt-32 sm:pt-40 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-ink mb-1">{course?.title ?? "Course"}</h1>
+        <h1 className="text-3xl font-bold text-ink mb-1">{course.title}</h1>
         <p className="text-sm text-ink-muted mb-8">{course?.category}</p>
 
         <div className="grid lg:grid-cols-3 lg:grid-rows-[auto_1fr] gap-6 lg:gap-8 items-start">

@@ -164,13 +164,14 @@ export function ReviewForm() {
   );
 }
 
-export function ReviewsSection() {
+export function ReviewsSection({ pageHeading = false }: { pageHeading?: boolean }) {
   const reviews = useApprovedReviews();
+  const Heading = pageHeading ? "h1" : "h2";
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
       <div className="text-center mb-12">
-        <h2 className="text-3xl sm:text-4xl font-bold text-ink">Student Reviews</h2>
+        <Heading className="text-3xl sm:text-4xl font-bold text-ink">Gators Learning শিক্ষার্থীদের রিভিউ</Heading>
         <p className="text-ink-muted mt-3 font-bengali">আমাদের শিক্ষার্থীরা যা বলছে</p>
       </div>
       {reviews.length > 0 ? (
