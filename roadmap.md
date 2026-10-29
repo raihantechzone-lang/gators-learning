@@ -1,3 +1,4 @@
+- [ ] Fix new public-page content warning: descriptive reviews heading and meaningful course/teacher/instructor loading, error and missing-record states; verify real public data and absent records.
 - [x] Correct five approved SEO findings: accurate homepage/search/social metadata, image descriptions, router-derived sitemap and crawler rules; preview HTTP/browser checks pass with three real published courses and private/redirect exclusions; four inventory tests pass. Live changes require publishing; scanner confirmation awaits rescan.
 - [x] Check scan findings: lesson titles now use textContent; authenticated admin-only upload signing and quota tests pass; intentionally public categories retained and informational finding dismissed.
 - [x] Harden refunded/revoked enrollment and payment checks and discard stale course-account responses; 58 tests pass, including actual PostgreSQL admin-only atomic duplicate-payment/certificate revocation; latest build OK.
