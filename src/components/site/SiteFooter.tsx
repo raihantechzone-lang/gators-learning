@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
+import { FooterCredit } from "./DeveloperCredit";
 
 export function SiteFooter() {
   return (
-    <footer className="bg-ink text-background/80 pt-20 pb-10 border-t-[6px] border-brand mt-24">
+    <footer className="bg-ink text-background/80 pt-20 pb-6 border-t-[6px] border-brand mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-10 md:grid-cols-3">
         <div>
           <h3 className="text-background text-xl font-bold mb-3">Gators Learning</h3>
@@ -27,9 +28,7 @@ export function SiteFooter() {
           </ul>
         </div>
       </div>
-      <p className="text-center text-xs text-background/50 mt-12">
-        © {new Date().getFullYear()} Gators Learning. All rights reserved.
-      </p>
+      <div className="border-t border-background/15 mt-10 pt-5 text-center"><FooterCredit /></div>
     </footer>
   );
 }

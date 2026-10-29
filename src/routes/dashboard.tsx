@@ -1,3 +1,4 @@
+import { FooterCredit } from "@/components/site/DeveloperCredit";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -423,8 +424,8 @@ function DashboardPage() {
                   </button>
                </div>
             </div>
-            <div className="pt-8 border-t border-slate-900 text-center text-xs font-bold uppercase tracking-widest">
-               © 2026 Gators Learning. All rights reserved.
+            <div className="pt-5 border-t border-slate-900 text-center">
+               <FooterCredit />
             </div>
          </div>
       </footer>
