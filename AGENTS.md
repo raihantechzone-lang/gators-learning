@@ -9,7 +9,7 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Homepage/enrollment use full-document HTML: use reloadDocument links and keep SEO tags in both HTML and route head because React does not render those responses.
+- Homepage/enrollment return full HTML: use reloadDocument and update HTML + route SEO.
 - Keep `/details/$courseId` as a permanent redirect to enrollment, rather than a second course page, to preserve published course links.
 - React/HTML lessons share one Plyr adapter and its bound center/timeline controls, with thumbnail-first/native fallback; never duplicate YouTube instances or fake quality choices.
 - Progress uses owner-scoped lesson_progress with labeled per-user browser fallback; deliver external SQL separately, never apply to Cloud.
@@ -42,4 +42,5 @@
 - WhatsApp queues track opened links, not delivery; absence matching uses Bangladesh dates and stored live expiry windows, not lesson creation dates.
 
 - Photo uploads read back the owner row and update Auth state immediately; route invalidation cannot refresh it. Normalize avatar_url and discard stale requests.
-- Sitemap derives static URLs from required route decisions and paginates the session-free external published catalogue; failures return 503, never partial XML; omit lastmod without page timestamps.
+- Sitemap uses route decisions and paginated public catalogue; fail with 503, omit unsupported lastmod.
+- ReviewsSection uses h1 only standalone; detail pages distinguish loading, errors and missing records from named content.

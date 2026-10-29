@@ -35,18 +35,29 @@ function InstructorPublicPage() {
   const [profile, setProfile] = useState<PublicInstructor | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [busy, setBusy] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    setBusy(true);
+    setFailed(false);
+    setProfile(null);
+    setCourses([]);
     (async () => {
-      const [{ data: p }, { data: c }] = await Promise.all([
+      try {
+      const [{ data: p, error: profileError }, { data: c, error: coursesError }] = await Promise.all([
         supabase.from("instructor_profiles").select("id, display_name, bio, photo_url, expertise, status").eq("id", instructorId).maybeSingle(),
         supabase.from("courses").select("*").eq("instructor_id", instructorId).eq("status", "published").order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
+      if (profileError || coursesError) throw new Error("Instructor information unavailable");
       setProfile((p as PublicInstructor) ?? null);
       setCourses((c as Course[]) ?? []);
-      setBusy(false);
+      } catch {
+        if (!cancelled) setFailed(true);
+      } finally {
+        if (!cancelled) setBusy(false);
+      }
     })();
     return () => {
       cancelled = true;
@@ -58,22 +69,24 @@ function InstructorPublicPage() {
       <SiteHeader />
       <main className="pt-32 sm:pt-40 pb-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {busy ? (
-          <p className="text-ink-muted">Loading…</p>
-        ) : !profile || profile.status !== "approved" ? (
-          <p className="text-ink-muted">Instructor not found.</p>
+          <section aria-busy="true"><h1 className="text-2xl font-bold text-ink">শিক্ষকের পরিচিতি লোড হচ্ছে…</h1></section>
+        ) : failed ? (
+          <section role="alert"><h1 className="text-2xl font-bold text-ink">শিক্ষকের তথ্য লোড করা যায়নি</h1><p className="text-ink-muted mt-3">কিছুক্ষণ পর আবার চেষ্টা করুন।</p></section>
+        ) : !profile?.display_name?.trim() || profile.status !== "approved" ? (
+          <section><h1 className="text-2xl font-bold text-ink">শিক্ষকের পরিচিতি পাওয়া যায়নি</h1><p className="text-ink-muted mt-3">এই লিংকে শিক্ষকের প্রকাশিত পরিচিতি নেই। অন্য কোর্সের শিক্ষকদের দেখতে <Link to="/courses" className="text-brand underline">কোর্স তালিকায় যান</Link>।</p></section>
         ) : (
           <>
             <div className="rounded-2xl bg-background border border-border p-6 flex flex-col sm:flex-row gap-6 items-start mb-10">
               {profile.photo_url && (
                 <img
                   src={profile.photo_url}
-                  alt={`${profile.display_name ?? "Instructor"} profile photo`}
+                  alt={`${profile.display_name} profile photo`}
                   className="h-24 w-24 rounded-2xl object-cover"
                   loading="lazy"
                 />
               )}
               <div>
-                <h1 className="text-2xl font-bold text-ink">{profile.display_name ?? "Instructor"}</h1>
+                <h1 className="text-2xl font-bold text-ink">{profile.display_name}</h1>
                 {profile.expertise && <p className="text-sm text-brand font-bold mt-1">{profile.expertise}</p>}
                 {profile.bio && <p className="text-sm text-ink-muted mt-3 whitespace-pre-wrap">{profile.bio}</p>}
               </div>
