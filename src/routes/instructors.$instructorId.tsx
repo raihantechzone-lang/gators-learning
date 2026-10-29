@@ -4,20 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import type { Course } from "@/lib/data";
+import { getPublicPageInfo } from '@/lib/page-seo.functions';
+import { pageSEO } from '@/lib/page-seo';
 
 export const Route = createFileRoute("/instructors/$instructorId")({
   staticData: { sitemap: false },
-  head: () => ({
-    meta: [
-      { title: "Instructor Profile — Gators Learning" },
-      { name: "description", content: "Meet the instructor and browse every course they teach on Gators Learning." },
-      { property: "og:title", content: "Instructor Profile — Gators Learning" },
-      { property: "og:description", content: "Instructor bio, expertise and published courses." },
-    
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  loader: ({ params }) => getPublicPageInfo({ data: { kind: 'instructor', id: params.instructorId } }),
+  head: ({ params, loaderData }) => pageSEO('instructor', params.instructorId, loaderData),
   component: InstructorPublicPage,
 });
 
