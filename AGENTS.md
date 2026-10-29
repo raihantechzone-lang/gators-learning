@@ -9,13 +9,13 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Homepage/enrollment return full HTML: use reloadDocument; shared page-seo uses session-free public names, self-canonicals and escaped HTML/head metadata so crawlers see each page's identity.
-- Keep `/details/$courseId` permanently redirecting to enrollment to preserve published links.
+- Homepage/enrollment return full HTML: use reloadDocument and update HTML + route SEO.
+- Keep `/details/$courseId` as a permanent redirect to enrollment, rather than a second course page, to preserve published course links.
 - React/HTML lessons share one Plyr adapter and its bound center/timeline controls, with thumbnail-first/native fallback; never duplicate YouTube instances or fake quality choices.
 - Progress uses owner-scoped lesson_progress with labeled per-user browser fallback; deliver external SQL separately, never apply to Cloud.
 - Signup/login share raw-injected student-roll: preserve assigned numeric rolls; derive new 9-digit rolls from the full UUID for the external integer column.
 - Raw-injected public-experience helpers share email normalization, untouched passwords, ad optimization and a revalidated current-account signup guard across HTML/React.
-- Public reviews use supported profile columns; homepage reviews/ads refresh on focus/timers without external realtime.
+- Public reviews use supported profile columns; homepage reviews/ads refresh on focus and periodically when external realtime is unavailable.
 - Payment approval updates only payment_status, never the external backend's constrained enrollment status; access and approved-payment reads share verified-payment semantics, with legacy active/null-payment access retained.
 
 - Course-page reviews are lesson-scoped via a `[lesson:<id>] ` comment prefix (external reviews table has no lesson column); a database trigger and compatible owner-scoped INSERT policy publish valid lesson comments immediately, while null-course homepage reviews retain administrator approval.

@@ -18,13 +18,19 @@ import { loadStudentProgress, saveStudentProgress } from "@/lib/progress-sync";
 import { toast } from "sonner";
 import { loadVisibleLessons, safeWebUrl } from '@/lib/public-experience.js';
 import { isFreeCourse } from '@/lib/management-rules';
-import { getPublicPageInfo } from '@/lib/page-seo.functions';
-import { pageSEO } from '@/lib/page-seo';
 
 export const Route = createFileRoute("/courses/$courseId")({
   staticData: { sitemap: false },
-  loader: ({ params }) => getPublicPageInfo({ data: { kind: 'course', id: params.courseId } }),
-  head: ({ params, loaderData }) => pageSEO('course', params.courseId, loaderData),
+  head: () => ({
+    meta: [
+      { title: "Course — Gators Learning" },
+      { name: "description", content: "Live classes, video lessons, PDF notes and exams for this course." },
+      { property: "og:title", content: "Course — Gators Learning" },
+      { property: "og:description", content: "Live classes, video lessons, PDF notes and exams." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: CourseDetailPage,
 });
 
