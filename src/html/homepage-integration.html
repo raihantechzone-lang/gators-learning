@@ -100,6 +100,7 @@
     const isFirstTime = !currentUser && session?.user;
     currentUser = session?.user ?? null;
     renderAuthState();
+    if (currentUser) window.closeModal("authModal");
     // Database calls must run after the auth callback releases its session lock.
     setTimeout(async () => {
     
@@ -757,8 +758,25 @@
   };
 
   /* ---------- authentication ---------- */
+  const openAccountModal = window.openModal;
+  const switchAccountTab = window.switchAuthTab;
+  async function blockRepeatSignup() {
+    if (!await hasRegisteredAccount(supabase)) return false;
+    window.closeModal("authModal");
+    window.showToast("আপনি ইতিমধ্যে নিবন্ধিত এবং লগইন করা আছেন। আপনার ড্যাশবোর্ডে যেতে প্রোফাইল বোতামে চাপুন।", "ইতিমধ্যে নিবন্ধিত");
+    return true;
+  }
+  window.openModal = async function(modalId, tab = 'login') {
+    if (modalId === 'authModal' && tab === 'signup' && await blockRepeatSignup()) return;
+    openAccountModal(modalId, tab);
+  };
+  window.switchAuthTab = async function(tab) {
+    if (tab === 'signup' && await blockRepeatSignup()) return;
+    switchAccountTab(tab);
+  };
   window.handleAuthSubmit = async function (e, type) {
     e.preventDefault();
+    if (type === "Signup" && await blockRepeatSignup()) return;
     const form = e.target;
     const btn = form.querySelector('button[type="submit"]');
     const originalText = btn.innerHTML;

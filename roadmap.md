@@ -1,3 +1,5 @@
+- [ ] Verify current scan findings against lesson output escaping, authenticated upload signing and refunded-access rejection; retain intentionally public categories.
+- [ ] Guard homepage signup buttons, tabs and submission for registered signed-in accounts and verify signed-out registration still works.
 - [x] Repair uploaded profile photo display: saved-row verification, immediate shared Auth refresh and avatar fallback; five tests pass, browser fixture upload displays both dashboard photos and survives reload without runtime errors; build OK.
 - [ ] Verify actual external student photo upload/readback and bucket visibility: external authenticated testing and storage administration are unavailable; browser fixture is not live-account verification.
 - [x] Remove website title overlay from shared player; browser confirms center controls remain and no title overlay renders; latest build OK.

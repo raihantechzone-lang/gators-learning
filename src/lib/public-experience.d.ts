@@ -1,4 +1,5 @@
 export function normalizeStudentEmail(value: unknown): string;
+export function hasRegisteredAccount(client: any): Promise<boolean>;
 export function escapeHtml(value: unknown): string;
 export function safeWebUrl(value: unknown): string;
 export function enrollmentHasAccess(enrollment: { status?: string; payment_status?: string | null }): boolean;

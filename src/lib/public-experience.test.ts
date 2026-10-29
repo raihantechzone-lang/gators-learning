@@ -1,6 +1,16 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeStudentEmail, adDisplayImage, whatsappPhone, courseFaqs, coursePrices, isHomepageReview, accountLoginEmail, accountDashboard, isLessonLive, signInAccount, courseNeedsPayment } from "./public-experience.js";
+import { normalizeStudentEmail, hasRegisteredAccount, adDisplayImage, whatsappPhone, courseFaqs, coursePrices, isHomepageReview, accountLoginEmail, accountDashboard, isLessonLive, signInAccount, courseNeedsPayment } from "./public-experience.js";
+
+describe('Already registered signup guard', () => {
+  it('blocks repeat signup for a currently verified account', async () => {
+    assert.equal(await hasRegisteredAccount({ auth: { getUser: async () => ({ data: { user: { id: 'student' } }, error: null }) } }), true);
+  });
+  it('allows signup after sign out or session expiry', async () => {
+    assert.equal(await hasRegisteredAccount({ auth: { getUser: async () => ({ data: { user: null }, error: null }) } }), false);
+    assert.equal(await hasRegisteredAccount({ auth: { getUser: async () => ({ data: { user: { id: 'stale' } }, error: { message: 'Expired' } }) } }), false);
+  });
+});
 
 describe('Requested course and account rules', () => {
   it('free enrollment skips payment while unknown and paid prices do not',()=>{assert.equal(courseNeedsPayment({price:0}),false);assert.equal(courseNeedsPayment({price:5000}),true);assert.equal(courseNeedsPayment({price:null}),true);});
