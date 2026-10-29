@@ -14,6 +14,13 @@ export const Route = createFileRoute("/admin")({
   staticData: { sitemap: "exclude-subtree" },
   head: () => teacherMeta('Admin Control Panel', 'Manage the Gators Learning teaching platform.'),
   ssr: false,
+  pendingMs: 0,
+  pendingComponent: () => (
+    <div role="status" className="min-h-screen flex flex-col items-center justify-center gap-3 text-muted-foreground">
+      <div className="h-10 w-10 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
+      <p>লোড হচ্ছে...</p>
+    </div>
+  ),
   beforeLoad: async () => {
     try { const panelRole = await getPanelRole(supabase); return { adminAllowed: !!panelRole, panelRole, adminError: '' }; }
     catch (error) { return { adminAllowed: false, panelRole: null, adminError: error instanceof Error ? error.message : 'অ্যাডমিনের অনুমতি যাচাই করা যাচ্ছে না।' }; }
