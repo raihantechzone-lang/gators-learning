@@ -1,4 +1,4 @@
-# Study Buddy Hub
+# Gators Learning
 
 course video te live class link, video, pdf , exam link aigolo thakbe live class link ta 1 day pore auto delete hoiya jabe ja admin panel a deoya hoyese ar student deshboard a arkta option add korbe certificate name oida lock lagano thakbe course ar pore admin panel theke certificate upload korle oida unlock hobe ar jei course ar opor certificate peyeche oitai certified badge show korbe student ar nichosso deshboard a.  Ar video te YouTube ar UI dekha jabe na admin panel ar video UI ta show korbe UI ta 3s pore invisible hoiya jabe video te click korle Abar visible hobe.
 
