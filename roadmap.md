@@ -1,3 +1,5 @@
+- [x] Repair uploaded profile photo display: saved-row verification, immediate shared Auth refresh and avatar fallback; five tests pass, browser fixture upload displays both dashboard photos and survives reload without runtime errors; build OK.
+- [ ] Verify actual external student photo upload/readback and bucket visibility: external authenticated testing and storage administration are unavailable; browser fixture is not live-account verification.
 - [x] Remove website title overlay from shared player; browser confirms center controls remain and no title overlay renders; latest build OK.
 - [x] Supply lesson-comments-auto-approve_v2.sql with compatible INSERT policy and unified guard; 26 tests pass, including actual PostgreSQL lesson publication, pending homepage reviews and owner/course rejection.
 - [ ] Activate lesson comment SQL and verify real student comment submission/readback: user must run attached correction on external database; authenticated external testing unavailable.

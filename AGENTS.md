@@ -22,7 +22,7 @@
 - Course-page and dashboard progress use the shared owner-scoped progress-sync helper with serialized cloud writes and a timestamped browser cache; cloud loads happen before capturing resume position so fresh devices resume correctly.
 - Lesson lifecycle writes use the shared lessonUpdate helper; React and full-document pages share isLessonLive from the raw-injected public-experience helper to keep recording/expiry visibility consistent.
 - Enrollment page marketing sections (subtitle, highlights, details, instructor, benefits, FAQs) come from optional text columns on courses, edited in admin Courses; empty fields hide their section so no demo copy appears.
-- Teacher profiles are admin-managed in teachers and many-to-many course_teachers; assignment changes use an admin-authorized atomic SQL RPC, and content editing reuses the curriculum builder with database-enforced assigned-course RLS. Supply external permission updates as chat attachments, not admin-page setup links, because Cloud migrations cannot reach this backend.
+- Teachers use admin-managed teachers/course_teachers, atomic admin assignment RPCs and assigned-course RLS; reuse the curriculum builder. Deliver external SQL as chat attachments, never apply it to Cloud or link it in admin pages.
 - Teacher/moderator credentials use separate normalized-name Auth aliases, not stored passwords; isolated signup preserves admin sessions and admin-only RPCs validate identities before binding roles. Never write reserved schemas.
 - Teacher account management requires verified Auth and protected admin roles; teacher_is_admin remains admin-only.
 - FAQ parsing and Bangladesh WhatsApp number normalization live in the raw-injected public-experience helper so HTML and React use identical rules.
@@ -40,3 +40,5 @@
 - Shared raw-injected security helpers escape text and allow HTTPS resource URLs across HTML and React; response headers allow the Lovable preview but prohibit unrelated framing.
 - management-rules centralizes pending/free grouping and actual-payment financial totals; free entitlement also needs the external lesson RPC.
 - WhatsApp queues track opened links, not delivery; absence matching uses Bangladesh dates and stored live expiry windows, not lesson creation dates.
+
+- Photo uploads read back the owner row and update Auth state immediately; route invalidation cannot refresh it. Normalize avatar_url and discard stale requests.
