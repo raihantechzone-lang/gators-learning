@@ -9,13 +9,13 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- The homepage and enrollment are full-document HTML server responses; React links to those pages must use `reloadDocument` so navigation runs their HTML scripts.
+- Homepage/enrollment use full-document HTML: use reloadDocument links and keep SEO tags in both HTML and route head because React does not render those responses.
 - Keep `/details/$courseId` as a permanent redirect to enrollment, rather than a second course page, to preserve published course links.
 - React/HTML lessons share one Plyr adapter and its bound center/timeline controls, with thumbnail-first/native fallback; never duplicate YouTube instances or fake quality choices.
-- Progress uses owner-scoped lesson_progress with a labeled per-user browser fallback; external SQL is delivered separately, never applied through unrelated Cloud tools.
-- All signup/login paths use the shared student-roll helper, injected into full-document HTML from its raw source; preserve numeric assigned rolls and derive new 9-digit numeric rolls from the full user UUID, because the external roll_number column is integer.
+- Progress uses owner-scoped lesson_progress with labeled per-user browser fallback; deliver external SQL separately, never apply to Cloud.
+- Signup/login share raw-injected student-roll: preserve assigned numeric rolls; derive new 9-digit rolls from the full UUID for the external integer column.
 - Raw-injected public-experience helpers share email normalization, untouched passwords, ad optimization and a revalidated current-account signup guard across HTML/React.
-- Public review reads must use only supported profile columns; homepage reviews and ads refresh on focus and periodically as a fallback when external realtime is unavailable.
+- Public reviews use supported profile columns; homepage reviews/ads refresh on focus and periodically when external realtime is unavailable.
 - Payment approval updates only payment_status, never the external backend's constrained enrollment status; access and approved-payment reads share verified-payment semantics, with legacy active/null-payment access retained.
 
 - Course-page reviews are lesson-scoped via a `[lesson:<id>] ` comment prefix (external reviews table has no lesson column); a database trigger and compatible owner-scoped INSERT policy publish valid lesson comments immediately, while null-course homepage reviews retain administrator approval.
@@ -42,3 +42,4 @@
 - WhatsApp queues track opened links, not delivery; absence matching uses Bangladesh dates and stored live expiry windows, not lesson creation dates.
 
 - Photo uploads read back the owner row and update Auth state immediately; route invalidation cannot refresh it. Normalize avatar_url and discard stale requests.
+- Sitemap derives static URLs from required route decisions and paginates the session-free external published catalogue; failures return 503, never partial XML; omit lastmod without page timestamps.

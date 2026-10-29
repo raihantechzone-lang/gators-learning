@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site/SiteHeader";
 
 export const Route = createFileRoute("/reset-password")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Reset password — Gators Learning" },
@@ -12,6 +13,8 @@ export const Route = createFileRoute("/reset-password")({
       { property: "og:description", content: "Set a new password and get back to your courses." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+    
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: ResetPasswordPage,

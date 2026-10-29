@@ -12,6 +12,7 @@ import { useServerFn } from '@tanstack/react-start';
 import { getTeacherUploadAuth } from '@/lib/teacher-upload.functions';
 
 export const Route = createFileRoute("/admin/content")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Course Content Admin | Gators Learning" },
     { name: "description", content: "Manage Gators Learning lessons, live classes and recordings." },

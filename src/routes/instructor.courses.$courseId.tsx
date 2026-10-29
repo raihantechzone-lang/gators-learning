@@ -6,6 +6,7 @@ import { InstructorShell, StatusBadge } from "@/components/instructor/Instructor
 import { LessonEditor, type LessonRow } from "@/components/instructor/LessonEditor";
 
 export const Route = createFileRoute("/instructor/courses/$courseId")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Course Builder — Instructor — Gators Learning" },
@@ -13,6 +14,9 @@ export const Route = createFileRoute("/instructor/courses/$courseId")({
       { property: "og:title", content: "Course Builder — Instructor — Gators Learning" },
       { property: "og:description", content: "Build sections and lessons for your course." },
       { name: "robots", content: "noindex" },
+    
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CourseBuilderPage,

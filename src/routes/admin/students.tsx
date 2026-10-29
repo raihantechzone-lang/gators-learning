@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { teacherMeta } from '@/lib/teachers';
 
 export const Route = createFileRoute("/admin/students")({
+  staticData: { sitemap: false },
   head: () => teacherMeta('Active Students Admin', 'View registered Gators Learning students and courses.'),
   component: StudentsAdmin,
 });

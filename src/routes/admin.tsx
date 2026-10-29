@@ -11,6 +11,7 @@ import { useRouter, useLocation } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/admin")({
+  staticData: { sitemap: "exclude-subtree" },
   head: () => teacherMeta('Admin Control Panel', 'Manage the Gators Learning teaching platform.'),
   ssr: false,
   beforeLoad: async () => {

@@ -3,12 +3,16 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 
 export const Route = createFileRoute("/contact")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Contact Us — Gators Learning" },
       { name: "description", content: "Get in touch with the Gators Learning team about courses, admission or IELTS support." },
       { property: "og:title", content: "Contact Us — Gators Learning" },
       { property: "og:description", content: "Questions about courses or admission? Talk to our team." },
+    
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ContactPage,

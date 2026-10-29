@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 
 export const Route = createFileRoute("/admin/attendance")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Class Attendance | Gators Learning Admin" },
     { name: "description", content: "See which students attended each class, date by date." },

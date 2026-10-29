@@ -19,6 +19,7 @@ import { dashboardGroups, isFreeCourse } from '@/lib/management-rules';
 import { saveProfilePhoto } from '@/lib/profile-photo';
 
 export const Route = createFileRoute("/dashboard")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Student Dashboard | Gators Learning" },
     { name: "description", content: "Access your enrolled Gators Learning courses and certificates." },
@@ -26,7 +27,9 @@ export const Route = createFileRoute("/dashboard")({
     { property: "og:description", content: "Access your enrolled Gators Learning courses and certificates." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
-  ] }),
+  
+      { name: "robots", content: "noindex" },
+    ] }),
   component: DashboardPage,
 });
 

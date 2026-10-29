@@ -13,12 +13,17 @@ interface CartRow {
 }
 
 export const Route = createFileRoute("/cart")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "My Cart — Gators Learning" },
       { name: "description", content: "Review the courses in your cart before checkout." },
       { property: "og:title", content: "My Cart — Gators Learning" },
       { property: "og:description", content: "Review and checkout your selected courses." },
+    
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: CartPage,

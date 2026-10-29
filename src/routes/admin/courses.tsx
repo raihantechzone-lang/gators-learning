@@ -13,6 +13,7 @@ import { adminConfirm, adminPrompt } from '@/components/admin/AdminActionDialog'
 import { normalizeAdminNumber, parseAdminNumber } from '@/lib/admin-input';
 
 export const Route = createFileRoute("/admin/courses")({
+  staticData: { sitemap: false },
   head: () => teacherMeta('Courses Admin', 'Manage course details, enrollment pages and assigned teachers.'),
   component: CoursesAdmin,
 });

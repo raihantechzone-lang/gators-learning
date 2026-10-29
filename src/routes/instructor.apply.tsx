@@ -8,12 +8,16 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { StatusBadge } from "@/components/instructor/InstructorShell";
 
 export const Route = createFileRoute("/instructor/apply")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Become an Instructor — Gators Learning" },
       { name: "description", content: "Apply to become an instructor on Gators Learning." },
       { property: "og:title", content: "Become an Instructor — Gators Learning" },
       { property: "og:description", content: "Submit your instructor application for review." },
+    
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ApplyPage,

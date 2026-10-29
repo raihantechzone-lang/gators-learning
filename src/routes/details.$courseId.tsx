@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { teacherMeta } from '@/lib/teachers';
 
 export const Route = createFileRoute("/details/$courseId")({
+  staticData: { sitemap: false },
   head: () => teacherMeta('Course Enrollment Redirect', 'Continue to Gators Learning course enrollment.'),
   server: {
     handlers: {

@@ -11,7 +11,8 @@ import { loadTeachers, teacherDb, teacherMeta, type Teacher } from '@/lib/teache
 import { uploadToImageKit } from '@/lib/imagekit';
 import { createTeacherAccount, requireTeacherAdmin, teacherNameSchema, teacherPasswordSchema } from '@/lib/teacher-login';
 
-export const Route = createFileRoute('/admin/teachers')({ head: () => teacherMeta('Teachers Admin', 'Manage teacher profiles and course teaching assignments.'), component: TeachersAdmin });
+export const Route = createFileRoute('/admin/teachers')({
+  staticData: { sitemap: false }, head: () => teacherMeta('Teachers Admin', 'Manage teacher profiles and course teaching assignments.'), component: TeachersAdmin });
 const empty = { user_id: '', display_name: '', password: '', title: '', bio: '', photo_url: '' };
 function TeachersAdmin() {
   const cache = useQueryClient();

@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 export const Route = createFileRoute("/admin/course-verification")({
+  staticData: { sitemap: false },
   head: () => teacherMeta("Course Verification", "Match a bKash transaction ID and approve the course enrollment."),
   component: CourseVerification,
 });

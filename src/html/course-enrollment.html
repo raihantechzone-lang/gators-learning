@@ -9,6 +9,8 @@
     <meta property="og:description" content="View course lessons, materials and enrollment details on Gators Learning.">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary">
+    <meta property="og:url" content="__COURSE_PAGE_URL__">
+    <link rel="canonical" href="__COURSE_PAGE_URL__">
     <link rel="stylesheet" href="/vendor/plyr.css">
     <link rel="stylesheet" href="/video-controls.css">
     <script src="/vendor/plyr.min.js" defer></script>
@@ -141,7 +143,7 @@
 
                 <div id="profile-button" class="hidden items-center gap-3 cursor-pointer group" onclick="toggleProfileMenu()">
                     <div class="h-10 w-10 sm:h-12 sm:w-12 rounded-full border-2 border-rs-green p-0.5 group-hover:scale-105 transition-all">
-                        <img id="header-profile-img" src="" class="w-full h-full rounded-full object-cover hidden shadow-sm">
+                        <img id="header-profile-img" alt="প্রোফাইল ছবি" class="w-full h-full rounded-full object-cover hidden shadow-sm">
                         <div id="header-profile-icon" class="w-full h-full rounded-full bg-emerald-50 flex items-center justify-center text-rs-green shadow-sm">
                             <i class="fa-solid fa-user"></i>
                         </div>
@@ -327,7 +329,7 @@
         }
         if (course.subtitle) { $('course-subtitle').textContent = course.subtitle; show('course-subtitle'); }
         if (course.instructor_name) {
-            const img = window.safeWebUrl?.(course.instructor_photo) ? `<img src="${esc(window.safeWebUrl(course.instructor_photo))}" alt="" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user"></i>`;
+            const img = window.safeWebUrl?.(course.instructor_photo) ? `<img src="${esc(window.safeWebUrl(course.instructor_photo))}" alt="${esc(course.instructor_name)}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user"></i>`;
             const av = (s) => `<div class="${s} rounded-full overflow-hidden bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">${img}</div>`;
             const mini = $('course-instructor-mini');
             mini.innerHTML = av('w-9 h-9') + `<span class="text-sm text-slate-500">শেখাবেন <b class="text-surface-900">${esc(course.instructor_name)}</b></span>`;

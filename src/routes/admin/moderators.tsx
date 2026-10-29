@@ -11,7 +11,8 @@ import { adminConfirm } from '@/components/admin/AdminActionDialog';
 import { verifyAdminAccess } from '@/lib/admin-access';
 import { createModeratorAccount } from '@/lib/moderator-login';
 
-export const Route = createFileRoute('/admin/moderators')({head: () => teacherMeta('Moderator Management', 'Manage restricted moderator access to Gators Learning.'),component: ModeratorsAdmin});
+export const Route = createFileRoute('/admin/moderators')({
+  staticData: { sitemap: false },head: () => teacherMeta('Moderator Management', 'Manage restricted moderator access to Gators Learning.'),component: ModeratorsAdmin});
 function ModeratorsAdmin() {
   const cache = useQueryClient();
   const [search,setSearch] = useState('');

@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { ReviewsSection } from "@/components/site/Reviews";
 
 export const Route = createFileRoute("/reviews")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Student Reviews — Gators Learning" },
@@ -12,7 +13,9 @@ export const Route = createFileRoute("/reviews")({
       { property: "og:description", content: "Verified reviews from our admission and IELTS students." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { property: "og:url", content: "https://gators-learning.lovable.app/reviews" },
     ],
+    links: [{ rel: "canonical", href: "https://gators-learning.lovable.app/reviews" }],
   }),
   component: ReviewsPage,
 });

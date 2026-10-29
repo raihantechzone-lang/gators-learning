@@ -12,7 +12,8 @@ import { BookOpen, Upload } from 'lucide-react';
 import { assignedCourseIds } from '@/lib/teacher-assignment.js';
 import { supabase } from '@/integrations/supabase/client';
 
-export const Route = createFileRoute('/teacher')({ head: () => teacherMeta('Teacher Dashboard', 'Manage lessons for your assigned Gators Learning courses.'), component: TeacherDashboard });
+export const Route = createFileRoute('/teacher')({
+  staticData: { sitemap: false }, head: () => teacherMeta('Teacher Dashboard', 'Manage lessons for your assigned Gators Learning courses.'), component: TeacherDashboard });
 function TeacherDashboard() {
   const cache = useQueryClient();
   const navigate = useNavigate();

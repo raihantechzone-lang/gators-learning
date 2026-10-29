@@ -2,7 +2,8 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { teacherDb, teacherMeta, type Teacher, type AssignedCourse } from '@/lib/teachers';
 import { SiteHeader } from '@/components/site/SiteHeader';
-export const Route = createFileRoute('/teachers/$teacherId')({ head: () => teacherMeta('Teacher Profile', 'Browse the published courses taught by this Gators Learning teacher.'), component: TeacherProfile });
+export const Route = createFileRoute('/teachers/$teacherId')({
+  staticData: { sitemap: false }, head: () => teacherMeta('Teacher Profile', 'Browse the published courses taught by this Gators Learning teacher.'), component: TeacherProfile });
 function TeacherProfile() {
   const { teacherId } = Route.useParams();
   const query = useQuery({ queryKey: ['teacher-public', teacherId], queryFn: async () => {

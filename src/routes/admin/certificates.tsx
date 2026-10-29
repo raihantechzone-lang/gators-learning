@@ -10,6 +10,7 @@ import { certificateLink } from '@/lib/admin-input';
 import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute("/admin/certificates")({
+  staticData: { sitemap: false },
   head: () => teacherMeta('Certificates Admin', 'Send student certificates for Gators Learning courses.'),
   component: CertificatesAdmin,
 });

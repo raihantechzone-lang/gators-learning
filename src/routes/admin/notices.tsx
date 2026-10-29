@@ -8,6 +8,7 @@ import { Trash2 } from "lucide-react";
 import { teacherMeta } from "@/lib/teachers";
 
 export const Route = createFileRoute("/admin/notices")({
+  staticData: { sitemap: false },
   head: () => teacherMeta("Homepage Notices", "Publish scrolling notices on the homepage."),
   component: NoticesAdmin,
 });
