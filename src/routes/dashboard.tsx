@@ -15,7 +15,6 @@ import { loadStudentProgress } from "@/lib/progress-sync";
 import { AcademicPanel } from "@/components/site/AcademicPanel";
 import { CalendarCheck } from "lucide-react";
 import { dashboardGroups, isFreeCourse } from '@/lib/management-rules';
-import duIllustration from "@/assets/du-illustration.png";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [
@@ -246,7 +245,7 @@ function DashboardPage() {
 
            <div className="hidden md:block relative z-10 shrink-0">
               <div className="rounded-[1.5rem] border-2 border-[#0f9d58]/60 bg-white/70 backdrop-blur p-2 shadow-[0_10px_30px_-10px_rgba(15,157,88,0.35)] rotate-2">
-                 <img src={duIllustration} alt="Dhaka University" loading="lazy" width={816} height={816} className="w-36 h-36 object-contain" />
+                 <img src="https://ik.imagekit.io/n7rgjyaxh/Untitled%20design_20260630_142739_0000.png" alt="Gators Learning" loading="lazy" width={144} height={144} className="w-36 h-36 object-contain" />
               </div>
            </div>
         </div>
