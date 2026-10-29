@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as InstructorRouteImport } from './routes/instructor'
 import { Route as PurchasesRouteImport } from './routes/purchases'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -82,6 +83,11 @@ const ContactRoute = ContactRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstructorRoute = InstructorRouteImport.update({
@@ -283,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/developer': typeof DeveloperRoute
   '/instructor': typeof InstructorRouteWithChildren
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -328,6 +335,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/developer': typeof DeveloperRoute
   '/instructor': typeof InstructorRouteWithChildren
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -375,6 +383,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/developer': typeof DeveloperRoute
   '/instructor': typeof InstructorRouteWithChildren
   '/purchases': typeof PurchasesRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -423,6 +432,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/contact'
     | '/dashboard'
+    | '/developer'
     | '/instructor'
     | '/purchases'
     | '/reset-password'
@@ -468,6 +478,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/contact'
     | '/dashboard'
+    | '/developer'
     | '/instructor'
     | '/purchases'
     | '/reset-password'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/contact'
     | '/dashboard'
+    | '/developer'
     | '/instructor'
     | '/purchases'
     | '/reset-password'
@@ -561,6 +573,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
+  DeveloperRoute: typeof DeveloperRoute
   InstructorRoute: typeof InstructorRouteWithChildren
   PurchasesRoute: typeof PurchasesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -618,6 +631,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developer': {
+      id: '/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof DeveloperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/instructor': {
@@ -973,6 +993,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
+  DeveloperRoute: DeveloperRoute,
   InstructorRoute: InstructorRouteWithChildren,
   PurchasesRoute: PurchasesRoute,
   ResetPasswordRoute: ResetPasswordRoute,

@@ -27,6 +27,7 @@
   --color-brand-soft: var(--brand-soft);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
+  --color-dev-credit: var(--dev-credit);
   --color-surface-alt: var(--surface-alt);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -78,6 +79,7 @@
   --brand-soft: oklch(0.95 0.04 156.4);
   --ink: oklch(0.29 0.041 259);
   --ink-muted: oklch(0.55 0.033 257);
+  --dev-credit: oklch(0.74 0.15 230);
   --surface-alt: oklch(0.976 0.003 247);
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
