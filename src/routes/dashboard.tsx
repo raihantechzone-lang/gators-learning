@@ -15,6 +15,7 @@ import { loadStudentProgress } from "@/lib/progress-sync";
 import { AcademicPanel } from "@/components/site/AcademicPanel";
 import { CalendarCheck } from "lucide-react";
 import { dashboardGroups, isFreeCourse } from '@/lib/management-rules';
+import { saveProfilePhoto } from '@/lib/profile-photo';
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/dashboard")({
 type DashboardTab = "courses" | "free" | "notes" | "live" | "results" | "attendance";
 
 function DashboardPage() {
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, loading, signOut, updateProfile } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<DashboardTab>("courses");
   const [enrollments, setEnrollments] = useState<(Enrollment & { courses: Course | null, certificate_url?: string | null })[]>([]);
@@ -140,17 +141,14 @@ function DashboardPage() {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ photo_url: publicUrl })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
+      const savedProfile = await saveProfilePhoto(supabase, user.id, publicUrl);
+      updateProfile(savedProfile);
       
       showToast("Profile photo updated successfully!", "Success");
-      router.invalidate();
     } catch (error: any) {
       showToast(error.message, "Upload Failed");
+    } finally {
+      e.target.value = '';
     }
   };
 
