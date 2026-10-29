@@ -19,16 +19,29 @@ export function pageSEO(kind: PublicPageKind, id: string, info?: PublicPageInfo)
   const suffix = { course: 'পাঠ ও কোর্স কনটেন্ট', enrollment: 'ভর্তির তথ্য', teacher: 'শিক্ষক পরিচিতি', instructor: 'প্রশিক্ষক পরিচিতি' }[kind];
   const title = `${name} — ${suffix} | Gators Learning`;
   const context = { course: 'পাঠ ও কোর্স কনটেন্ট দেখুন', enrollment: 'কোর্সের বিবরণ ও ভর্তির তথ্য দেখুন', teacher: 'পরিচিতি ও প্রকাশিত কোর্সগুলো দেখুন', instructor: 'পরিচিতি, দক্ষতা ও প্রকাশিত কোর্সগুলো দেখুন' }[kind];
-  const description = found ? `${name}: ${plainSummary(info?.summary) || context}। Gators Learning।` : `${name}। Gators Learning-এর ${subject} তালিকা থেকে অন্য পাতা দেখুন।`;
+  const description = found ? `${name}: ${context}। ${plainSummary(info?.summary)}`.trim() : `${name}। Gators Learning-এর ${subject} তালিকা থেকে অন্য পাতা দেখুন।`;
+  const image = found ? shareImage(info?.image) : null;
   const meta = [
     { title }, { name: 'description', content: description },
     { property: 'og:title', content: title }, { property: 'og:description', content: description },
     { property: 'og:type', content: 'website' }, { property: 'og:url', content: url },
-    { name: 'twitter:card', content: 'summary' },
+    { name: 'twitter:card', content: image ? 'summary_large_image' : 'summary' },
     { name: 'twitter:title', content: title }, { name: 'twitter:description', content: description },
     ...(!found ? [{ name: 'robots', content: 'noindex, follow' }] : []),
+    ...(image ? [{ property: 'og:image', content: image }, { name: 'twitter:image', content: image }] : []),
   ];
   return { meta, links: [{ rel: 'canonical', href: url }] };
+}
+
+function shareImage(value?: string | null) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:') return null;
+    // The existing catalogue uses ImageKit; transform the same displayed photo.
+    if (url.hostname === 'ik.imagekit.io') url.searchParams.set('tr', 'w-1200,h-630,fo-auto,q-80');
+    return url.href;
+  } catch { return null; }
 }
 
 export function escapeSEO(value: string) {
