@@ -36,7 +36,7 @@
 - Admin numeric form values use a shared Bengali-digit normalizer and strict parsing before saving, so Bengali input is accepted without silently converting invalid values to zero.
 - Public/student lesson reads use visible_course_lessons, which redacts resources without entitlement; external SQL is delivered separately and never applied to the unrelated Cloud database.
 - Upload signing revalidates Auth and a protected admin role or assigned course and consumes an atomic external database quota; missing quota configuration fails closed, and no browser flag or legacy email fallback authorizes uploads.
-- Refund approval uses an admin-only atomic RPC and shared access checks reject revoked states, avoiding partial approvals and constrained enrollment-status changes.
+- Refund RPC atomically revokes duplicate payments/certificates without changing enrollment status; shared checks reject revoked states and course reads discard stale account responses.
 - Shared raw-injected security helpers escape text and allow HTTPS resource URLs across HTML and React; response headers allow the Lovable preview but prohibit unrelated framing.
 - management-rules centralizes pending/free grouping and actual-payment financial totals; free entitlement also needs the external lesson RPC.
 - WhatsApp queues track opened links, not delivery; absence matching uses Bangladesh dates and stored live expiry windows, not lesson creation dates.
