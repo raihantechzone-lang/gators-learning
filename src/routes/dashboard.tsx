@@ -192,8 +192,12 @@ function DashboardPage() {
 
           <div className="flex items-center gap-4">
              <span className="hidden md:block text-sm font-bold text-[#0f9d58]">Dashboard</span>
-             <div className="h-10 w-10 rounded-full bg-emerald-50 border-2 border-[#0f9d58] overflow-hidden shadow-sm ring-offset-2 hover:ring-2 hover:ring-emerald-200 transition-all cursor-pointer">
-                <img src={String(profile?.photo_url || `https://ui-avatars.com/api/?name=${profile?.full_name || 'Student'}&background=0f9d58&color=fff`)} className="w-full h-full object-cover" alt="" />
+             <div className="h-10 w-10 rounded-full bg-emerald-50 border-2 border-[#0f9d58] overflow-hidden shadow-sm ring-offset-2 hover:ring-2 hover:ring-emerald-200 transition-all cursor-pointer flex items-center justify-center">
+                {profile?.photo_url ? (
+                  <img src={String(profile.photo_url)} className="w-full h-full object-cover" alt="" />
+                ) : (
+                  <User size={20} className="text-[#0f9d58]" strokeWidth={2} />
+                )}
              </div>
           </div>
         </nav>
