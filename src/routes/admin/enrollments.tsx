@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { teacherMeta } from '@/lib/teachers';
 
 export const Route = createFileRoute("/admin/enrollments")({
+  staticData: { sitemap: false },
   head: () => teacherMeta('Enrollments Admin', 'Review Gators Learning enrollment by course.'),
   component: EnrollmentsAdmin,
 });

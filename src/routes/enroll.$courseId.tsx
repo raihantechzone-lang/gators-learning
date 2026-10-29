@@ -10,19 +10,22 @@ const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", student
   .replace("/* PUBLIC_EXPERIENCE_HELPER */", publicExperienceSource.replaceAll("export async function", "async function").replaceAll("export function", "function"));
 
 export const Route = createFileRoute("/enroll/$courseId")({
-  head: () => ({ meta: [
+  staticData: { sitemap: true },
+  head: ({ params }) => ({ meta: [
     { title: "Course Enrollment | Gators Learning" },
     { name: "description", content: "View course lessons, materials and enrollment details on Gators Learning." },
     { property: "og:title", content: "Course Enrollment | Gators Learning" },
     { property: "og:description", content: "View course lessons, materials and enrollment details on Gators Learning." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
-  ] }),
+      { property: "og:url", content: `https://gators-learning.lovable.app/enroll/${encodeURIComponent(params.courseId)}` },
+  ], links: [{ rel: "canonical", href: `https://gators-learning.lovable.app/enroll/${encodeURIComponent(params.courseId)}` }] }),
   server: {
     handlers: {
       GET: async ({ params }) => {
         const { courseId } = params;
         const page = enrollHtml
+          .replaceAll('__COURSE_PAGE_URL__', `https://gators-learning.lovable.app/enroll/${encodeURIComponent(courseId)}`)
           .replaceAll('__BKASH_LOGO__', bkashLogo.url)
           .replace('/* VIDEO_CONTROLS_HELPER */', videoControlsSource.replaceAll('export async function', 'async function').replaceAll('export function', 'function').replaceAll('export const', 'const'))
           .replace("</body>", `<script>window.currentCourseId = ${JSON.stringify(courseId).replace(/</g, "\\u003c")};</script>\n${integration}\n</body>`);

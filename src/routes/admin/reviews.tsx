@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { adDisplayImage, isHomepageReview } from "@/lib/public-experience.js";
 
 export const Route = createFileRoute("/admin/reviews")({
+  staticData: { sitemap: true },
   head: () => ({ meta: [
     { title: "Review and Ad Management — Gators Learning" },
     { name: "description", content: "Manage student review approvals and homepage advertisements." },

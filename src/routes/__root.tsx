@@ -79,19 +79,15 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "author", content: "Gators Learning" },
+      { property: "og:site_name", content: "Gators Learning" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "raihan" },
-      { property: "og:title", content: "raihan" },
-      { name: "twitter:title", content: "raihan" },
-      { name: "description", content: "Live classes, recorded video lessons, PDF notes, exams and certificates for university admission and IELTS preparation." },
-      { property: "og:description", content: "Live classes, recorded video lessons, PDF notes, exams and certificates for university admission and IELTS preparation." },
-      { name: "twitter:description", content: "Live classes, recorded video lessons, PDF notes, exams and certificates for university admission and IELTS preparation." },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

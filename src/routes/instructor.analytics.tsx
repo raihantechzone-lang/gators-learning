@@ -5,6 +5,7 @@ import { useInstructorAccess } from "@/components/instructor/useInstructorAccess
 import { InstructorShell, StatCard } from "@/components/instructor/InstructorShell";
 
 export const Route = createFileRoute("/instructor/analytics")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Analytics — Instructor — Gators Learning" },
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/instructor/analytics")({
       { property: "og:title", content: "Analytics — Instructor — Gators Learning" },
       { property: "og:description", content: "Course performance analytics." },
       { name: "robots", content: "noindex" },
+    
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: InstructorAnalyticsPage,

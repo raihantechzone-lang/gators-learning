@@ -11,6 +11,7 @@ import { saveStudentProfile } from "@/lib/student-profile";
 type Mode = "login" | "signup";
 
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: false },
   validateSearch: (search: Record<string, unknown>): { mode: Mode } => ({
     mode: search.mode === "signup" ? "signup" : "login",
   }),
@@ -22,6 +23,8 @@ export const Route = createFileRoute("/auth")({
       { property: "og:description", content: "Access your courses, live classes and certificates." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+    
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: AuthPage,

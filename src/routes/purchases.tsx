@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 
 export const Route = createFileRoute("/purchases")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "My Purchases — Gators Learning" },
@@ -13,6 +14,9 @@ export const Route = createFileRoute("/purchases")({
       { property: "og:title", content: "My Purchases — Gators Learning" },
       { property: "og:description", content: "Invoices, payments and refund requests." },
       { name: "robots", content: "noindex" },
+    
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PurchasesPage,

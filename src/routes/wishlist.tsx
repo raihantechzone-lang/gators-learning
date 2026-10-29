@@ -14,12 +14,17 @@ interface WishlistRow {
 }
 
 export const Route = createFileRoute("/wishlist")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "My Wishlist — Gators Learning" },
       { name: "description", content: "Courses you've saved for later on Gators Learning." },
       { property: "og:title", content: "My Wishlist — Gators Learning" },
       { property: "og:description", content: "View and manage your saved courses." },
+    
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: WishlistPage,

@@ -12,6 +12,7 @@ import { resultSheetKey, readResultSheets, type ResultSheet } from "@/lib/result
 import { teacherMeta } from "@/lib/teachers";
 
 export const Route = createFileRoute("/admin/results")({
+  staticData: { sitemap: false },
   head: () => teacherMeta("Exam Mark Sheet Admin", "Publish shared PDF exam result sheets for Gators Learning courses."),
   component: MarkSheetAdmin,
 });

@@ -20,6 +20,7 @@ import { loadVisibleLessons, safeWebUrl } from '@/lib/public-experience.js';
 import { isFreeCourse } from '@/lib/management-rules';
 
 export const Route = createFileRoute("/courses/$courseId")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Course — Gators Learning" },

@@ -11,16 +11,18 @@ const integration = integrationHtml.replace("/* STUDENT_ROLL_HELPER */", student
 const page = homepageHtml.replace("</body>", `${integration}\n</body>`);
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({ meta: [
-    { title: "Gators Learning | Courses and Online Classes" },
-    { name: "description", content: "Explore Gators Learning courses, video lessons and online classes." },
-    { property: "og:title", content: "Gators Learning | Courses and Online Classes" },
-    { property: "og:description", content: "Explore Gators Learning courses, video lessons and online classes." },
+    { title: "Gators Learning | বিশ্ববিদ্যালয় ভর্তি ও IELTS প্রস্তুতি" },
+    { name: "description", content: "Gators Learning-এ বিশ্ববিদ্যালয় ভর্তি ও IELTS প্রস্তুতির অনলাইন কোর্স, লাইভ ক্লাস, ভিডিও লেসন, PDF নোট ও পরীক্ষার তথ্য দেখুন।" },
+    { property: "og:title", content: "Gators Learning | বিশ্ববিদ্যালয় ভর্তি ও IELTS প্রস্তুতি" },
+    { property: "og:description", content: "Gators Learning-এ বিশ্ববিদ্যালয় ভর্তি ও IELTS প্রস্তুতির অনলাইন কোর্স, লাইভ ক্লাস, ভিডিও লেসন, PDF নোট ও পরীক্ষার তথ্য দেখুন।" },
     { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-    { property: "og:image", content: "https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png" },
-    { name: "twitter:image", content: "https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png" },
-  ] }),
+    { name: "twitter:card", content: "summary_large_image" },
+    { property: "og:image", content: "https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png?tr=w-1200,h-630,cm-pad_resize,bg-FFFFFF,f-jpg,q-80" },
+    { name: "twitter:image", content: "https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png?tr=w-1200,h-630,cm-pad_resize,bg-FFFFFF,f-jpg,q-80" },
+      { property: "og:url", content: "https://gators-learning.lovable.app/" },
+  ], links: [{ rel: "canonical", href: "https://gators-learning.lovable.app/" }] }),
   server: {
     handlers: {
       GET: async () =>

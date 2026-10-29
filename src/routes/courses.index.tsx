@@ -25,6 +25,7 @@ interface CoursesSearch {
 }
 
 export const Route = createFileRoute("/courses/")({
+  staticData: { sitemap: true },
   validateSearch: (search: Record<string, unknown>): CoursesSearch => ({
     q: typeof search.q === "string" ? search.q : undefined,
     category: typeof search.category === "string" ? search.category : undefined,
@@ -43,7 +44,12 @@ export const Route = createFileRoute("/courses/")({
       { name: "description", content: "Browse every admission, IELTS and skill course with live classes, videos, PDFs and exams." },
       { property: "og:title", content: "All Courses — Gators Learning" },
       { property: "og:description", content: "Browse every admission, IELTS and skill course on Gators Learning." },
+    
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { property: "og:url", content: "https://gators-learning.lovable.app/courses" },
     ],
+    links: [{ rel: "canonical", href: "https://gators-learning.lovable.app/courses" }],
   }),
   component: CoursesPage,
 });

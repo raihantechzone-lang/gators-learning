@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { DEVELOPER_EMAIL, loadDeveloperCredit, safeDevUrl } from "@/components/site/DeveloperCredit";
 
 export const Route = createFileRoute("/developer")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Developer Settings — Gators Learning" },

@@ -10,6 +10,7 @@ import { approvedEnrollmentFilter } from "@/lib/enrollment-payment";
 import { financialSummary, weeklyRevenue, type PaymentRow } from '@/lib/management-rules';
 
 export const Route = createFileRoute("/admin/")({
+  staticData: { sitemap: true },
   head: () => ({ meta: [
     { title: "Admin Overview — Gators Learning" },
     { name: "description", content: "Course enrollments and payment overview for Gators Learning." },

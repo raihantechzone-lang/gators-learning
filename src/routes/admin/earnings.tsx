@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { approvedEnrollmentFilter } from "@/lib/enrollment-payment";
 
 export const Route = createFileRoute("/admin/earnings")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [
     { title: "Course Earnings — Gators Learning" },
     { name: "description", content: "Verified course payments and earnings for Gators Learning." },

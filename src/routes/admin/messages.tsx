@@ -7,7 +7,8 @@ import { enrollmentHasAccess } from '@/lib/public-experience.js';
 import { WhatsAppQueue, type QueueRecipient } from '@/components/admin/WhatsAppQueue';
 import { MessageCircle } from 'lucide-react';
 
-export const Route = createFileRoute('/admin/messages')({head: () => teacherMeta('Bulk WhatsApp Messages', 'Prepare course-wise student WhatsApp messages.'), component: MessagesAdmin});
+export const Route = createFileRoute('/admin/messages')({
+  staticData: { sitemap: false },head: () => teacherMeta('Bulk WhatsApp Messages', 'Prepare course-wise student WhatsApp messages.'), component: MessagesAdmin});
 function MessagesAdmin() {
   const [courseId,setCourseId] = useState('');
   const query = useQuery({queryKey:['message-students'], queryFn: async () => {
