@@ -190,6 +190,8 @@
         /* Smooth Reveal Animation on Scroll */
         .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
+        .reveal:not(.active) { animation: reveal-failsafe 0.6s ease 1.5s forwards; }
+        @keyframes reveal-failsafe { to { opacity: 1; transform: translateY(0); } }
 
         /* Custom Video Player Styles */
         .vid-controls {
@@ -285,7 +287,7 @@
     <div id="home-view" class="block">
         <div class="relative bg-white pb-12 overflow-hidden">
             <div class="hero-bg-shape"></div>
-            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 lg:pt-40 pb-12 flex flex-col lg:flex-row items-center relative z-10 reveal">
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 lg:pt-40 pb-12 flex flex-col lg:flex-row items-center relative z-10">
                 <!-- Hero Text -->
                 <div class="lg:w-1/2 pr-0 lg:pr-12 text-center lg:text-left mb-16 lg:mb-0">
                     <h1 id="dynamic-site-title" class="text-4xl sm:text-5xl lg:text-[56px] font-heading font-bold text-rs-dark leading-[1.2] mb-6 whitespace-pre-line"><span class="font-bengali">বিশ্ববিদ্যালয় ভর্তি ও</span> <br> <span class="text-rs-green relative inline-block">IELTS <span class="font-bengali">প্রস্তুতি</span><svg class="absolute -bottom-2 left-0 w-full opacity-60" width="100%" height="12" viewBox="0 0 124 12" fill="none"><path d="M2 9.5C33 2.5 86 -2.5 122 9.5" stroke="#0f9d58" stroke-width="4" stroke-linecap="round"/></svg></span> <span class="font-bengali">সহজ</span> <br> <span class="font-bengali">করুন।</span></h1>
@@ -1209,7 +1211,9 @@
                 }
             }
         }
-        window.addEventListener('scroll', handleScrollAnimations);
+        window.addEventListener('scroll', handleScrollAnimations, { passive: true });
+        handleScrollAnimations();
+        document.addEventListener('DOMContentLoaded', handleScrollAnimations);
 
         function initApp() {
             // Hero title/subtitle are static HTML in the markup; dynamic overrides removed.
