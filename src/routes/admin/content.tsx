@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { lessonUpdate, type LessonForm } from "@/lib/lesson-lifecycle";
 import { useServerFn } from '@tanstack/react-start';
 import { getTeacherUploadAuth } from '@/lib/teacher-upload.functions';
+import { uploadAuthHeaders } from '@/lib/upload-auth';
 
 export const Route = createFileRoute("/admin/content")({
   staticData: { sitemap: false },
@@ -33,7 +34,10 @@ export function ContentAdmin({ allowedCourses, initialCourseId = '' }: { allowed
   const signTeacherUpload = useServerFn(getTeacherUploadAuth);
   const uploadMedia = async (file: File, folder: string) => {
     if (allowedCourses) {
-      const auth = await signTeacherUpload({ data: { courseId: selectedCourseId } });
+      const auth = await signTeacherUpload({
+        data: { courseId: selectedCourseId },
+        headers: await uploadAuthHeaders(supabase.auth),
+      });
       return uploadToImageKit(file, folder, auth);
     }
     return uploadToImageKit(file, folder);
