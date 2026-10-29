@@ -1,3 +1,7 @@
+- [x] Check scan findings: lesson titles now use textContent; authenticated admin-only upload signing and quota tests pass; intentionally public categories retained and informational finding dismissed.
+- [ ] Verify external refund RPC/resource enforcement with real refunded student: current shared access helper rejects refunds and tests pass, but external authenticated/backend administration is unavailable; keep refund finding open pending verification.
+- [x] Guard homepage signup buttons, tabs and submission for registered signed-in accounts; 42 rule tests pass, browser fixture verifies restored-account message, no signup request, and signup still works after logout.
+- [ ] Verify homepage signup guard with a real external student account: authenticated external testing is unavailable; browser fixture is not live-account verification.
 - [x] Repair uploaded profile photo display: saved-row verification, immediate shared Auth refresh and avatar fallback; five tests pass, browser fixture upload displays both dashboard photos and survives reload without runtime errors; build OK.
 - [ ] Verify actual external student photo upload/readback and bucket visibility: external authenticated testing and storage administration are unavailable; browser fixture is not live-account verification.
 - [x] Remove website title overlay from shared player; browser confirms center controls remain and no title overlay renders; latest build OK.

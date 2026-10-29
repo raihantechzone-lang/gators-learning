@@ -34,6 +34,12 @@ export function normalizeStudentEmail(value) {
   return String(value ?? "").trim().toLowerCase();
 }
 
+/** Revalidate the current account before offering another signup; never look up other people's emails. */
+export async function hasRegisteredAccount(client) {
+  const { data, error } = await client.auth.getUser();
+  return !error && Boolean(data?.user?.id);
+}
+
 /** Teacher aliases match the administrator-issued account identity. */
 export async function accountLoginEmail(value) {
   const input = String(value ?? '').trim();
