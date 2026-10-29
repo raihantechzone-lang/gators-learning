@@ -11,7 +11,9 @@ export function safeWebUrl(value) {
 }
 
 export function enrollmentHasAccess(enrollment) {
-  if (['refunded', 'cancelled', 'canceled', 'revoked', 'expired'].includes(String(enrollment.status || '').toLowerCase())) return false;
+  const revoked = ['refunded', 'cancelled', 'canceled', 'revoked', 'expired'];
+  // Revocation wins over both verified payments and legacy active enrollments.
+  if ([enrollment.status, enrollment.payment_status].some(value => revoked.includes(String(value || '').trim().toLowerCase()))) return false;
   if (enrollment.payment_status === 'verified') return true;
   return enrollment.status === 'active' && enrollment.payment_status == null;
 }
