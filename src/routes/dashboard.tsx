@@ -15,6 +15,7 @@ import { loadStudentProgress } from "@/lib/progress-sync";
 import { AcademicPanel } from "@/components/site/AcademicPanel";
 import { CalendarCheck } from "lucide-react";
 import { dashboardGroups, isFreeCourse } from '@/lib/management-rules';
+import duIllustration from "@/assets/du-illustration.png";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [
@@ -200,14 +201,18 @@ function DashboardPage() {
 
       <main className="pt-32 sm:pt-40 pb-20 max-w-[1000px] mx-auto px-4 sm:px-6">
         {/* Profile Card */}
-        <div className="bg-gradient-to-r from-[#ffe4d6] to-[#fff3ed] rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between shadow-sm border border-[#ffdbce] relative overflow-hidden mb-8 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="bg-gradient-to-r from-[#eafaf1] to-[#f4fbf7] rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between shadow-sm border-2 border-[#0f9d58]/60 relative overflow-hidden mb-8 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
            <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
               <div 
                 className="relative group cursor-pointer" 
                 onClick={() => fileInputRef.current?.click()}
               >
-                 <div className="w-24 h-24 bg-white rounded-full border-4 border-white shadow-sm overflow-hidden group-hover:border-[#0f9d58] transition-colors">
-                    <img src={String(profile?.photo_url || `https://ui-avatars.com/api/?name=${profile?.full_name || 'Student'}&background=0f9d58&color=fff`)} className="w-full h-full object-cover" alt="" />
+                 <div className="w-24 h-24 bg-white rounded-full border-4 border-[#0f9d58] shadow-md overflow-hidden flex items-center justify-center transition-colors">
+                    {profile?.photo_url ? (
+                      <img src={String(profile.photo_url)} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <User size={44} className="text-[#0f9d58]" strokeWidth={1.8} />
+                    )}
                  </div>
                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera className="text-white" size={24} />
@@ -217,7 +222,7 @@ function DashboardPage() {
 
               <div className="text-center sm:text-left">
                  <div className="flex items-center gap-2 justify-center sm:justify-start">
-                    <h2 className="text-2xl font-bengali font-bold text-gray-900">{profile?.full_name || "Student Name"}</h2>
+                     <h2 className="text-2xl font-bengali font-bold text-gray-900">{profile?.full_name || "Student Name"}</h2>
                     <button onClick={editName} className="text-slate-400 hover:text-[#0f9d58] transition-colors">
                        <PenSquare size={18} />
                     </button>
@@ -227,7 +232,7 @@ function DashboardPage() {
                  <div className="flex gap-4 mt-4 justify-center sm:justify-start">
                     <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-orange-200 text-xs font-bold text-gray-700 shadow-sm flex items-center gap-2">
                        <BookOpen size={14} className="text-orange-500" /> Enrolled: {approved.length}
-                    </div>
+                     </div>
                     <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-purple-200 text-xs font-bold text-gray-700 shadow-sm flex items-center gap-2">
                        <CheckCircle2 size={14} className="text-purple-500" /> Completed: {totalProgress}%
                     </div>
@@ -235,7 +240,11 @@ function DashboardPage() {
               </div>
            </div>
 
-           <img src="https://ik.imagekit.io/n7rgjyaxh/20260630_133004_0000.png" alt="" className="hidden md:block w-40 h-32 object-contain mix-blend-multiply opacity-80 animate-bounce [animation-duration:3s]" />
+           <div className="hidden md:block relative z-10 shrink-0">
+              <div className="rounded-[1.5rem] border-2 border-[#0f9d58]/60 bg-white/70 backdrop-blur p-2 shadow-[0_10px_30px_-10px_rgba(15,157,88,0.35)] rotate-2">
+                 <img src={duIllustration} alt="Dhaka University" loading="lazy" width={816} height={816} className="w-36 h-36 object-contain" />
+              </div>
+           </div>
         </div>
 
         {/* Dashboard Nav Tabs */}
