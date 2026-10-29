@@ -1,5 +1,6 @@
 - [x] Check scan findings: lesson titles now use textContent; authenticated admin-only upload signing and quota tests pass; intentionally public categories retained and informational finding dismissed.
-- [ ] Resolve remaining refund warning: harden revoked-state checks and stale account responses, run regressions; external refund RPC/resource enforcement with a real refunded student still requires external administration/session access.
+- [x] Harden refunded/revoked enrollment and payment checks and discard stale course-account responses; 58 tests pass, including actual PostgreSQL admin-only atomic duplicate-payment/certificate revocation; latest build OK.
+- [ ] Finish remaining refund warning: user must apply refund-access-fix.sql to the external database and verify real refunded-student paid-resource denial; external administration/session access is unavailable, so finding remains open.
 - [x] Guard homepage signup buttons, tabs and submission for registered signed-in accounts; 42 rule tests pass, browser fixture verifies restored-account message, no signup request, and signup still works after logout.
 - [ ] Verify homepage signup guard with a real external student account: authenticated external testing is unavailable; browser fixture is not live-account verification.
 - [x] Repair uploaded profile photo display: saved-row verification, immediate shared Auth refresh and avatar fallback; five tests pass, browser fixture upload displays both dashboard photos and survives reload without runtime errors; build OK.
