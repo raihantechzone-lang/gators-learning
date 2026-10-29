@@ -6,7 +6,7 @@ Ar Akbar log in dile oita save thakbe bare bare ar log in Korte hobe na log in k
 
 This project was built with [Lovable](https://lovable.dev).
 
-**Live app**: https://instant-certify-me.lovable.app
+**Live app**: https://gators-learning.lovable.app
 
 ## Build with Lovable
 
